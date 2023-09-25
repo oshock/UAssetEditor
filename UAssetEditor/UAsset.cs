@@ -1,5 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections;
+using System.Data;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Usmap.NET;
 
 namespace UAssetEditor;
 
@@ -13,6 +16,19 @@ public class UAsset : BinaryReader
     public FExportMapEntry[] ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
 
+    protected Usmap.NET.Usmap? _mappings;
+
+    public Dictionary<string, UProperty> Properties;
+
+    public void LoadMappings(string path)
+    {
+	    _mappings = new Usmap.NET.Usmap(path, new UsmapOptions
+	    {
+		    OodlePath = "oo2core_9_win64.dll",
+		    SaveNames = false
+	    });
+    }
+    
     public UAsset(byte[] data) : base(new MemoryStream(data))
     { }
     
@@ -21,10 +37,21 @@ public class UAsset : BinaryReader
 
     public void ReadAll()
     {
-        
+	    Position = ReadHeader();
+	    foreach (var entry in ExportBundleEntries)
+	    {
+		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
+			    continue;
+		    
+		    var export = ExportMap[entry.LocalExportIndex];
+		    var name = NameMap[(int)export.ObjectName.NameIndex];
+		    // TODO read global container for all class type names
+		    /*var @class = NameMap[];
+		    Properties.Add(name, ReadProperties());*/
+	    }
     }
 
-    public void ReadHeader()
+    public uint ReadHeader()
     {
         var summary = new FZenPackageSummary(this);
         NameMap = ReadNameMap();
@@ -42,7 +69,9 @@ public class UAsset : BinaryReader
         Position = summary.ExportMapOffset;
         ExportMap = ReadArray(() => new FExportMapEntry(this),
 	        (summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size);
-        ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * 2);
+        ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
+
+        return summary.HeaderSize;
     }
 
     public NameMapContainer ReadNameMap()
@@ -78,6 +107,98 @@ public class UAsset : BinaryReader
             Hashes = hashes,
             Strings = strings
         };
+    }
+
+    // https://github.com/EpicGames/UnrealEngine/blob/a3cb3d8fdec1fc32f071ae7d22250f33f80b21c4/Engine/Source/Runtime/CoreUObject/Private/Serialization/UnversionedPropertySerialization.cpp#L528
+    public List<UProperty> ReadProperties(string type)
+    {
+	    var props = new List<UProperty>();
+	    var bHasNonZeroValues = false;
+
+	    var frags = new List<FFragment>();
+	    var zeroMaskNum = 0U;
+	    var unmaskedNum = 0U;
+	    do
+	    {
+		    var packed = Read<ushort>();
+		    frags.Add(new FFragment(packed));
+
+		    var valueNum = frags.Last().ValueNum;
+		    if (frags.Last().bHasAnyZeroes)
+			    zeroMaskNum += valueNum;
+		    else
+			    unmaskedNum += valueNum;
+	    } while (!frags.Last().bIsLast);
+
+	    BitArray? zeroMask = null;
+	    if (zeroMaskNum > 0)
+	    {
+		    if (zeroMaskNum <= 8)
+		    {
+			    var @int = ReadByte();
+			    zeroMask = new BitArray(new[] { @int });
+		    }
+		    else if (zeroMaskNum <= 16)
+		    {
+			    var @int = Read<ushort>();
+			    zeroMask = new BitArray(new[] { (int)@int });
+		    }
+		    else
+		    {
+			    var data = new int[(zeroMaskNum + 32 - 1) / 32];
+			    for (var idx = 0; idx < data.Length; idx++)
+				    data[idx] = Read<int>();
+			    zeroMask = new BitArray(data);
+		    }
+	    }
+
+	    var falseFound = false;
+	    foreach (var bit in zeroMask)
+		    falseFound &= !(bool)bit;
+	    bHasNonZeroValues = unmaskedNum > 0 || falseFound;
+
+	    if (_mappings == null)
+		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
+	    
+	    var schema = _mappings?.Schemas.First(x => x.Name == type);
+	    if (schema == null)
+		    throw new NoNullAllowedException($"Cannot find '{type}' in mappings. Unable to parse data!");
+	    
+	    var schemaIndex = 0;
+	    var zeroMaskIndex = 0;
+
+	    if (bHasNonZeroValues)
+		    schemaIndex += frags.First().SkipNum;
+	    
+	    foreach (var frag in frags)
+	    {
+		    var currentRemainingValues = frag.ValueNum;
+		    if (frag.bHasAnyZeroes)
+			    zeroMaskIndex++;
+
+		    do
+		    {
+			    // TODO add default values if zero
+			    if (!frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex))
+			    {
+				    var prop = schema.Value.Properties.ToList().Find(x => x.SchemaIdx == schemaIndex);
+				    // TODO read property (wtf man)
+				    props.Add(new UProperty
+				    {
+					    Current = frag,
+					    Type = prop.Name,
+					    Size = prop.ArraySize
+				    });
+			    }
+                
+			    schemaIndex++;
+			    currentRemainingValues--;
+		    } while (currentRemainingValues > 0);
+
+		    schemaIndex += frag.SkipNum;
+	    }
+
+	    return props;
     }
 
     public long Position
