@@ -2,13 +2,15 @@
 using System.Data;
 using System.Runtime.CompilerServices;
 using System.Text;
+using UAssetEditor.IoStore;
 using Usmap.NET;
 
 namespace UAssetEditor;
 
-public class UAsset : BinaryReader
+public class UAsset : Reader
 {
     public string Name { get; set; }
+    public IoGlobalReader GlobalData;
 
     public NameMapContainer NameMap;
     public ulong[] ImportedPublicExportHashes;
@@ -18,7 +20,7 @@ public class UAsset : BinaryReader
 
     protected Usmap.NET.Usmap? _mappings;
 
-    public Dictionary<string, UProperty> Properties;
+    public Dictionary<string, List<UProperty>> Properties = new();
 
     public void LoadMappings(string path)
     {
@@ -29,12 +31,24 @@ public class UAsset : BinaryReader
 	    });
     }
     
-    public UAsset(byte[] data) : base(new MemoryStream(data))
+    public UAsset(byte[] data) : base(data)
     { }
     
     public UAsset(string path) : this(File.ReadAllBytes(path))
     { }
 
+    /// <summary>
+    /// Initialize the global objects required to read this package.
+    /// </summary>
+    /// <param name="globalContainerPath"></param>
+    public void Initialize(string globalContainerPath)
+    {
+	    GlobalData = new IoGlobalReader(globalContainerPath);
+    }
+
+    /// <summary>
+    /// Read the entirety of this asset
+    /// </summary>
     public void ReadAll()
     {
 	    Position = ReadHeader();
@@ -45,16 +59,15 @@ public class UAsset : BinaryReader
 		    
 		    var export = ExportMap[entry.LocalExportIndex];
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    // TODO read global container for all class type names
-		    /*var @class = NameMap[];
-		    Properties.Add(name, ReadProperties());*/
+		    var @class = GlobalData.GlobalNameMap[(int)GlobalData.ScriptObjectEntriesMap[export.ClassIndex].ObjectName.NameIndex]; // TODO make this a method
+		    Properties.Add(name, ReadProperties(@class));
 	    }
     }
 
     public uint ReadHeader()
     {
         var summary = new FZenPackageSummary(this);
-        NameMap = ReadNameMap();
+        NameMap = ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
 
         // Not needed
@@ -74,32 +87,32 @@ public class UAsset : BinaryReader
         return summary.HeaderSize;
     }
 
-    public NameMapContainer ReadNameMap()
+    public static NameMapContainer ReadNameMap(Reader reader)
     {
-        var count = Read<int>();
+        var count = reader.Read<int>();
         switch (count)
         {
             case < 0:
-                throw new IndexOutOfRangeException($"Name map of '{Name}' cannot have a length of {count}!");
+                throw new IndexOutOfRangeException($"Name map cannot have a length of {count}!");
             case 0:
                 return default;
         }
 
-        var numBytes = Read<uint>();
-        var hashVersion = Read<ulong>();
+        var numBytes = reader.Read<uint>();
+        var hashVersion = reader.Read<ulong>();
 
         var hashes = new ulong[count];
         for (int i = 0; i < hashes.Length; i++) 
-            hashes[i] = Read<ulong>();
+            hashes[i] = reader.Read<ulong>();
         
         var headers = new byte[count];
         for (int i = 0; i < headers.Length; i++)
         {
-            Position++;
-            headers[i] = ReadByte();
+            reader.Position++; // skip utf-16 check
+            headers[i] = reader.ReadByte();
         }
 
-        var strings = headers.Select(t => Encoding.UTF8.GetString(ReadBytes(t))).ToList();
+        var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
         return new NameMapContainer
         {
             NumBytes = numBytes,
@@ -153,8 +166,12 @@ public class UAsset : BinaryReader
 	    }
 
 	    var falseFound = false;
-	    foreach (var bit in zeroMask)
-		    falseFound &= !(bool)bit;
+	    if (zeroMask != null)
+	    {
+		    foreach (var bit in zeroMask)
+			    falseFound &= !(bool)bit;
+	    }
+
 	    bHasNonZeroValues = unmaskedNum > 0 || falseFound;
 
 	    if (_mappings == null)
@@ -186,8 +203,7 @@ public class UAsset : BinaryReader
 				    props.Add(new UProperty
 				    {
 					    Current = frag,
-					    Type = prop.Name,
-					    Size = prop.ArraySize
+					    Type = prop.Name
 				    });
 			    }
                 
@@ -199,34 +215,6 @@ public class UAsset : BinaryReader
 	    }
 
 	    return props;
-    }
-
-    public long Position
-    {
-        get => BaseStream.Position;
-        set => BaseStream.Position = value;
-    }
-
-    public T Read<T>()
-    {
-        var buffer = ReadBytes(Unsafe.SizeOf<T>());
-        return Unsafe.ReadUnaligned<T>(ref buffer[0]);
-    }
-
-    public T[] ReadArray<T>(int length)
-    {
-        var result = new T[length];
-        for (int i = 0; i < result.Length; i++)
-            result[i] = Read<T>();
-        return result;
-    }
-
-    public T[] ReadArray<T>(Func<T> func, int length)
-    {
-	    var result = new T[length];
-	    for (int i = 0; i < result.Length; i++)
-		    result[i] = func();
-	    return result;
     }
 }
 

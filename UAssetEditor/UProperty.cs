@@ -3,7 +3,6 @@
 public class UProperty
 {
     public string Type;
-    public int Size;
     public FFragment Current;
 }
 
