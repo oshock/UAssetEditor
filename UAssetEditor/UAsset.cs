@@ -51,7 +51,7 @@ public class UAsset : Reader
     /// </summary>
     public void ReadAll()
     {
-	    Position = ReadHeader();
+	    var headerSize = Position = ReadHeader();
 	    foreach (var entry in ExportBundleEntries)
 	    {
 		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
@@ -60,6 +60,8 @@ public class UAsset : Reader
 		    var export = ExportMap[entry.LocalExportIndex];
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
 		    var @class = GlobalData.GlobalNameMap[(int)GlobalData.ScriptObjectEntriesMap[export.ClassIndex].ObjectName.NameIndex]; // TODO make this a method
+
+		    Position = headerSize + (long)export.CookedSerialOffset;
 		    Properties.Add(name, ReadProperties(@class));
 	    }
     }
@@ -126,7 +128,7 @@ public class UAsset : Reader
     public List<UProperty> ReadProperties(string type)
     {
 	    var props = new List<UProperty>();
-	    var bHasNonZeroValues = false;
+	    bool bHasNonZeroValues;
 
 	    var frags = new List<FFragment>();
 	    var zeroMaskNum = 0U;
