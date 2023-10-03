@@ -18,20 +18,18 @@ public class UAsset : Reader
     public FExportMapEntry[] ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
 
-    protected Usmap.NET.Usmap? _mappings;
-
     public Dictionary<string, List<UProperty>> Properties = new();
 
     public void LoadMappings(string path)
     {
-	    _mappings = new Usmap.NET.Usmap(path, new UsmapOptions
+	    Mappings = new Usmap.NET.Usmap(path, new UsmapOptions
 	    {
 		    OodlePath = "oo2core_9_win64.dll",
 		    SaveNames = false
 	    });
     }
     
-    public UAsset(byte[] data) : base(data)
+    public UAsset(byte[] data) : base(data, null)
     { }
     
     public UAsset(string path) : this(File.ReadAllBytes(path))
@@ -176,10 +174,10 @@ public class UAsset : Reader
 
 	    bHasNonZeroValues = unmaskedNum > 0 || falseFound;
 
-	    if (_mappings == null)
+	    if (Mappings == null)
 		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
 	    
-	    var schema = _mappings?.Schemas.First(x => x.Name == type);
+	    var schema = Mappings?.Schemas.First(x => x.Name == type);
 	    if (schema == null)
 		    throw new NoNullAllowedException($"Cannot find '{type}' in mappings. Unable to parse data!");
 	    

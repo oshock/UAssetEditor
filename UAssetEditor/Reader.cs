@@ -1,11 +1,16 @@
 using System.Runtime.CompilerServices;
+using UAssetEditor.Properties;
 
 namespace UAssetEditor;
 
 public class Reader : BinaryReader
 {
-    public Reader(byte[] data) : base(new MemoryStream(data))
-    { }
+    public Usmap.NET.Usmap? Mappings;
+    
+    public Reader(byte[] data, Usmap.NET.Usmap? mappings = null) : base(new MemoryStream(data))
+    {
+        Mappings = mappings;
+    }
     
     public long Position
     {
