@@ -5,7 +5,7 @@ namespace UAssetEditor.Properties;
 
 public class EnumProperty : AbstractProperty
 {
-    public override void Read(Reader reader, UsmapPropertyData? data)
+    public override void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
     {
         var index = Convert.ToInt32(ReadProperty(data.InnerType.StructType, reader));
         var enumData = reader.Mappings.Enums.FirstOrDefault(x => x.Name == data.EnumName);

@@ -3,6 +3,7 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UAssetEditor.IoStore;
+using UAssetEditor.Properties;
 using Usmap.NET;
 
 namespace UAssetEditor;
@@ -199,11 +200,10 @@ public class UAsset : Reader
 			    if (!frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex))
 			    {
 				    var prop = schema.Value.Properties.ToList().Find(x => x.SchemaIdx == schemaIndex);
-				    // TODO read property (wtf man)
 				    props.Add(new UProperty
 				    {
-					    Current = frag,
-					    Type = prop.Name
+					    Type = prop.Name,
+					    Value =	AbstractProperty.ReadProperty(prop.Name, this, prop.Data, this)
 				    });
 			    }
                 
