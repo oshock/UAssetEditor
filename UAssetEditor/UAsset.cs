@@ -177,19 +177,22 @@ public class UAsset : Reader
 
 	    if (Mappings == null)
 		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
-	    
+
 	    var schema = Mappings?.Schemas.First(x => x.Name == type);
 	    if (schema == null)
 		    throw new NoNullAllowedException($"Cannot find '{type}' in mappings. Unable to parse data!");
-	    
+
+	    var totalSchemaIndex = 0;
 	    var schemaIndex = 0;
 	    var zeroMaskIndex = 0;
 
-	    if (bHasNonZeroValues)
-		    schemaIndex += frags.First().SkipNum;
-	    
-	    foreach (var frag in frags)
+	    while (frags.Count > 0)
 	    {
+		    var frag = frags.First();
+
+		    if (bHasNonZeroValues)
+			    schemaIndex += frag.SkipNum;
+
 		    var currentRemainingValues = frag.ValueNum;
 		    if (frag.bHasAnyZeroes)
 			    zeroMaskIndex++;
@@ -199,19 +202,28 @@ public class UAsset : Reader
 			    // TODO add default values if zero
 			    if (!frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex))
 			    {
-				    var prop = schema.Value.Properties.ToList().Find(x => x.SchemaIdx == schemaIndex);
+				    if (schema.Value.PropCount < schemaIndex)
+				    {
+					    totalSchemaIndex += schema.Value.PropCount;
+					    schema = Mappings?.Schemas.First(x => x.Name == schema.Value.SuperType);
+				    }
+
+				    var prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+				    var propType = prop.Data.Type.ToString();
+				    
 				    props.Add(new UProperty
 				    {
-					    Type = prop.Name,
-					    Value =	AbstractProperty.ReadProperty(prop.Name, this, prop.Data, this)
+					    Type = propType,
+					    Name = prop.Name,
+					    Value = AbstractProperty.ReadProperty(prop.Data.Type.ToString(), this, prop.Data, this)
 				    });
 			    }
-                
+
 			    schemaIndex++;
 			    currentRemainingValues--;
 		    } while (currentRemainingValues > 0);
 
-		    schemaIndex += frag.SkipNum;
+		    frags.RemoveAt(0);
 	    }
 
 	    return props;

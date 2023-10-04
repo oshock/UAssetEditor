@@ -29,7 +29,7 @@ public abstract class AbstractProperty
                 var result = new List<object>();
                 for (int i = 0; i < count; i++)
                 {
-                    result.Add(ReadProperty(innerData!.Type.ToString(), reader)!);
+                    result.Add(ReadProperty(innerData!.InnerType.Type.ToString(), reader, innerData, asset)!);
                 }
                 return result;
             case "BoolProperty":
@@ -55,7 +55,7 @@ public abstract class AbstractProperty
             case "UInt64Property":
                 return reader.Read<ulong>();
             case "StructProperty":
-                return asset!.ReadProperties(type);
+                return asset!.ReadProperties(innerData!.StructType);
             case "TextProperty":
                 var text = new TextProperty();
                 text.Read(reader, null);

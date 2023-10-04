@@ -5,6 +5,7 @@ namespace UAssetEditor;
 public class UProperty
 {
     public string Type;
+    public string Name;
     public object? Value;
 }
 
