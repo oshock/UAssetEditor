@@ -16,12 +16,20 @@ public class FString
     public FString(Reader reader)
     {
         var length = reader.Read<int>();
-        Text = Encoding.ASCII.GetString(reader.ReadBytes(length));
+        if (length == 0)
+        {
+            Text = string.Empty;
+            return;
+        }
+        
+        Text = Encoding.ASCII.GetString(reader.ReadBytes(length)).TrimEnd('\0');
     }
 
     public static string Read(Reader reader)
     {
-        return new FString(reader).Text;
+        var text = new FString(reader).Text;
+        return text;
+        
     }
 }
 
@@ -33,6 +41,6 @@ public class FName
     {
         var nameIndex = reader.Read<int>();
         var extraIndex = reader.Read<int>();
-        Name = nameMap[nameIndex];
+        //Name = nameMap[nameIndex];
     }
 }

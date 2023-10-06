@@ -202,20 +202,22 @@ public class UAsset : Reader
 			    // TODO add default values if zero
 			    if (!frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex))
 			    {
-				    if (schema.Value.PropCount < schemaIndex)
+				    var prop = schema.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+				    while (string.IsNullOrEmpty(prop.Name))
 				    {
 					    totalSchemaIndex += schema.Value.PropCount;
 					    schema = Mappings?.Schemas.First(x => x.Name == schema.Value.SuperType);
+					    prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 				    }
 
-				    var prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+
 				    var propType = prop.Data.Type.ToString();
 				    
 				    props.Add(new UProperty
 				    {
 					    Type = propType,
 					    Name = prop.Name,
-					    Value = AbstractProperty.ReadProperty(prop.Data.Type.ToString(), this, prop.Data, this)
+					    Value = AbstractProperty.ReadProperty(prop.Data.Type.ToString(), this, prop, this)
 				    });
 			    }
 

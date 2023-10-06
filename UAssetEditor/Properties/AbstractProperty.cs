@@ -20,26 +20,26 @@ public abstract class AbstractProperty
     public virtual void Write(Writer writer)
     { }
 
-    public static object? ReadProperty(string type, Reader reader, UsmapPropertyData? innerData = null, UAsset? asset = null)
+    public static object? ReadProperty(string type, Reader reader, UsmapProperty? prop, UAsset? asset = null)
     {
         switch (type)
         {
             case "ArrayProperty":
                 var count = reader.Read<int>();
                 var result = new List<object>();
+                
                 for (int i = 0; i < count; i++)
-                {
-                    result.Add(ReadProperty(innerData!.InnerType.Type.ToString(), reader, innerData, asset)!);
-                }
+                    result.Add(ReadProperty(prop.Value.Data.InnerType.Type.ToString(), reader, prop, asset)!);
+                
                 return result;
             case "BoolProperty":
                 return reader.ReadByte() == 1;
             case "DoubleProperty":
                 return reader.Read<double>();
             case "EnumProperty":
-                var prop = new EnumProperty();
-                prop.Read(reader, innerData);
-                return prop.Value;
+                var enumProp = new EnumProperty();
+                enumProp.Read(reader, prop.Value.Data);
+                return enumProp.Value;
             case "FloatProperty":
                 return reader.Read<float>();
             case "Int8Property":
@@ -55,7 +55,17 @@ public abstract class AbstractProperty
             case "UInt64Property":
                 return reader.Read<ulong>();
             case "StructProperty":
-                return asset!.ReadProperties(innerData!.StructType);
+                if (prop.Value.Name == "GameplayTags" || prop.Value.Data.StructType == "GameplayTagContainer" || prop.Value.Data!.StructType == "GameplayTag")
+                {
+                    var tags = new List<FName>();
+                    var tagCount = reader.Read<uint>();
+                    
+                    for (int i = 0; i < tagCount; i++)
+                        tags.Add(new FName(reader, asset!.NameMap));
+                    
+                    return tags;
+                }
+                return asset!.ReadProperties(prop.Value.Data!.StructType ?? prop.Value.Data.InnerType.StructType);
             case "TextProperty":
                 var text = new TextProperty();
                 text.Read(reader, null);

@@ -36,6 +36,7 @@ public class TextProperty : AbstractProperty
 {
     public override void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
     {
+        reader.Position += sizeof(uint); // Flags
         var type = reader.Read<ETextHistoryType>();
         Value = type switch
         {
