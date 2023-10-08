@@ -210,7 +210,6 @@ public class UAsset : Reader
 					    prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 				    }
 
-
 				    var propType = prop.Data.Type.ToString();
 				    
 				    props.Add(new UProperty
@@ -240,6 +239,7 @@ public struct NameMapContainer
     public List<string> Strings;
 
     public string this[int nameIndex] => Strings[nameIndex];
+    public int Length => Strings.Count;
 }
 
 public readonly struct FExportMapEntry

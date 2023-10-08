@@ -1,3 +1,4 @@
+using System.Reflection;
 using Usmap.NET;
 
 namespace UAssetEditor.Properties;
@@ -14,6 +15,18 @@ public abstract class AbstractProperty
         Value = value;
     }
 
+    public static object? CreateAndRead(string propertyName, Reader reader, UsmapPropertyData? data, UAsset? asset = null)
+    {
+        var type = Assembly.GetAssembly(typeof(AbstractProperty))!.GetTypes().FirstOrDefault(x => x.Name == propertyName);
+        if (type == default)
+            throw new KeyNotFoundException(
+                $"Could not find property inheriting from '{nameof(AbstractProperty)}' named '{propertyName}'.");
+        
+        var instance = (AbstractProperty)Activator.CreateInstance(type)!;
+        instance.Read(reader, data, asset);
+        return instance.Value;
+    }
+    
     public virtual void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
     { }
 
@@ -55,7 +68,8 @@ public abstract class AbstractProperty
             case "UInt64Property":
                 return reader.Read<ulong>();
             case "StructProperty":
-                if (prop.Value.Name == "GameplayTags" || prop.Value.Data.StructType == "GameplayTagContainer" || prop.Value.Data!.StructType == "GameplayTag")
+
+                List<FName> ReadGameplayTagArray()
                 {
                     var tags = new List<FName>();
                     var tagCount = reader.Read<uint>();
@@ -65,7 +79,22 @@ public abstract class AbstractProperty
                     
                     return tags;
                 }
-                return asset!.ReadProperties(prop.Value.Data!.StructType ?? prop.Value.Data.InnerType.StructType);
+
+                return prop!.Value.Data.StructType switch
+                {
+                    "GameplayTagContainer" => new FGameplayTagContainer
+                    {
+                        GameplayTags = ReadGameplayTagArray(), ParentTags = ReadGameplayTagArray()
+                    },
+                    "InstancedStruct" => new FInstancedStruct(reader),
+                    "GameplayTag" => new FName(reader, asset!.NameMap),
+                    _ => prop.Value.Name switch
+                    {
+                        "GameplayTags" => ReadGameplayTagArray(),
+                        _ => asset!.ReadProperties(prop.Value.Data!.StructType ?? prop.Value.Data.InnerType.StructType)
+                    }
+                };
+
             case "TextProperty":
                 var text = new TextProperty();
                 text.Read(reader, null);
@@ -86,4 +115,10 @@ public abstract class AbstractProperty
                 throw new KeyNotFoundException($"Could not find a property named '{type}'.");
         }
     }
+}
+
+public struct FGameplayTagContainer
+{
+    public List<FName> GameplayTags;
+    public List<FName> ParentTags;
 }

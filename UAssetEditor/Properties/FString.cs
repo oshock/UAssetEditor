@@ -36,11 +36,14 @@ public class FString
 public class FName
 {
     public string Name;
+    public int NameIndex;
+    public int ExtraIndex;
 
     public FName(Reader reader, NameMapContainer nameMap)
     {
-        var nameIndex = reader.Read<int>();
-        var extraIndex = reader.Read<int>();
-        //Name = nameMap[nameIndex];
+        NameIndex = reader.Read<int>();
+        ExtraIndex = reader.Read<int>();
+        if (nameMap.Length > NameIndex && NameIndex >= 0)
+            Name = nameMap[NameIndex];
     }
 }
