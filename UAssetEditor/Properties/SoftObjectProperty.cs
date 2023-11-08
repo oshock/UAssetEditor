@@ -8,7 +8,7 @@ public class SoftObjectProperty : AbstractProperty
     {
         var assetPathName = new FName(reader, asset.NameMap).Name;
         var packageName = new FName(reader, asset.NameMap).Name;
-        var subPathString = FString.Read(reader);
-        Value = $"{assetPathName}.{subPathString}";
+        var subPathString = FString.Read(reader); // idk
+        Value = $"{assetPathName}.{packageName}";
     }
 }

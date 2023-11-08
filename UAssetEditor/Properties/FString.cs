@@ -46,4 +46,10 @@ public class FName
         if (nameMap.Length > NameIndex && NameIndex >= 0)
             Name = nameMap[NameIndex];
     }
+
+    public void Serialize(Writer writer, NameMapContainer nameMapContainer)
+    {
+        writer.Write(nameMapContainer.Strings.FindIndex(x => x == Name));
+        writer.Write(ExtraIndex);
+    }
 }

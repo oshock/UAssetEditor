@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Data;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Text;
 using UAssetEditor.IoStore;
 using UAssetEditor.Properties;
@@ -13,11 +14,14 @@ public class UAsset : Reader
     public string Name { get; set; }
     public IoGlobalReader GlobalData;
 
+    public EPackageFlags Flags;
     public NameMapContainer NameMap;
     public ulong[] ImportedPublicExportHashes;
     public ulong[] ImportMap;
     public FExportMapEntry[] ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
+    public FDependencyBundleHeader[] DependencyBundleHeaders;
+    public int[] DependencyBundleEntries;
 
     public Dictionary<string, List<UProperty>> Properties = new();
 
@@ -46,6 +50,74 @@ public class UAsset : Reader
     }
 
     /// <summary>
+    /// Serializes the entire asset to a stream.
+    /// </summary>
+    /// <param name="writer"></param>
+    public void WriteAll(Writer writer)
+    {
+	    var propBuffers = new List<Writer>();
+	    foreach (var export in ExportBundleEntries)
+	    {
+		    if (export.CommandType != EExportCommandType.ExportCommandType_Create)
+			    continue;
+
+		    var exportEntry = ExportMap[export.LocalExportIndex];
+		    var name = NameMap[(int)exportEntry.ObjectName.NameIndex];
+		    var @class = GlobalData.GetScriptName(exportEntry.ClassIndex);
+		    
+		    propBuffers.Add(WriteProperties(@class, (int)export.LocalExportIndex, Properties[name]));
+	    }
+	    
+	    WriteHeader(writer);
+	    foreach (var buf in propBuffers)
+		    buf.CopyTo(writer);
+    }
+
+    public void WriteHeader(Writer writer)
+    {
+	    var summary = default(FZenPackageSummary);
+	    writer.Position = FZenPackageSummary.Size;
+	    WriteNameMap(writer, NameMap);
+
+	    writer.Position += sizeof(long) + sizeof(ulong); // pad size + bulk data size
+	    
+	    summary.ImportedPublicExportHashesOffset = (int)writer.Position;
+	    writer.WriteArray(ImportedPublicExportHashes);
+
+	    summary.ImportMapOffset = (int)writer.Position;
+	    writer.WriteArray(ImportMap);
+	    
+	    summary.ExportMapOffset = (int)writer.Position;
+	    foreach (var export in ExportMap)
+		    export.Serialize(writer);
+
+	    summary.ExportBundleEntriesOffset = (int)writer.Position;
+	    writer.WriteArray(ExportBundleEntries);
+
+	    summary.DependencyBundleHeadersOffset = (int)writer.Position;
+	    foreach (var depHeader in DependencyBundleHeaders)
+	    {
+		    writer.Write(depHeader.FirstEntryIndex);
+		    foreach (var a in depHeader.EntryCount)
+			    writer.WriteArray(a);
+	    }
+
+	    summary.DependencyBundleEntriesOffset = (int)writer.Position;
+	    writer.WriteArray(DependencyBundleEntries);
+	    
+	    var end = writer.Position;
+	    summary.ImportedPackageNamesOffset = (int)end;
+	    
+	    summary.HeaderSize = (uint)writer.Position;
+	    summary.PackageFlags = Flags;
+
+	    writer.Position = 0;
+	    writer.Write(summary);
+	    
+	    writer.Position = end;
+    }
+    
+    /// <summary>
     /// Read the entirety of this asset
     /// </summary>
     public void ReadAll()
@@ -58,7 +130,7 @@ public class UAsset : Reader
 		    
 		    var export = ExportMap[entry.LocalExportIndex];
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    var @class = GlobalData.GlobalNameMap[(int)GlobalData.ScriptObjectEntriesMap[export.ClassIndex].ObjectName.NameIndex]; // TODO make this a method
+		    var @class = GlobalData.GetScriptName(export.ClassIndex);
 
 		    Position = headerSize + (long)export.CookedSerialOffset;
 		    Properties.Add(name, ReadProperties(@class));
@@ -68,11 +140,15 @@ public class UAsset : Reader
     public uint ReadHeader()
     {
         var summary = new FZenPackageSummary(this);
+        Flags = summary.PackageFlags;
         NameMap = ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
 
         // Not needed
-        //Position += (long)Read<ulong>(); // Skip BulkDataMap
+        // var padSize = Read<long>();
+        // Position += padSize;
+        // Position += Read
+        // Position += (long)Read<ulong>(); // Skip BulkDataMap
         Position = summary.ImportedPublicExportHashesOffset;
         ImportedPublicExportHashes =
             ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
@@ -85,9 +161,35 @@ public class UAsset : Reader
 	        (summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size);
         ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
 
+        Position = summary.DependencyBundleHeadersOffset;
+        DependencyBundleHeaders = ReadArray(() => new FDependencyBundleHeader
+		        { FirstEntryIndex = Read<int>(), EntryCount = ReadArray(() => ReadArray<uint>(2), 2) },
+	        (summary.DependencyBundleEntriesOffset - summary.DependencyBundleHeadersOffset) / 20);
+
+        Position = summary.DependencyBundleEntriesOffset;
+        DependencyBundleEntries =
+	        ReadArray<int>((summary.ImportedPackageNamesOffset - summary.DependencyBundleEntriesOffset) / sizeof(int));
+        
         return summary.HeaderSize;
     }
 
+    public static void WriteNameMap(Writer writer, NameMapContainer nameMap)
+    {
+	    writer.Write(nameMap.Length);
+	    writer.Write(nameMap.NumBytes);
+	    writer.Write(nameMap.HashVersion);
+	    writer.WriteArray(nameMap.Hashes);
+
+	    foreach (var s in nameMap.Strings)
+	    {
+		    writer.Write((byte)0);
+		    writer.Write((byte)s.Length);
+	    }
+
+	    foreach (var s in nameMap.Strings)
+		    writer.WriteString(s);
+    }
+    
     public static NameMapContainer ReadNameMap(Reader reader)
     {
         var count = reader.Read<int>();
@@ -116,7 +218,6 @@ public class UAsset : Reader
         var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
         return new NameMapContainer
         {
-            NumBytes = numBytes,
             HashVersion = hashVersion,
             Hashes = hashes,
             Strings = strings
@@ -194,32 +295,33 @@ public class UAsset : Reader
 			    schemaIndex += frag.SkipNum;
 
 		    var currentRemainingValues = frag.ValueNum;
-		    if (frag.bHasAnyZeroes)
-			    zeroMaskIndex++;
 
 		    do
 		    {
-			    // TODO add default values if zero
-			    if (!frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex))
+			    var prop = schema.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+			    while (string.IsNullOrEmpty(prop.Name))
 			    {
-				    var prop = schema.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
-				    while (string.IsNullOrEmpty(prop.Name))
-				    {
-					    totalSchemaIndex += schema.Value.PropCount;
-					    schema = Mappings?.Schemas.First(x => x.Name == schema.Value.SuperType);
-					    prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
-				    }
-
-				    var propType = prop.Data.Type.ToString();
-				    
-				    props.Add(new UProperty
-				    {
-					    Type = propType,
-					    Name = prop.Name,
-					    Value = AbstractProperty.ReadProperty(prop.Data.Type.ToString(), this, prop, this)
-				    });
+				    totalSchemaIndex += schema.Value.PropCount;
+				    schema = Mappings?.Schemas.First(x => x.Name == schema.Value.SuperType);
+				    prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 			    }
+			    
+			    var propType = prop.Data.Type.ToString();
+			    var isNonZero = !frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex);
+			    
+			    props.Add(new UProperty
+			    {
+				    Type = propType,
+				    Name = prop.Name,
+				    Value = AbstractProperty.ReadProperty(prop.Data.Type.ToString(), this, prop, this, !isNonZero),
+				    StructType = prop.Data.StructType ?? prop.Data.InnerType?.StructType,
+				    EnumName = prop.Data.EnumName,
+				    InnerType = prop.Data.InnerType?.Type.ToString(),
+				    IsZero = !isNonZero
+			    });
 
+			    if (frag.bHasAnyZeroes)
+				    zeroMaskIndex++;
 			    schemaIndex++;
 			    currentRemainingValues--;
 		    } while (currentRemainingValues > 0);
@@ -229,11 +331,125 @@ public class UAsset : Reader
 
 	    return props;
     }
+    
+    public Writer WriteProperties(string type, int exportIndex, List<UProperty> properties)
+    {
+	    if (Mappings == null)
+		    throw new NoNullAllowedException("Mappings cannot be null!");
+	    
+	    var writer = new Writer();
+	    var frags = new List<FFragment>();
+	    var zeroMask = new List<bool>();
+
+	    AddFrag();
+	    using var enumerator = properties.GetEnumerator();
+	    var schema = Mappings?.Schemas.First(x => x.Name == type);
+	    var lastWasValue = false; // scuffy mcScufferson
+	    
+	    foreach (var prop in schema!.Value.Properties)
+	    {
+		    if (!enumerator.MoveNext())
+		    {
+			    MakeLast();
+			    break;
+		    }
+
+		    if (prop.Name != enumerator.Current.Name)
+		    {
+			    if (lastWasValue)
+			    {
+				    lastWasValue = false;
+				    AddFrag();
+			    }
+
+			    IncreaseSkip();
+			    continue;
+		    }
+		    
+		    var isZero = enumerator.Current.IsZero;
+		    
+		    if (isZero || GetLast().bHasAnyZeroes)
+		    {
+			    if (isZero)
+					MakeZero();
+			    
+			    zeroMask.Add(isZero);
+		    }
+
+		    lastWasValue = true;
+		    IncreaseValue();
+
+		    if (GetLast().ValueNum >= FFragment.ValueMax
+		        || GetLast().SkipNum >= FFragment.SkipMax)
+		    {
+			    AddFrag();
+		    }
+
+		    break;
+	    }
+	    
+	    foreach (var frag in frags)
+		    writer.Write(frag.Pack());
+
+	    if (zeroMask.Count > 0)
+	    {
+		    var bits = new BitArray(zeroMask.ToArray());
+		    var buffer = new byte[(bits.Length - 1) / 8 + 1];
+		    bits.CopyTo(buffer, 0);
+		    writer.Write(buffer);
+	    }
+
+	    foreach (var prop in properties)
+	    {
+		    if (prop.IsZero)
+			    continue;
+		    
+		    AbstractProperty.WriteProperty(writer, prop, this);
+	    }
+
+	    if (exportIndex > 0)
+	    {
+		    ExportMap[exportIndex] = ExportMap[exportIndex] with
+		    {
+			    CookedSerialSize = (ulong)writer.BaseStream.Length
+		    };
+	    }
+
+	    return writer;
+	    
+	    void AddFrag() => frags.Add(new FFragment
+	    {
+		    ValueNum = 1
+	    });
+
+	    void IncreaseValue() => frags[^1] = frags[^1] with
+	    {
+		    ValueNum = (byte)(frags[^1].ValueNum + 1)
+	    };
+	    
+	    void IncreaseSkip() => frags[^1] = frags[^1] with
+	    {
+		    SkipNum = (byte)(frags[^1].SkipNum + 1)
+	    };
+
+	    void MakeLast() => frags[^1] = frags[^1] with
+	    {
+		    bIsLast = true
+	    };
+	    
+	    void MakeZero() => frags[^1] = frags[^1] with
+	    {
+		    bHasAnyZeroes = true
+	    };
+
+	    FFragment GetLast() => frags[^1];
+    }
 }
 
 public struct NameMapContainer
 {
-    public uint NumBytes;
+	public uint NumBytes => (uint)Strings.Sum(str => str.Length);
+	
     public ulong HashVersion;
     public ulong[] Hashes;
     public List<string> Strings;
@@ -242,20 +458,20 @@ public struct NameMapContainer
     public int Length => Strings.Count;
 }
 
-public readonly struct FExportMapEntry
+public struct FExportMapEntry
 {
 	public const int Size = 72;
 
-	public readonly ulong CookedSerialOffset;
-	public readonly ulong CookedSerialSize;
-	public readonly FMappedName ObjectName;
-	public readonly ulong OuterIndex;
-	public readonly ulong ClassIndex;
-	public readonly ulong SuperIndex;
-	public readonly ulong TemplateIndex;
-	public readonly ulong PublicExportHash;
-	public readonly EObjectFlags ObjectFlags;
-	public readonly byte FilterFlags; // EExportFilterFlags: client/server flags
+	public ulong CookedSerialOffset;
+	public ulong CookedSerialSize;
+	public FMappedName ObjectName;
+	public ulong OuterIndex;
+	public ulong ClassIndex;
+	public ulong SuperIndex;
+	public ulong TemplateIndex;
+	public ulong PublicExportHash;
+	public EObjectFlags ObjectFlags;
+	public byte FilterFlags; // EExportFilterFlags: client/server flags
 
 	public FExportMapEntry(UAsset Ar)
 	{
@@ -271,6 +487,22 @@ public readonly struct FExportMapEntry
 		ObjectFlags = Ar.Read<EObjectFlags>();
 		FilterFlags = Ar.Read<byte>();
 		Ar.Position = start + Size;
+	}
+
+	public void Serialize(Writer writer)
+	{
+		var start = writer.Position;
+		writer.Write(CookedSerialOffset);
+		writer.Write(CookedSerialSize);
+		writer.Write(ObjectName);
+		writer.Write(OuterIndex);
+		writer.Write(ClassIndex);
+		writer.Write(SuperIndex);
+		writer.Write(TemplateIndex);
+		writer.Write(PublicExportHash);
+		writer.Write(ObjectFlags);
+		writer.Write(FilterFlags);
+		writer.Position = start + Size;
 	}
 }
 
@@ -381,8 +613,14 @@ public enum EExportCommandType : uint
 	ExportCommandType_Count
 };
     
-public readonly struct FExportBundleEntry
+public struct FExportBundleEntry
 {
-	public readonly uint LocalExportIndex;
-	public readonly EExportCommandType CommandType;
+	public uint LocalExportIndex;
+	public EExportCommandType CommandType;
+}
+
+public struct FDependencyBundleHeader
+{
+	public int FirstEntryIndex;
+	public uint[][] EntryCount; // 2 * 2
 }

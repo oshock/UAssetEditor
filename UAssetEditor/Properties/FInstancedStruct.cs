@@ -2,8 +2,8 @@ namespace UAssetEditor.Properties;
 
 public class FInstancedStruct
 {
-    public object? Value;
-
+    public byte[] Buffer;
+    
     public FInstancedStruct(Reader reader)
     {
         var index = AbstractProperty.CreateAndRead("ObjectProperty", reader, null);
@@ -15,7 +15,12 @@ public class FInstancedStruct
         }
         else*/
         {
-            reader.Position += serialSize;
+            Buffer = reader.ReadBytes(serialSize);
         }
+    }
+
+    public void Serialize(Writer writer)
+    {
+        writer.Write(Buffer);
     }
 }

@@ -1,10 +1,17 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace UAssetEditor;
 
 public class Writer : BinaryWriter
 {
     public Writer(byte[] data) : base(new MemoryStream(data))
+    { }
+
+    public Writer(Stream stream) : base(stream)
+    { }
+    
+    public Writer() : base(new MemoryStream())
     { }
     
     public long Position
@@ -17,8 +24,10 @@ public class Writer : BinaryWriter
     {
         var buffer = new byte[Unsafe.SizeOf<T>()];
         Unsafe.WriteUnaligned(ref buffer[0], value);
-        Write(buffer);
+        BaseStream.Write(buffer);
     }
+
+    public void WriteString(string str) => Write(Encoding.ASCII.GetBytes(str));
 
     public void WriteArray<T>(IEnumerable<T> values)
     {
@@ -30,5 +39,11 @@ public class Writer : BinaryWriter
     {
         foreach (var value in values)
             func(value);
+    }
+
+    public void CopyTo(Writer dest)
+    {
+        Position = 0;
+        BaseStream.CopyTo(dest.BaseStream);
     }
 }

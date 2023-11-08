@@ -14,6 +14,8 @@ public class IoGlobalReader
 {
     public readonly List<string> GlobalNameMap;
     public readonly Dictionary<ulong, FScriptObjectEntry> ScriptObjectEntriesMap = new();
+ 
+    public string GetScriptName(ulong index) => GlobalNameMap[(int)ScriptObjectEntriesMap[index].ObjectName.NameIndex];
     
     public IoGlobalReader(string path)
     {

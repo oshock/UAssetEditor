@@ -5,8 +5,14 @@ namespace UAssetEditor;
 public class UProperty
 {
     public string Type;
+    public string? InnerType;
+    public string? EnumName;
+    public string? StructType;
     public string Name;
     public object? Value;
+    public bool IsZero;
+    
+    public override string ToString() => $"{Value} ({Type})";
 }
 
 // Based heavily on https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Assets/Objects/Unversioned/FFragment.cs
