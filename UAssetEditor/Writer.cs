@@ -27,7 +27,7 @@ public class Writer : BinaryWriter
         BaseStream.Write(buffer);
     }
 
-    public void WriteString(string str) => Write(Encoding.ASCII.GetBytes(str));
+    public void WriteString(string str) => BaseStream.Write(Encoding.ASCII.GetBytes(str));
 
     public void WriteArray<T>(IEnumerable<T> values)
     {
@@ -44,6 +44,7 @@ public class Writer : BinaryWriter
     public void CopyTo(Writer dest)
     {
         Position = 0;
+        dest.Position = dest.BaseStream.Length;
         BaseStream.CopyTo(dest.BaseStream);
     }
 }

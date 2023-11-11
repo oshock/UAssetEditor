@@ -121,4 +121,20 @@ public struct FZenPackageSummary
         DependencyBundleEntriesOffset = Ar.Read<int>();
         ImportedPackageNamesOffset = Ar.Read<int>();
     }
+
+    public void Serialize(Writer writer)
+    {
+        writer.Write(bHasVersioningInfo);
+        writer.Write(HeaderSize);
+        writer.Write(Name);
+        writer.Write(PackageFlags);
+        writer.Write(CookedHeaderSize);
+        writer.Write(ImportedPublicExportHashesOffset);
+        writer.Write(ImportMapOffset);
+        writer.Write(ExportMapOffset);
+        writer.Write(ExportBundleEntriesOffset);
+        writer.Write(DependencyBundleHeadersOffset);
+        writer.Write(DependencyBundleEntriesOffset);
+        writer.Write(ImportedPackageNamesOffset);
+    }
 }

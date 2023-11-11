@@ -76,6 +76,8 @@ public class UAsset : Reader
     public void WriteHeader(Writer writer)
     {
 	    var summary = default(FZenPackageSummary);
+	    summary.Name = new FMappedName((uint)NameMap.Strings.FindIndex(x => x == Name), 0);
+	    
 	    writer.Position = FZenPackageSummary.Size;
 	    WriteNameMap(writer, NameMap);
 
@@ -112,7 +114,7 @@ public class UAsset : Reader
 	    summary.PackageFlags = Flags;
 
 	    writer.Position = 0;
-	    writer.Write(summary);
+	    summary.Serialize(writer);
 	    
 	    writer.Position = end;
     }
@@ -178,7 +180,9 @@ public class UAsset : Reader
 	    writer.Write(nameMap.Length);
 	    writer.Write(nameMap.NumBytes);
 	    writer.Write(nameMap.HashVersion);
-	    writer.WriteArray(nameMap.Hashes);
+
+	    foreach (var s in nameMap.Strings)
+		    writer.Write(CityHash.CityHash64(Encoding.ASCII.GetBytes(s)));
 
 	    foreach (var s in nameMap.Strings)
 	    {
@@ -219,7 +223,7 @@ public class UAsset : Reader
         return new NameMapContainer
         {
             HashVersion = hashVersion,
-            Hashes = hashes,
+            Hashes = hashes.ToList(),
             Strings = strings
         };
     }
@@ -343,17 +347,12 @@ public class UAsset : Reader
 
 	    AddFrag();
 	    using var enumerator = properties.GetEnumerator();
+	    enumerator.MoveNext();
 	    var schema = Mappings?.Schemas.First(x => x.Name == type);
 	    var lastWasValue = false; // scuffy mcScufferson
 	    
 	    foreach (var prop in schema!.Value.Properties)
 	    {
-		    if (!enumerator.MoveNext())
-		    {
-			    MakeLast();
-			    break;
-		    }
-
 		    if (prop.Name != enumerator.Current.Name)
 		    {
 			    if (lastWasValue)
@@ -378,14 +377,18 @@ public class UAsset : Reader
 
 		    lastWasValue = true;
 		    IncreaseValue();
+		    
+		    if (!enumerator.MoveNext())
+		    {
+			    MakeLast();
+			    break;
+		    }
 
 		    if (GetLast().ValueNum >= FFragment.ValueMax
 		        || GetLast().SkipNum >= FFragment.SkipMax)
 		    {
 			    AddFrag();
 		    }
-
-		    break;
 	    }
 	    
 	    foreach (var frag in frags)
@@ -451,7 +454,7 @@ public struct NameMapContainer
 	public uint NumBytes => (uint)Strings.Sum(str => str.Length);
 	
     public ulong HashVersion;
-    public ulong[] Hashes;
+    public List<ulong> Hashes;
     public List<string> Strings;
 
     public string this[int nameIndex] => Strings[nameIndex];
