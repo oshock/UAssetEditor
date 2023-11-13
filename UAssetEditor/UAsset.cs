@@ -348,47 +348,32 @@ public class UAsset : Reader
 	    AddFrag();
 	    using var enumerator = properties.GetEnumerator();
 	    enumerator.MoveNext();
-	    var schema = Mappings?.Schemas.First(x => x.Name == type);
+	    var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == type);
 	    var lastWasValue = false; // scuffy mcScufferson
-	    
-	    foreach (var prop in schema!.Value.Properties)
+	    var allProps = new List<UsmapProperty>();
+
+	    while (!string.IsNullOrEmpty(schema?.SuperType))
 	    {
-		    if (prop.Name != enumerator.Current.Name)
-		    {
-			    if (lastWasValue)
-			    {
-				    lastWasValue = false;
-				    AddFrag();
-			    }
-
-			    IncreaseSkip();
-			    continue;
-		    }
-		    
+		    allProps.AddRange(schema.Value.Properties);
+		    schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == schema.Value.SuperType);
+	    }
+	    
+	    foreach (var prop in allProps)
+	    {
 		    var isZero = enumerator.Current.IsZero;
-		    
-		    if (isZero || GetLast().bHasAnyZeroes)
+
+		    if (prop.Name == enumerator.Current.Name)
 		    {
-			    if (isZero)
-					MakeZero();
+			    IncludeProperty(isZero);
 			    
-			    zeroMask.Add(isZero);
+			    if (!enumerator.MoveNext())
+			    {
+				    MakeLast();
+				    break;
+			    }
 		    }
-
-		    lastWasValue = true;
-		    IncreaseValue();
-		    
-		    if (!enumerator.MoveNext())
-		    {
-			    MakeLast();
-			    break;
-		    }
-
-		    if (GetLast().ValueNum >= FFragment.ValueMax
-		        || GetLast().SkipNum >= FFragment.SkipMax)
-		    {
-			    AddFrag();
-		    }
+		    else
+			    ExcludeProperty();
 	    }
 	    
 	    foreach (var frag in frags)
@@ -397,9 +382,38 @@ public class UAsset : Reader
 	    if (zeroMask.Count > 0)
 	    {
 		    var bits = new BitArray(zeroMask.ToArray());
-		    var buffer = new byte[(bits.Length - 1) / 8 + 1];
-		    bits.CopyTo(buffer, 0);
-		    writer.Write(buffer);
+		    var lastWordMask = ~0u >> (int)((32u - bits.Length) % 32u);
+		    
+		    if (bits.Length <= 8)
+		    {
+			    var buffer = new byte[1];
+			    bits.CopyTo(buffer, 0);
+			    writer.WriteBytes(buffer);
+		    } 
+		    else if (bits.Length <= 16)
+		    {
+			    var buffer = new byte[2];
+			    bits.CopyTo(buffer, 0);
+			    writer.WriteBytes(buffer);
+		    }
+		    else
+		    {
+			    // dont know where to put this lol
+			    int divideAndRoundUp(int dividend, int divisor) => (dividend + divisor - 1) / divisor;
+
+			    var numWords = divideAndRoundUp(bits.Length, 32);
+
+			    for (int wordIdx = 0; wordIdx < numWords - 1; wordIdx++)
+			    {
+				    var buffer = new byte[4];
+				    bits.CopyTo(buffer, wordIdx);
+				    writer.WriteBytes(buffer);
+			    }
+
+			    var lastWordBuffer = new byte[4];
+			    bits.CopyTo(lastWordBuffer, numWords - 1);
+			    writer.WriteBytes(lastWordBuffer);
+		    }
 	    }
 
 	    foreach (var prop in properties)
@@ -420,29 +434,49 @@ public class UAsset : Reader
 
 	    return writer;
 	    
-	    void AddFrag() => frags.Add(new FFragment
-	    {
-		    ValueNum = 1
-	    });
+	    void AddFrag() => frags.Add(new FFragment());
 
-	    void IncreaseValue() => frags[^1] = frags[^1] with
+	    void TrimZeroMask(FFragment frag)
 	    {
-		    ValueNum = (byte)(frags[^1].ValueNum + 1)
-	    };
+		    if (!frag.bHasAnyZeroes)
+		    {
+			    zeroMask!.RemoveRange(zeroMask.Count - frag.ValueNum, frag.ValueNum);
+		    }
+	    }
 	    
-	    void IncreaseSkip() => frags[^1] = frags[^1] with
+	    void IncludeProperty(bool isZero)
 	    {
-		    SkipNum = (byte)(frags[^1].SkipNum + 1)
-	    };
+		    if (GetLast().ValueNum == FFragment.ValueMax)
+		    {
+			    TrimZeroMask(GetLast());
+			    AddFrag();
+		    }
+		    
+		    zeroMask.Add(isZero);
+		    frags[^1] = frags[^1] with
+		    {
+			    ValueNum = (byte)(frags[^1].ValueNum + 1),
+			    bHasAnyZeroes = frags[^1].bHasAnyZeroes | isZero
+		    };
+	    }
+
+	    void ExcludeProperty()
+	    {
+		    if (GetLast().ValueNum != 0 || GetLast().SkipNum == FFragment.SkipMax)
+		    {
+			    TrimZeroMask(GetLast());
+			    AddFrag();
+		    }
+
+		    frags[^1] = frags[^1] with
+		    {
+			    SkipNum = (byte)(frags[^1].SkipNum + 1)
+		    };
+	    }
 
 	    void MakeLast() => frags[^1] = frags[^1] with
 	    {
 		    bIsLast = true
-	    };
-	    
-	    void MakeZero() => frags[^1] = frags[^1] with
-	    {
-		    bHasAnyZeroes = true
 	    };
 
 	    FFragment GetLast() => frags[^1];

@@ -27,6 +27,8 @@ public class Writer : BinaryWriter
         BaseStream.Write(buffer);
     }
 
+    public void WriteBytes(byte[] buffer) => BaseStream.Write(buffer);
+
     public void WriteString(string str) => BaseStream.Write(Encoding.ASCII.GetBytes(str));
 
     public void WriteArray<T>(IEnumerable<T> values)

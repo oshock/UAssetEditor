@@ -11,7 +11,7 @@ uasset.LoadMappings(@"C:\Users\oshock\Documents\FModel\Output\.data\++Fortnite+R
 uasset.ReadAll();
 stopwatch.Stop();
 Console.WriteLine($"Read in {stopwatch.ElapsedMilliseconds}ms!");
-Console.WriteLine(JsonConvert.SerializeObject(uasset.Properties, Formatting.Indented));
+//Console.WriteLine(JsonConvert.SerializeObject(uasset.Properties, Formatting.Indented));
 
 var writer = new Writer(File.Open("CP_028_Athena_Body EDITED.uasset", FileMode.OpenOrCreate, FileAccess.Write));
 uasset.NameMap.Strings[0] = "WOAHHHHH";
