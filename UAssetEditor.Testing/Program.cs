@@ -5,9 +5,9 @@ using UAssetEditor.Properties;
 using Usmap.NET;
 
 var stopwatch = Stopwatch.StartNew();
-var uasset = new UAsset(@"C:\Users\oshock\Documents\FModel\Output\Exports\CP_028_Athena_Body.uasset");
+var uasset = new UAsset(@"CP_028_Athena_Body.uasset");
 uasset.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
-uasset.LoadMappings(@"C:\Users\oshock\Documents\FModel\Output\.data\++Fortnite+Release-27.00-CL-29072303_oo.usmap");
+uasset.LoadMappings(@"++Fortnite+Release-27.00-CL-29072303_oo.usmap");
 uasset.ReadAll();
 stopwatch.Stop();
 Console.WriteLine($"Read in {stopwatch.ElapsedMilliseconds}ms!");
@@ -20,6 +20,6 @@ writer.Close();
 
 var testRead = new UAsset("CP_028_Athena_Body EDITED.uasset");
 testRead.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
-testRead.LoadMappings(@"C:\Users\oshock\Documents\FModel\Output\.data\++Fortnite+Release-27.00-CL-29072303_oo.usmap");
+testRead.LoadMappings(@"++Fortnite+Release-27.00-CL-29072303_oo.usmap");
 testRead.ReadAll();
 Console.WriteLine(testRead);

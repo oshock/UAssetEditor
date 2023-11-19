@@ -29,7 +29,13 @@ public class FString
     {
         var text = new FString(reader).Text;
         return text;
-        
+    }
+
+    public static void Write(Writer writer, string text)
+    {
+        writer.Write(text.Length);
+        if (text.Length > 0)
+            writer.WriteString(text);
     }
 }
 

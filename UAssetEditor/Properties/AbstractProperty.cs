@@ -108,14 +108,16 @@ public abstract class AbstractProperty
 
                 break;
             case "TextProperty":
-                // TODO
+                var text = (TextProperty)prop.Value!;
+                text.Write(writer, prop, asset);
                 break;
             case "StrProperty":
                 writer.WriteString((string)prop.Value!);
                 break;
             case "SoftClassProperty":
             case "SoftObjectProperty":
-                // TODO
+                var softPath = (SoftObjectProperty)prop.Value!;
+                softPath.Write(writer, prop, asset);
                 break;
             case "ScriptInterface":
             case "ObjectProperty":
@@ -207,7 +209,7 @@ public abstract class AbstractProperty
                     return "None";
                 var softProp = new SoftObjectProperty();
                 softProp.Read(reader, null, asset);
-                return new UProperty { Value = softProp.Value, Type = "SoftObjectProperty"};
+                return softProp;
             case "ScriptInterface":
             case "ObjectProperty":
                 if (isZero)

@@ -381,39 +381,18 @@ public class UAsset : Reader
 
 	    if (zeroMask.Count > 0)
 	    {
-		    var bits = new BitArray(zeroMask.ToArray());
-		    var lastWordMask = ~0u >> (int)((32u - bits.Length) % 32u);
-		    
-		    if (bits.Length <= 8)
+		    var result = new byte[(zeroMask.Count - 1) / 8 + 1];
+		    var index = 0;
+			    
+		    for (int i = 0; i < zeroMask.Count; i++)
 		    {
-			    var buffer = new byte[1];
-			    bits.CopyTo(buffer, 0);
-			    writer.WriteBytes(buffer);
-		    } 
-		    else if (bits.Length <= 16)
-		    {
-			    var buffer = new byte[2];
-			    bits.CopyTo(buffer, 0);
-			    writer.WriteBytes(buffer);
+			    result[index] += Convert.ToByte(zeroMask[i] ? 1 : 0 * Math.Pow(2, i));
+				    
+			    if (i > 0 && i % 8 == 0)
+				    index++;
 		    }
-		    else
-		    {
-			    // dont know where to put this lol
-			    int divideAndRoundUp(int dividend, int divisor) => (dividend + divisor - 1) / divisor;
-
-			    var numWords = divideAndRoundUp(bits.Length, 32);
-
-			    for (int wordIdx = 0; wordIdx < numWords - 1; wordIdx++)
-			    {
-				    var buffer = new byte[4];
-				    bits.CopyTo(buffer, wordIdx);
-				    writer.WriteBytes(buffer);
-			    }
-
-			    var lastWordBuffer = new byte[4];
-			    bits.CopyTo(lastWordBuffer, numWords - 1);
-			    writer.WriteBytes(lastWordBuffer);
-		    }
+			    
+		    writer.WriteBytes(result);
 	    }
 
 	    foreach (var prop in properties)
@@ -426,10 +405,7 @@ public class UAsset : Reader
 
 	    if (exportIndex > 0)
 	    {
-		    ExportMap[exportIndex] = ExportMap[exportIndex] with
-		    {
-			    CookedSerialSize = (ulong)writer.BaseStream.Length
-		    };
+		    ExportMap[exportIndex].CookedSerialSize = (ulong)writer.BaseStream.Length;
 	    }
 
 	    return writer;
@@ -440,7 +416,7 @@ public class UAsset : Reader
 	    {
 		    if (!frag.bHasAnyZeroes)
 		    {
-			    zeroMask!.RemoveRange(zeroMask.Count - frag.ValueNum, frag.ValueNum);
+			    zeroMask.RemoveRange(zeroMask.Count - frag.ValueNum, frag.ValueNum);
 		    }
 	    }
 	    
