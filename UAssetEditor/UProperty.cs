@@ -1,4 +1,5 @@
-﻿using UAssetEditor.Properties;
+﻿using Newtonsoft.Json.Linq;
+using UAssetEditor.Properties;
 
 namespace UAssetEditor;
 

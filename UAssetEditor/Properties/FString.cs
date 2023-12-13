@@ -53,9 +53,21 @@ public class FName
             Name = nameMap[NameIndex];
     }
 
+    public FName(NameMapContainer nameMapContainer, string name, int extraIndex)
+    {
+        NameIndex = nameMapContainer.Strings.FindIndex(x => x.Equals(name));
+        ExtraIndex = extraIndex;
+    }
+
     public void Serialize(Writer writer, NameMapContainer nameMapContainer)
     {
         writer.Write(nameMapContainer.Strings.FindIndex(x => x == Name));
+        writer.Write(ExtraIndex);
+    }
+
+    public void Serialize(Writer writer)
+    {
+        writer.Write(NameIndex);
         writer.Write(ExtraIndex);
     }
 }

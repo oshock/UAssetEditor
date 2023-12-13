@@ -13,16 +13,13 @@ public class SoftObjectProperty : AbstractProperty
         AssetPathName = new FName(reader, asset.NameMap).Name;
         PackageName = new FName(reader, asset.NameMap).Name;
         SubPathName = FString.Read(reader); // idk
-        Value = $"{AssetPathName}.{AssetPathName}";
+        Value = $"{AssetPathName}.{PackageName}";
     }
 
     public override void Write(Writer writer, UProperty property, UAsset? asset = null)
     {
-        var assetIndex = asset!.NameMap.Strings.FindIndex(x => x == AssetPathName);
-        var packageIndex = asset!.NameMap.Strings.FindIndex(x => x == PackageName);
-        
-        writer.Write(assetIndex);
-        writer.Write(packageIndex);
+        new FName(asset.NameMap, AssetPathName, 0).Serialize(writer);
+        new FName(asset.NameMap, PackageName, 0).Serialize(writer);
         FString.Write(writer, SubPathName);
     }
 }

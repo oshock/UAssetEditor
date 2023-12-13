@@ -12,6 +12,9 @@ public class Reader : BinaryReader
         Mappings = mappings;
     }
     
+    public Reader(string path) : this(File.ReadAllBytes(path))
+    { }
+    
     public long Position
     {
         get => BaseStream.Position;

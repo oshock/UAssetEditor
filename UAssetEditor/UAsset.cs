@@ -3,6 +3,8 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UAssetEditor.IoStore;
 using UAssetEditor.Properties;
 using Usmap.NET;
@@ -55,25 +57,27 @@ public class UAsset : Reader
     /// <param name="writer"></param>
     public void WriteAll(Writer writer)
     {
-	    var propBuffers = new List<Writer>();
-	    foreach (var export in ExportBundleEntries)
+	    var properties = new Writer();
+	    var offset = 0UL;
+	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
-		    if (export.CommandType != EExportCommandType.ExportCommandType_Create)
-			    continue;
-
-		    var exportEntry = ExportMap[export.LocalExportIndex];
-		    var name = NameMap[(int)exportEntry.ObjectName.NameIndex];
-		    var @class = GlobalData.GetScriptName(exportEntry.ClassIndex);
+		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
+		    var @class = GlobalData.GetScriptName(ExportMap[i].ClassIndex);
 		    
-		    propBuffers.Add(WriteProperties(@class, (int)export.LocalExportIndex, Properties[name]));
+		    ExportMap[i].CookedSerialOffset = offset;
+		    var props = WriteProperties(@class, i, Properties[name]);
+		    properties.Position = (long)offset;
+		    props.CopyTo(properties);
+		    
+		    ExportMap[i].CookedSerialSize = (ulong)props.BaseStream.Length;
+		    offset += (ulong)props.BaseStream.Length;
 	    }
 	    
 	    WriteHeader(writer);
-	    foreach (var buf in propBuffers)
-		    buf.CopyTo(writer);
+	    properties.CopyTo(writer);
     }
 
-    public void WriteHeader(Writer writer)
+    public uint WriteHeader(Writer writer)
     {
 	    var summary = default(FZenPackageSummary);
 	    summary.Name = new FMappedName((uint)NameMap.Strings.FindIndex(x => x == Name), 0);
@@ -92,7 +96,7 @@ public class UAsset : Reader
 	    summary.ExportMapOffset = (int)writer.Position;
 	    foreach (var export in ExportMap)
 		    export.Serialize(writer);
-
+	    
 	    summary.ExportBundleEntriesOffset = (int)writer.Position;
 	    writer.WriteArray(ExportBundleEntries);
 
@@ -117,6 +121,7 @@ public class UAsset : Reader
 	    summary.Serialize(writer);
 	    
 	    writer.Position = end;
+	    return summary.HeaderSize;
     }
     
     /// <summary>
@@ -349,10 +354,9 @@ public class UAsset : Reader
 	    using var enumerator = properties.GetEnumerator();
 	    enumerator.MoveNext();
 	    var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == type);
-	    var lastWasValue = false; // scuffy mcScufferson
 	    var allProps = new List<UsmapProperty>();
 
-	    while (!string.IsNullOrEmpty(schema?.SuperType))
+	    while (!string.IsNullOrEmpty(schema?.Name))
 	    {
 		    allProps.AddRange(schema.Value.Properties);
 		    schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == schema.Value.SuperType);
@@ -375,24 +379,27 @@ public class UAsset : Reader
 		    else
 			    ExcludeProperty();
 	    }
-	    
+
 	    foreach (var frag in frags)
 		    writer.Write(frag.Pack());
 
 	    if (zeroMask.Count > 0)
 	    {
-		    var result = new byte[(zeroMask.Count - 1) / 8 + 1];
-		    var index = 0;
-			    
-		    for (int i = 0; i < zeroMask.Count; i++)
+		    if (zeroMask.Any(x => x))
 		    {
-			    result[index] += Convert.ToByte(zeroMask[i] ? 1 : 0 * Math.Pow(2, i));
-				    
-			    if (i > 0 && i % 8 == 0)
-				    index++;
+			    var result = new byte[(zeroMask.Count - 1) / 8 + 1];
+			    var index = 0;
+
+			    for (int i = 0; i < zeroMask.Count; i++)
+			    {
+				    result[index] += Convert.ToByte(zeroMask[i] ? 1 : 0 * Math.Pow(2, i));
+
+				    if (i > 0 && i % 8 == 0)
+					    index++;
+			    }
+
+			    writer.WriteBytes(result);
 		    }
-			    
-		    writer.WriteBytes(result);
 	    }
 
 	    foreach (var prop in properties)
@@ -457,6 +464,22 @@ public class UAsset : Reader
 
 	    FFragment GetLast() => frags[^1];
     }
+
+    public JArray ToJson()
+    {
+	    var result = new List<KeyValuePair<string, Dictionary<string, object>>>();
+
+	    foreach (var prop in Properties)
+		    result.Add(new KeyValuePair<string, Dictionary<string, object>>(prop.Key,
+			    prop.Value.ToDictionary(x => x.Name, x => x.Value)));
+
+	    return JArray.FromObject(result);
+    }
+
+    public override string ToString()
+    {
+	    return JsonConvert.SerializeObject(ToJson(), Formatting.Indented);
+    }
 }
 
 public struct NameMapContainer
@@ -488,7 +511,6 @@ public struct FExportMapEntry
 
 	public FExportMapEntry(UAsset Ar)
 	{
-		var start = Ar.Position;
 		CookedSerialOffset = Ar.Read<ulong>();
 		CookedSerialSize = Ar.Read<ulong>();
 		ObjectName = Ar.Read<FMappedName>();
@@ -499,12 +521,11 @@ public struct FExportMapEntry
         PublicExportHash = Ar.Read<ulong>();
 		ObjectFlags = Ar.Read<EObjectFlags>();
 		FilterFlags = Ar.Read<byte>();
-		Ar.Position = start + Size;
+		Ar.Position += 3;
 	}
 
 	public void Serialize(Writer writer)
 	{
-		var start = writer.Position;
 		writer.Write(CookedSerialOffset);
 		writer.Write(CookedSerialSize);
 		writer.Write(ObjectName);
@@ -514,8 +535,8 @@ public struct FExportMapEntry
 		writer.Write(TemplateIndex);
 		writer.Write(PublicExportHash);
 		writer.Write(ObjectFlags);
-		writer.Write(FilterFlags);
-		writer.Position = start + Size;
+		writer.WriteByte(FilterFlags);
+		writer.Position += 3;
 	}
 }
 

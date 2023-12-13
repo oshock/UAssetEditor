@@ -37,13 +37,14 @@ public abstract class AbstractProperty
     {
         if (prop.IsZero)
             return;
+        
         switch (prop.Type)
         {
             case "ArrayProperty":
                 var arr = (List<object>)prop.Value!;
                 writer.Write(arr.Count);
                 foreach (var elm in arr)
-                    WriteProperty(writer, new UProperty{ Value = elm, Type = prop.InnerType!, StructType = prop.StructType}, asset);
+                    WriteProperty(writer, new UProperty { Value = elm, Type = prop.InnerType!, StructType = prop.StructType }, asset);
                 break;
             case "BoolProperty":
                 writer.Write((byte)prop.Value!);
@@ -102,7 +103,8 @@ public abstract class AbstractProperty
                         name.Serialize(writer, asset!.NameMap);
                         break;
                     default:
-                        asset!.WriteProperties(prop.StructType!, -1, (List<UProperty>)prop.Value!);
+                        var buffer = asset!.WriteProperties(prop.StructType!, -1, (List<UProperty>)prop.Value!);
+                        buffer.CopyTo(writer);
                         break;
                 }
 
