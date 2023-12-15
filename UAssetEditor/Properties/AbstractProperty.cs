@@ -156,6 +156,7 @@ public abstract class AbstractProperty
             case "FloatProperty":
                 return isZero ? 0 : reader.Read<float>();
             case "Int8Property":
+            case "ByteProperty":
                 return isZero ? 0 : reader.Read<byte>();
             case "Int16Property":
                 return isZero ? 0 : reader.Read<short>();
@@ -189,7 +190,6 @@ public abstract class AbstractProperty
                         GameplayTags = ReadGameplayTagArray(), ParentTags = ReadGameplayTagArray()
                     },
                     "InstancedStruct" => new FInstancedStruct(reader),
-                    "GameplayTag" => new FName(reader, asset!.NameMap),
                     _ => prop.Value.Name switch
                     {
                         "GameplayTags" => ReadGameplayTagArray(),
@@ -203,6 +203,11 @@ public abstract class AbstractProperty
                 var text = new TextProperty();
                 text.Read(reader, null);
                 return text.Value;
+            case "NameProperty":
+                if (isZero)
+                    return default(FName);
+                var name = new FName(reader, asset!.NameMap);
+                return name;
             case "StrProperty":
                 return isZero ? "None" : FString.Read(reader);
             case "SoftClassProperty":
@@ -219,6 +224,12 @@ public abstract class AbstractProperty
                 var objProp = new ObjectProperty();
                 objProp.Read(reader, null);
                 return objProp.Value;
+            case "MapProperty":
+                if (isZero)
+                    return new Dictionary<object, object>();
+                var map = new MapProperty();
+                map.Read(reader, prop.Value.Data);
+                return map.Value;
             default:
                 throw new KeyNotFoundException($"Could not find a property named '{type}'.");
         }

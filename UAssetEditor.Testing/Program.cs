@@ -3,7 +3,7 @@ using UAssetEditor;
 using UAssetEditor.Properties;
 
 var stopwatch = Stopwatch.StartNew();
-var uasset = new UAsset(@"CP_028_Athena_Body.uasset");
+var uasset = new UAsset(@"DefaultGameDataCosmetics.uasset");
 uasset.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
 uasset.LoadMappings(@"++Fortnite+Release-28.01-CL-30106568-Android_oo.usmap");
 uasset.ReadAll();
@@ -11,27 +11,157 @@ stopwatch.Stop();
 Console.WriteLine($"Read in {stopwatch.ElapsedMilliseconds}ms!");
 //Console.WriteLine(JsonConvert.SerializeObject(uasset.Properties, Formatting.Indented));
 
-if (File.Exists("CP_028_Athena_Body EDITED.uasset"))
-    File.Delete("CP_028_Athena_Body EDITED.uasset");
+if (File.Exists("DefaultGameDataCosmetics EDITED.uasset"))
+    File.Delete("DefaultGameDataCosmetics EDITED.uasset");
 
-var writer = new Writer(File.Open("CP_028_Athena_Body EDITED.uasset", FileMode.Create, FileAccess.Write));
+var writer = new Writer(File.Open("DefaultGameDataCosmetics EDITED.uasset", FileMode.Create, FileAccess.Write));
 uasset.NameMap.Strings.Add("/Game/Characters/Player/Male/Medium/Bodies/M_MED_InstantGravelNoble/FX/NS_Skin_InstantGravelNoble");
 uasset.NameMap.Strings.Add("NS_Skin_InstantGravelNoble");
-uasset.Properties["CP_028_Athena_Body"].Add(new UProperty
+uasset.Properties["DefaultGameDataCosmetics"][5] = new UProperty
 {
-    Name = "IdleEffectNiagara",
-    Type = "SoftObjectProperty",
-    Value = new SoftObjectProperty
+    Name = "DefaultCharacterParts",
+    Type = "ArrayProperty",
+    InnerType = "SoftObjectProperty",
+    Value = new List<SoftObjectProperty>
     {
-        AssetPathName = "/Game/Characters/Player/Male/Medium/Bodies/M_MED_InstantGravelNoble/FX/NS_Skin_InstantGravelNoble",
-        PackageName = "NS_Skin_InstantGravelNoble",
-        SubPathName = ""
+        new()
+        {
+            AssetPathName = "/Game/Athena/Heroes/Meshes/Bodies/CP_Athena_Body_F_Fallback",
+            PackageName = "CP_Athena_Body_F_Fallback",
+            SubPathName = ""
+        },
+        new()
+        {
+            AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+            PackageName = "CP_F_MED_Innovator_Ponytail",
+            SubPathName = ""
+        },
+        new()
+        {
+            AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+            PackageName = "CP_F_MED_Innovator_Ponytail",
+            SubPathName = ""
+        },
+        new()
+        {
+            AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+            PackageName = "CP_F_MED_Innovator_Ponytail",
+            SubPathName = ""
+        },
+        new()
+        {
+            AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+            PackageName = "CP_F_MED_Innovator_Ponytail",
+            SubPathName = ""
+        },
+                 new()
+                 {
+                     AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                     PackageName = "CP_F_MED_Innovator_Ponytail",
+                     SubPathName = ""
+                 },
+                 new()
+                 {
+                     AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                     PackageName = "CP_F_MED_Innovator_Ponytail",
+                     SubPathName = ""
+                 },
+                          new()
+                          {
+                              AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                              PackageName = "CP_F_MED_Innovator_Ponytail",
+                              SubPathName = ""
+                          },
+                                   new()
+                                   {
+                                       AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                       PackageName = "CP_F_MED_Innovator_Ponytail",
+                                       SubPathName = ""
+                                   },
+                                            new()
+                                            {
+                                                AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                SubPathName = ""
+                                            },
+                                                     new()
+                                                     {
+                                                         AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                         PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                         SubPathName = ""
+                                                     },
+                                                              new()
+                                                              {
+                                                                  AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                  PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                  SubPathName = ""
+                                                              },
+                                                                       new()
+                                                                       {
+                                                                           AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                           PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                           SubPathName = ""
+                                                                       },
+                                                                                new()
+                                                                                {
+                                                                                    AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                    PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                    SubPathName = ""
+                                                                                },
+                                                                                         new()
+                                                                                         {
+                                                                                             AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                             PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                             SubPathName = ""
+                                                                                         },
+                                                                                                  new()
+                                                                                                  {
+                                                                                                      AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                      PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                      SubPathName = ""
+                                                                                                  },
+                                                                                                           new()
+                                                                                                           {
+                                                                                                               AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                               PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                               SubPathName = ""
+                                                                                                           },
+                                                                                                                    new()
+                                                                                                                    {
+                                                                                                                        AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                                        PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                                        SubPathName = ""
+                                                                                                                    },
+                                                                                                                             new()
+                                                                                                                             {
+                                                                                                                                 AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                                                 PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                                                 SubPathName = ""
+                                                                                                                             },
+                                                                                                                                      new()
+                                                                                                                                      {
+                                                                                                                                          AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                                                          PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                                                          SubPathName = ""
+                                                                                                                                      },
+                                                                                                                                               new()
+                                                                                                                                               {
+                                                                                                                                                   AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                                                                   PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                                                                   SubPathName = ""
+                                                                                                                                               },
+                                                                                                                                               new()
+                                                                                                                                               {
+                                                                                                                                                   AssetPathName = "/Game/Characters/CharacterParts/FaceAccessories/CP_F_MED_Innovator_Ponytail",
+                                                                                                                                                   PackageName = "CP_F_MED_Innovator_Ponytail",
+                                                                                                                                                   SubPathName = ""
+                                                                                                                                               }
     }
-});
+};
 uasset.WriteAll(writer);
 writer.Close();
 
-var testRead = new UAsset("CP_028_Athena_Body EDITED.uasset");
+var testRead = new UAsset("DefaultGameDataCosmetics.uasset");
 testRead.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
 testRead.LoadMappings(@"++Fortnite+Release-28.01-CL-30106568-Android_oo.usmap");
 testRead.ReadAll();
