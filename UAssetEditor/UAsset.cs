@@ -25,7 +25,26 @@ public class UAsset : Reader
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
 
-    public Dictionary<string, List<UProperty>> Properties = new();
+    public class PropertyContainer
+    {
+	    private List<UProperty> Properties = new();
+
+	    public List<UProperty> GetProperties() => Properties;
+	    public void SetProperties(List<UProperty> properties) => Properties = properties;
+
+	    public PropertyContainer(List<UProperty> properties)
+	    {
+		    SetProperties(properties);
+	    }
+	    
+	    public UProperty this[string name]
+	    {
+		    get => Properties.Find(x => x.Name == name) ?? new UProperty { Name = "None" };
+		    set => Properties[Properties.FindIndex(x => x.Name == name)] = value;
+	    }
+    }
+    
+    public Dictionary<string, PropertyContainer> Properties = new();
 
     public void LoadMappings(string path)
     {
@@ -65,11 +84,12 @@ public class UAsset : Reader
 		    var @class = GlobalData.GetScriptName(ExportMap[i].ClassIndex);
 		    
 		    ExportMap[i].CookedSerialOffset = offset;
-		    var props = WriteProperties(@class, i, Properties[name]);
+		    var props = WriteProperties(@class, i, Properties[name].GetProperties());
 		    properties.Position = (long)offset;
 		    props.CopyTo(properties);
+		    properties.Position += 4; // Padding;
 		    
-		    ExportMap[i].CookedSerialSize = (ulong)props.BaseStream.Length;
+		    ExportMap[i].CookedSerialSize = (ulong)props.BaseStream.Length + 4; // Padding
 		    offset += (ulong)props.BaseStream.Length;
 	    }
 	    
@@ -140,7 +160,7 @@ public class UAsset : Reader
 		    var @class = GlobalData.GetScriptName(export.ClassIndex);
 
 		    Position = headerSize + (long)export.CookedSerialOffset;
-		    Properties.Add(name, ReadProperties(@class));
+		    Properties.Add(name, new PropertyContainer(ReadProperties(@class)));
 	    }
     }
 
@@ -187,7 +207,7 @@ public class UAsset : Reader
 	    writer.Write(nameMap.HashVersion);
 
 	    foreach (var s in nameMap.Strings)
-		    writer.Write(CityHash.CityHash64(Encoding.ASCII.GetBytes(s)));
+		    writer.Write(CityHash.CityHash64(Encoding.UTF8.GetBytes(s.ToLower())));
 
 	    foreach (var s in nameMap.Strings)
 	    {
@@ -470,8 +490,10 @@ public class UAsset : Reader
 	    var result = new List<KeyValuePair<string, Dictionary<string, object>>>();
 
 	    foreach (var prop in Properties)
+	    {
 		    result.Add(new KeyValuePair<string, Dictionary<string, object>>(prop.Key,
-			    prop.Value.ToDictionary(x => x.Name, x => x.Value)));
+			    prop.Value.GetProperties().ToDictionary(x => x.Name, x => x.Value) ?? new()));
+	    }
 
 	    return JArray.FromObject(result);
     }

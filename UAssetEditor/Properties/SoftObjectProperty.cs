@@ -6,7 +6,7 @@ public class SoftObjectProperty : AbstractProperty
 {
     public string AssetPathName;
     public string PackageName;
-    public string SubPathName;
+    public string SubPathName = "";
     
     public override void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
     {
