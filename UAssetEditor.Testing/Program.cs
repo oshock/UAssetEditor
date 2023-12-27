@@ -3,7 +3,7 @@ using UAssetEditor;
 using UAssetEditor.Properties;
 
 var stopwatch = Stopwatch.StartNew();
-var uasset = new ZenAsset(@"CP_028_Athena_Body.uasset");
+var uasset = new ZenAsset(@"DefaultGameDataCosmetics.uasset");
 uasset.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
 uasset.LoadMappings(@"++Fortnite+Release-28.01-CL-30106568-Android_oo.usmap");
 uasset.ReadAll();
@@ -11,6 +11,7 @@ stopwatch.Stop();
 Console.WriteLine($"Read in {stopwatch.ElapsedMilliseconds}ms!");
 //Console.WriteLine(JsonConvert.SerializeObject(uasset.Properties, Formatting.Indented));
 
+/*
 if (File.Exists("CP_028_Athena_Body EDITED.uasset"))
     File.Delete("CP_028_Athena_Body EDITED.uasset");
 
@@ -51,3 +52,4 @@ testRead.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\
 testRead.LoadMappings(@"++Fortnite+Release-28.01-CL-30106568-Android_oo.usmap");
 testRead.ReadAll();
 Console.WriteLine(testRead.ToJson());
+*/

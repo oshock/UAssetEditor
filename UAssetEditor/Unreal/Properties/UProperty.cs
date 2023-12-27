@@ -207,6 +207,7 @@ public abstract class AbstractProperty
                         GameplayTags = ReadGameplayTagArray(), ParentTags = ReadGameplayTagArray()
                     },
                     "InstancedStruct" => new FInstancedStruct(reader),
+                    "GameplayTagQuery" => new FGameplayTagQuery(),
                     _ => prop.Value.Name switch
                     {
                         "GameplayTags" => ReadGameplayTagArray(),

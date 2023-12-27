@@ -8,8 +8,7 @@ public class MapProperty : AbstractProperty
     
     public override void Read(Reader reader, UsmapPropertyData? data, UAsset asset = null)
     {
-        // TODO
-        /*var numKeysToRemove = reader.Read<int>();
+        var numKeysToRemove = reader.Read<int>();
         for (int i = 0; i < numKeysToRemove; i++)
             ReadProperty(data.InnerType.Type.ToString(), reader, null, asset);
 
@@ -19,14 +18,14 @@ public class MapProperty : AbstractProperty
         var keyType = data.InnerType.Type.ToString();
         var valueType = data.ValueType.Type.ToString();
 
-        var mappings = asset?.Mappings;
+        var mappings = asset.Mappings;
         
         for (int i = 0; i < num; i++)
         {
             var key = ReadProperty(keyType, reader, null, asset);
-            var value = ReadProperty(valueType, reader, , asset);
+            var value = ReadProperty(valueType, reader, new UsmapProperty(data.ValueType.StructType, 0, 1, data.ValueType), asset);
             Value.Add(key ?? "None", value ?? "None");
-        }*/
+        }
     }
 
     public override void Write(Writer writer, UProperty property, UAsset asset = null)

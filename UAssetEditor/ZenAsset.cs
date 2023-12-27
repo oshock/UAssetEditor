@@ -2,6 +2,7 @@
 using UAssetEditor.IoStore;
 using UAssetEditor.Misc;
 using UAssetEditor.Names;
+using UAssetEditor.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
 using Usmap.NET;
@@ -42,6 +43,99 @@ public class ZenAsset : UAsset
     {
 	    GlobalData = new IoGlobalReader(globalContainerPath);
     }
+    
+    /// <summary>
+    /// Read the entirety of this asset
+    /// </summary>
+    public void ReadAll()
+    {
+	    var headerSize = Position = ReadHeader();
+	    var propReader = new UnversionedReader(this);
+	    foreach (var entry in ExportBundleEntries)
+	    {
+		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
+			    continue;
+		    
+		    var export = ExportMap[entry.LocalExportIndex];
+		    var name = NameMap[(int)export.ObjectName.NameIndex];
+		    var @class = GlobalData.GetScriptName(export.ClassIndex);
+
+		    Position = headerSize + (long)export.CookedSerialOffset;
+		    Properties.Add(name, new PropertyContainer(propReader.ReadProperties(@class)));
+	    }
+    }
+
+    public uint ReadHeader()
+    {
+        var summary = new FZenPackageSummary(this);
+        Flags = summary.PackageFlags;
+        NameMap = ReadNameMap(this);
+        Name = NameMap[(int)summary.Name.NameIndex];
+
+        // Not needed
+        // var padSize = Read<long>();
+        // Position += padSize;
+        // Position += Read
+        // Position += (long)Read<ulong>(); // Skip BulkDataMap
+        Position = summary.ImportedPublicExportHashesOffset;
+        ImportedPublicExportHashes =
+            ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
+
+        Position = summary.ImportMapOffset;
+        ImportMap = ReadArray<ulong>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
+
+        Position = summary.ExportMapOffset;
+        ExportMap = ReadArray(() => new FExportMapEntry(this),
+	        (summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size);
+        ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
+
+        Position = summary.DependencyBundleHeadersOffset;
+        DependencyBundleHeaders = ReadArray(() => new FDependencyBundleHeader
+		        { FirstEntryIndex = Read<int>(), EntryCount = ReadArray(() => ReadArray<uint>(2), 2) },
+	        (summary.DependencyBundleEntriesOffset - summary.DependencyBundleHeadersOffset) / 20);
+
+        Position = summary.DependencyBundleEntriesOffset;
+        DependencyBundleEntries =
+	        ReadArray<int>((summary.ImportedPackageNamesOffset - summary.DependencyBundleEntriesOffset) / sizeof(int));
+        
+        return summary.HeaderSize;
+    }
+    
+    public static NameMapContainer ReadNameMap(Reader reader)
+    {
+	    var count = reader.Read<int>();
+	    switch (count)
+	    {
+		    case < 0:
+			    throw new IndexOutOfRangeException($"Name map cannot have a length of {count}!");
+		    case 0:
+			    return default;
+	    }
+
+	    var numBytes = reader.Read<uint>();
+	    var hashVersion = reader.Read<ulong>();
+
+	    var hashes = new ulong[count];
+	    for (int i = 0; i < hashes.Length; i++) 
+		    hashes[i] = reader.Read<ulong>();
+        
+	    var headers = new byte[count];
+	    for (int i = 0; i < headers.Length; i++)
+	    {
+		    reader.Position++; // skip utf-16 check
+		    headers[i] = reader.ReadByte();
+	    }
+
+	    var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
+	    return new NameMapContainer
+	    {
+		    HashVersion = hashVersion,
+		    Hashes = hashes.ToList(),
+		    Strings = strings
+	    };
+    }
+
+    public List<UProperty> ReadProperties(string type) => new UnversionedReader(this).ReadProperties(type);
 
     /// <summary>
     /// Serializes the entire asset to a stream.
@@ -50,6 +144,7 @@ public class ZenAsset : UAsset
     public void WriteAll(Writer writer)
     {
 	    var properties = new Writer();
+	    var propWriter = new UnversionedWriter(this);
 	    var offset = 0UL;
 	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
@@ -57,7 +152,7 @@ public class ZenAsset : UAsset
 		    var @class = GlobalData.GetScriptName(ExportMap[i].ClassIndex);
 		    
 		    ExportMap[i].CookedSerialOffset = offset;
-		    var props = WriteProperties(@class, i, Properties[name].GetProperties());
+		    var props = propWriter.WriteProperties(@class, i, Properties[name].GetProperties());
 		    properties.Position = (long)offset;
 		    props.CopyTo(properties);
 		    properties.Position += 4; // Padding;
@@ -115,62 +210,6 @@ public class ZenAsset : UAsset
 	    
 	    writer.Position = end;
     }
-    
-    /// <summary>
-    /// Read the entirety of this asset
-    /// </summary>
-    public void ReadAll()
-    {
-	    var headerSize = Position = ReadHeader();
-	    foreach (var entry in ExportBundleEntries)
-	    {
-		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
-			    continue;
-		    
-		    var export = ExportMap[entry.LocalExportIndex];
-		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    var @class = GlobalData.GetScriptName(export.ClassIndex);
-
-		    Position = headerSize + (long)export.CookedSerialOffset;
-		    Properties.Add(name, new PropertyContainer(ReadProperties(@class)));
-	    }
-    }
-
-    public uint ReadHeader()
-    {
-        var summary = new FZenPackageSummary(this);
-        Flags = summary.PackageFlags;
-        NameMap = ReadNameMap(this);
-        Name = NameMap[(int)summary.Name.NameIndex];
-
-        // Not needed
-        // var padSize = Read<long>();
-        // Position += padSize;
-        // Position += Read
-        // Position += (long)Read<ulong>(); // Skip BulkDataMap
-        Position = summary.ImportedPublicExportHashesOffset;
-        ImportedPublicExportHashes =
-            ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
-
-        Position = summary.ImportMapOffset;
-        ImportMap = ReadArray<ulong>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
-
-        Position = summary.ExportMapOffset;
-        ExportMap = ReadArray(() => new FExportMapEntry(this),
-	        (summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size);
-        ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
-
-        Position = summary.DependencyBundleHeadersOffset;
-        DependencyBundleHeaders = ReadArray(() => new FDependencyBundleHeader
-		        { FirstEntryIndex = Read<int>(), EntryCount = ReadArray(() => ReadArray<uint>(2), 2) },
-	        (summary.DependencyBundleEntriesOffset - summary.DependencyBundleHeadersOffset) / 20);
-
-        Position = summary.DependencyBundleEntriesOffset;
-        DependencyBundleEntries =
-	        ReadArray<int>((summary.ImportedPackageNamesOffset - summary.DependencyBundleEntriesOffset) / sizeof(int));
-        
-        return summary.HeaderSize;
-    }
 
     public static void WriteNameMap(Writer writer, NameMapContainer nameMap)
     {
@@ -190,38 +229,7 @@ public class ZenAsset : UAsset
 	    foreach (var s in nameMap.Strings)
 		    writer.WriteString(s);
     }
-    
-    public static NameMapContainer ReadNameMap(Reader reader)
-    {
-        var count = reader.Read<int>();
-        switch (count)
-        {
-            case < 0:
-                throw new IndexOutOfRangeException($"Name map cannot have a length of {count}!");
-            case 0:
-                return default;
-        }
 
-        var numBytes = reader.Read<uint>();
-        var hashVersion = reader.Read<ulong>();
-
-        var hashes = new ulong[count];
-        for (int i = 0; i < hashes.Length; i++) 
-            hashes[i] = reader.Read<ulong>();
-        
-        var headers = new byte[count];
-        for (int i = 0; i < headers.Length; i++)
-        {
-            reader.Position++; // skip utf-16 check
-            headers[i] = reader.ReadByte();
-        }
-
-        var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
-        return new NameMapContainer
-        {
-            HashVersion = hashVersion,
-            Hashes = hashes.ToList(),
-            Strings = strings
-        };
-    }
+    public Writer WriteProperties(string type, int exportIndex, List<UProperty> properties) =>
+	    new UnversionedWriter(this).WriteProperties(type, exportIndex, properties);
 }
