@@ -1,7 +1,24 @@
-using System.Reflection;
+﻿using System.Reflection;
+using Newtonsoft.Json.Linq;
+using UAssetEditor.Names;
+using UAssetEditor.Properties;
+using UAssetEditor.Properties.Structs;
 using Usmap.NET;
 
-namespace UAssetEditor.Properties;
+namespace UAssetEditor;
+
+public class UProperty
+{
+    public string Type;
+    public string? InnerType;
+    public string? EnumName;
+    public string? StructType;
+    public string Name;
+    public object? Value;
+    public bool IsZero;
+    
+    public override string ToString() => $"{Value} ({Type})";
+}
 
 public abstract class AbstractProperty
 {
@@ -27,10 +44,10 @@ public abstract class AbstractProperty
         return instance.Value;
     }
     
-    public virtual void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
+    public virtual void Read(Reader reader, UsmapPropertyData? data, UAsset asset = null)
     { }
 
-    public virtual void Write(Writer writer, UProperty property, UAsset? asset = null)
+    public virtual void Write(Writer writer, UProperty property, UAsset asset = null)
     { }
 
     public static void WriteProperty(Writer writer, UProperty prop, UAsset? asset = null)
@@ -234,10 +251,4 @@ public abstract class AbstractProperty
                 throw new KeyNotFoundException($"Could not find a property named '{type}'.");
         }
     }
-}
-
-public struct FGameplayTagContainer
-{
-    public List<FName> GameplayTags;
-    public List<FName> ParentTags;
 }

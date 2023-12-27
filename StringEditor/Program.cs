@@ -2,7 +2,7 @@
 
 Console.Write("Enter the file path for the uasset > ");
 var file = Console.ReadLine().Replace("\"", string.Empty);
-var uasset = new UAsset(file);
+var uasset = new ZenAsset(file);
 uasset.ReadHeader();
 var end = uasset.ReadBytes((int)(uasset.BaseStream.Length - uasset.Position));
 

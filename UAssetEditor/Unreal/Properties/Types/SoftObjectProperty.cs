@@ -1,3 +1,4 @@
+using UAssetEditor.Names;
 using Usmap.NET;
 
 namespace UAssetEditor.Properties;
@@ -8,7 +9,7 @@ public class SoftObjectProperty : AbstractProperty
     public string PackageName;
     public string SubPathName = "";
     
-    public override void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, UAsset asset = null)
     {
         AssetPathName = new FName(reader, asset.NameMap).Name;
         PackageName = new FName(reader, asset.NameMap).Name;
@@ -16,7 +17,7 @@ public class SoftObjectProperty : AbstractProperty
         Value = $"{AssetPathName}.{PackageName}";
     }
 
-    public override void Write(Writer writer, UProperty property, UAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, UAsset asset = null)
     {
         new FName(asset.NameMap, AssetPathName, 0).Serialize(writer);
         new FName(asset.NameMap, PackageName, 0).Serialize(writer);

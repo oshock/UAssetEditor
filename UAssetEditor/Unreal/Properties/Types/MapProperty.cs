@@ -6,9 +6,9 @@ public class MapProperty : AbstractProperty
 {
     public Dictionary<object, object> Value;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, UAsset asset = null)
     {
-        // WIP
+        // TODO
         /*var numKeysToRemove = reader.Read<int>();
         for (int i = 0; i < numKeysToRemove; i++)
             ReadProperty(data.InnerType.Type.ToString(), reader, null, asset);
@@ -29,7 +29,7 @@ public class MapProperty : AbstractProperty
         }*/
     }
 
-    public override void Write(Writer writer, UProperty property, UAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, UAsset asset = null)
     {
         
     }

@@ -3,7 +3,7 @@ using UAssetEditor;
 using UAssetEditor.Properties;
 
 var stopwatch = Stopwatch.StartNew();
-var uasset = new UAsset(@"CP_028_Athena_Body.uasset");
+var uasset = new ZenAsset(@"CP_028_Athena_Body.uasset");
 uasset.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
 uasset.LoadMappings(@"++Fortnite+Release-28.01-CL-30106568-Android_oo.usmap");
 uasset.ReadAll();
@@ -46,7 +46,7 @@ uasset.Properties["CP_028_Athena_Body"]["MasterSkeletalMeshes"] = new UProperty
 uasset.WriteAll(writer);
 writer.Close();
 
-var testRead = new UAsset("CP_028_Athena_Body EDITED.uasset");
+var testRead = new ZenAsset("CP_028_Athena_Body EDITED.uasset");
 testRead.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
 testRead.LoadMappings(@"++Fortnite+Release-28.01-CL-30106568-Android_oo.usmap");
 testRead.ReadAll();

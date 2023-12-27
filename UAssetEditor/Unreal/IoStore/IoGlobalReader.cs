@@ -1,4 +1,5 @@
 using Astro.App.IoReader;
+using UAssetEditor.Names;
 
 namespace UAssetEditor.IoStore;
 
@@ -21,7 +22,7 @@ public class IoGlobalReader
     {
         var ioStoreReader = new IoStoreReader(path);
         var reader = ioStoreReader.Extract(ioStoreReader.ExtractChunk(0, IoStoreReader.EIoChunkType5.ScriptObjects));
-        GlobalNameMap = UAsset.ReadNameMap(reader).Strings;
+        GlobalNameMap = ZenAsset.ReadNameMap(reader).Strings;
 
         var numScriptObjects = reader.Read<int>();
         var scriptObjectEntries = reader.ReadArray<FScriptObjectEntry>(numScriptObjects);

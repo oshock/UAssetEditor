@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 
-namespace UAssetEditor;
+namespace UAssetEditor.Misc;
 
 // https://github.com/google/cityhash
 public static unsafe class CityHash
@@ -9,6 +10,8 @@ public static unsafe class CityHash
     private const ulong K1 = 0xb492b66fbe98f273;
     private const ulong K2 = 0x9ae16a3b2f90404f;
 
+    public static ulong TransformString(string s) => CityHash64(Encoding.UTF8.GetBytes(s.ToLower()));
+    
     public static ulong CityHash64(byte[] buffer)
     {
         if (buffer == null || buffer.Length == 0)

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using UAssetEditor.Names;
 using Usmap.NET;
 
 namespace UAssetEditor.Properties;
@@ -37,7 +38,7 @@ public class TextProperty : AbstractProperty
     public uint Flags;
     public ETextHistoryType Type;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, UAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, UAsset asset = null)
     {
         Flags = reader.Read<uint>();
         Type = reader.Read<ETextHistoryType>();
@@ -53,7 +54,7 @@ public class TextProperty : AbstractProperty
         };
     }
 
-    public override void Write(Writer writer, UProperty property, UAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, UAsset asset = null)
     {
         writer.Write(Flags);
         writer.Write(Type);

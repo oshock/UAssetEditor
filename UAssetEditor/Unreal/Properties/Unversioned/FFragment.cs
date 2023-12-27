@@ -1,20 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using UAssetEditor.Properties;
-
-namespace UAssetEditor;
-
-public class UProperty
-{
-    public string Type;
-    public string? InnerType;
-    public string? EnumName;
-    public string? StructType;
-    public string Name;
-    public object? Value;
-    public bool IsZero;
-    
-    public override string ToString() => $"{Value} ({Type})";
-}
+namespace UAssetEditor.Properties.Unversioned;
 
 // Based heavily on https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Assets/Objects/Unversioned/FFragment.cs
 public struct FFragment
@@ -43,6 +27,6 @@ public struct FFragment
     public ushort Pack()
     {
         return (ushort)(SkipNum | (ushort)(bHasAnyZeroes ? HasZeroMask : 0) | (ushort)(ValueNum << ValueNumShift) |
-               (ushort)(bIsLast ? IsLastMask : 0));
+                        (ushort)(bIsLast ? IsLastMask : 0));
     }
 }
