@@ -7,12 +7,14 @@ using UAssetEditor.Misc;
 using UAssetEditor.Properties;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Names;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace UAssetEditor;
 
 public class PropertyContainer : Container<UProperty>
 {
-    public List<UProperty> GetProperties() => Items;
+    [JsonConverter(typeof(SerializableProperties))]
+    public List<UProperty> Properties => Items;
 
     public override int GetIndex(string str)
     {
@@ -63,7 +65,7 @@ public abstract class BaseAsset : Reader
         return asset.NameMap.GetIndex(str);
     }
 
-    void HandleProperties(BaseAsset asset, List<UProperty> properties)
+    public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
     {
         foreach (var p in properties)
         {
@@ -139,22 +141,17 @@ public abstract class BaseAsset : Reader
         }
     }
 
-    public JArray ToJson()
+    public override string ToString()
     {
 	    var result = new List<KeyValuePair<string, Dictionary<string, object>>>();
 
 	    foreach (var prop in Properties)
 	    {
 		    result.Add(new KeyValuePair<string, Dictionary<string, object>>(prop.Key,
-			    prop.Value.GetProperties().ToDictionary(x => x.Name, x => x.Value) ?? new()));
+			    prop.Value.Properties.ToDictionary(x => x.Name, x => x.Value)));
 	    }
 
-	    return JArray.FromObject(result);
-    }
-
-    public override string ToString()
-    {
-	    return JsonConvert.SerializeObject(ToJson(), Formatting.Indented);
+        return JsonConvert.SerializeObject(result, Formatting.Indented);
     }
 }
 

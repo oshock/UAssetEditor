@@ -20,7 +20,8 @@ public struct FExportMapEntry
     public byte FilterFlags; // EExportFilterFlags: client/server flags
 
     public ZenAsset Asset;
-    public string Name; // Assigned name
+    public string Name;
+    public string Class;
     
     public FExportMapEntry(ZenAsset Ar)
     {
@@ -38,6 +39,7 @@ public struct FExportMapEntry
         Ar.Position += 3;
         
         Name = Ar.NameMap[(int)ObjectName.NameIndex];
+        Class = Ar.GlobalData.GetScriptName(ClassIndex);
     }
 
     public bool TryGetProperties(out PropertyContainer? container)

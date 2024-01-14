@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Newtonsoft.Json;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.IoStore;
@@ -17,6 +18,7 @@ public class ZenAsset : BaseAsset
 
     public ulong[] ImportedPublicExportHashes;
     public ulong[] ImportMap;
+    [JsonConverter(typeof(SerializableExportEntry))]
     public ExportContainer ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
@@ -60,7 +62,7 @@ public class ZenAsset : BaseAsset
 		    
 		    var export = ExportMap[entry.LocalExportIndex];
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    var @class = GlobalData.GetScriptName(export.ClassIndex);
+		    var @class = export.Class;
 
 		    Position = headerSize + (long)export.CookedSerialOffset;
 		    Properties.Add(name, new PropertyContainer(propReader.ReadProperties(@class)));
@@ -120,7 +122,7 @@ public class ZenAsset : BaseAsset
 
 		    ExportMap[i].SetCookedSerialOffset((ulong)properties.Position);
 		    
-		    var props = propWriter.WriteProperties(@class, i, Properties[name].GetProperties());
+		    var props = propWriter.WriteProperties(@class, i, Properties[name].Properties);
 		    props.CopyTo(properties);
 		    properties.Position += 4; // Padding;
 		    
@@ -131,7 +133,6 @@ public class ZenAsset : BaseAsset
 	    properties.CopyTo(writer);
     }
 
-    // Not done TODO
     public override void Fix()
     {
 	    ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
@@ -150,6 +151,9 @@ public class ZenAsset : BaseAsset
 			    LocalExportIndex = (uint)i,
 			    CommandType = EExportCommandType.ExportCommandType_Serialize
 		    };
+
+		    if (e.TryGetProperties(out var ctn))
+			    HandleProperties(this, ctn!.Properties);
 	    }
     }
 
@@ -214,10 +218,5 @@ public class ExportContainer : Container<FExportMapEntry>
 	{
 		return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset),
 			(summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size).ToList());
-	}
-
-	public List<UProperty>? GetProperties(string name)
-	{
-		return !Items[GetIndex(name)].TryGetProperties(out var ctn) ? null : ctn!.GetProperties();
 	}
 }
