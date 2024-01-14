@@ -1,4 +1,5 @@
 using UAssetEditor.Names;
+using UAssetEditor.Unreal.Names;
 
 namespace UAssetEditor.Properties.Structs;
 

@@ -13,16 +13,16 @@ public readonly struct FScriptObjectEntry
 
 public class IoGlobalReader
 {
-    public readonly List<string> GlobalNameMap;
+    public readonly NameMapContainer GlobalNameMap;
     public readonly Dictionary<ulong, FScriptObjectEntry> ScriptObjectEntriesMap = new();
  
-    public string GetScriptName(ulong index) => GlobalNameMap[(int)ScriptObjectEntriesMap[index].ObjectName.NameIndex];
+    public string GetScriptName(ulong index) => GlobalNameMap[ScriptObjectEntriesMap[index].ObjectName.NameIndex];
     
     public IoGlobalReader(string path)
     {
         var ioStoreReader = new IoStoreReader(path);
         var reader = ioStoreReader.Extract(ioStoreReader.ExtractChunk(0, IoStoreReader.EIoChunkType5.ScriptObjects));
-        GlobalNameMap = ZenAsset.ReadNameMap(reader).Strings;
+        GlobalNameMap = NameMapContainer.ReadNameMap(reader);
 
         var numScriptObjects = reader.Read<int>();
         var scriptObjectEntries = reader.ReadArray<FScriptObjectEntry>(numScriptObjects);

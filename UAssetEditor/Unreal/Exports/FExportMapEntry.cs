@@ -1,6 +1,8 @@
+using UAssetEditor.Binary;
 using UAssetEditor.Names;
+using UAssetEditor.Summaries;
 
-namespace UAssetEditor.Summaries;
+namespace UAssetEditor.Unreal.Exports;
 
 public struct FExportMapEntry
 {
@@ -17,8 +19,12 @@ public struct FExportMapEntry
     public EObjectFlags ObjectFlags;
     public byte FilterFlags; // EExportFilterFlags: client/server flags
 
+    public ZenAsset Asset;
+    public string Name; // Assigned name
+    
     public FExportMapEntry(ZenAsset Ar)
     {
+        Asset = Ar;
         CookedSerialOffset = Ar.Read<ulong>();
         CookedSerialSize = Ar.Read<ulong>();
         ObjectName = Ar.Read<FMappedName>();
@@ -30,6 +36,20 @@ public struct FExportMapEntry
         ObjectFlags = Ar.Read<EObjectFlags>();
         FilterFlags = Ar.Read<byte>();
         Ar.Position += 3;
+        
+        Name = Ar.NameMap[(int)ObjectName.NameIndex];
+    }
+
+    public bool TryGetProperties(out PropertyContainer? container)
+    {
+        if (!Asset.Properties.TryGetValue(Name, out var ctn))
+        {
+            container = null;
+            return false;
+        }
+
+        container = ctn;
+        return true;
     }
 
     public void Serialize(Writer writer)
@@ -45,5 +65,14 @@ public struct FExportMapEntry
         writer.Write(ObjectFlags);
         writer.WriteByte(FilterFlags);
         writer.Position += 3;
+    }
+
+    public void SetCookedSerialOffset(ulong offset) => CookedSerialOffset = offset;
+    public void SetCookedSerialSize(ulong size) => CookedSerialSize = size;
+
+    public void SetObjectName(string name)
+    {
+        var i = BaseAsset.ReferenceOrAddString(Asset, name);
+        ObjectName = new FMappedName((uint)i, 0);
     }
 }

@@ -1,4 +1,5 @@
 using System.Data;
+using UAssetEditor.Binary;
 using Usmap.NET;
 
 namespace UAssetEditor.Properties.Unversioned;
@@ -78,7 +79,7 @@ public class UnversionedWriter(ZenAsset asset)
 
 	    if (exportIndex > 0)
 	    {
-		    Asset.ExportMap[exportIndex].CookedSerialSize = (ulong)writer.BaseStream.Length;
+		    Asset.ExportMap[exportIndex].SetCookedSerialSize((ulong)writer.BaseStream.Length);
 	    }
 
 	    return writer;

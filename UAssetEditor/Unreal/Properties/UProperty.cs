@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
 using Newtonsoft.Json.Linq;
+using UAssetEditor.Binary;
 using UAssetEditor.Names;
 using UAssetEditor.Properties;
 using UAssetEditor.Properties.Structs;
+using UAssetEditor.Unreal.Names;
 using Usmap.NET;
 
 namespace UAssetEditor;
@@ -32,7 +34,7 @@ public abstract class AbstractProperty
         Value = value;
     }
 
-    public static object? CreateAndRead(string propertyName, Reader reader, UsmapPropertyData? data, UAsset? asset = null)
+    public static object? CreateAndRead(string propertyName, Reader reader, UsmapPropertyData? data, BaseAsset? asset = null)
     {
         var type = Assembly.GetAssembly(typeof(AbstractProperty))!.GetTypes().FirstOrDefault(x => x.Name == propertyName);
         if (type == default)
@@ -44,13 +46,13 @@ public abstract class AbstractProperty
         return instance.Value;
     }
     
-    public virtual void Read(Reader reader, UsmapPropertyData? data, UAsset asset = null)
+    public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
     { }
 
-    public virtual void Write(Writer writer, UProperty property, UAsset asset = null)
+    public virtual void Write(Writer writer, UProperty property, BaseAsset asset = null)
     { }
 
-    public static void WriteProperty(Writer writer, UProperty prop, UAsset? asset = null)
+    public static void WriteProperty(Writer writer, UProperty prop, BaseAsset? asset = null)
     {
         if (prop.IsZero)
             return;
@@ -147,7 +149,7 @@ public abstract class AbstractProperty
         }
     }
     
-    public static object? ReadProperty(string type, Reader reader, UsmapProperty? prop, UAsset? asset = null, bool isZero = false)
+    public static object? ReadProperty(string type, Reader reader, UsmapProperty? prop, BaseAsset? asset = null, bool isZero = false)
     {
         switch (type)
         {

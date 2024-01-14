@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace UAssetEditor;
+namespace UAssetEditor.Binary;
 
 public class Writer : BinaryWriter
 {
@@ -9,6 +9,9 @@ public class Writer : BinaryWriter
     { }
 
     public Writer(Stream stream) : base(stream)
+    { }
+    
+    public Writer(string file) : this(File.Open(file, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
     { }
     
     public Writer() : base(new MemoryStream())
@@ -19,6 +22,8 @@ public class Writer : BinaryWriter
         get => BaseStream.Position;
         set => BaseStream.Position = value;
     }
+    
+    public long Length => BaseStream.Length;
 
     public void Write<T>(T value)
     {
@@ -48,7 +53,15 @@ public class Writer : BinaryWriter
     public void CopyTo(Writer dest)
     {
         Position = 0;
-        dest.Position = dest.BaseStream.Length;
         BaseStream.CopyTo(dest.BaseStream);
+    }
+
+    public byte[] ToArray()
+    {
+        var buffer = new byte[Length];
+        Position = 0;
+        BaseStream.Read(buffer);
+            
+        return buffer;
     }
 }

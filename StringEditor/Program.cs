@@ -1,4 +1,5 @@
 ﻿using UAssetEditor;
+using UAssetEditor.Binary;
 
 Console.Write("Enter the file path for the uasset > ");
 var file = Console.ReadLine().Replace("\"", string.Empty);

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using UAssetEditor.Binary;
 using UAssetEditor.Names;
 
 namespace UAssetEditor.Summaries;

@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 using UAssetEditor.IoStore;
 using UAssetEditor.Misc;
 using UAssetEditor.Names;
@@ -9,13 +11,13 @@ using Usmap.NET;
 
 namespace UAssetEditor;
 
-public class ZenAsset : UAsset
+public class ZenAsset : BaseAsset
 {
     public IoGlobalReader GlobalData;
 
     public ulong[] ImportedPublicExportHashes;
     public ulong[] ImportMap;
-    public FExportMapEntry[] ExportMap;
+    public ExportContainer ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
@@ -47,7 +49,7 @@ public class ZenAsset : UAsset
     /// <summary>
     /// Read the entirety of this asset
     /// </summary>
-    public void ReadAll()
+    public override void ReadAll()
     {
 	    var headerSize = Position = ReadHeader();
 	    var propReader = new UnversionedReader(this);
@@ -65,11 +67,11 @@ public class ZenAsset : UAsset
 	    }
     }
 
-    public uint ReadHeader()
+    public override uint ReadHeader()
     {
         var summary = new FZenPackageSummary(this);
         Flags = summary.PackageFlags;
-        NameMap = ReadNameMap(this);
+        NameMap = NameMapContainer.ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
 
         // Not needed
@@ -85,8 +87,7 @@ public class ZenAsset : UAsset
         ImportMap = ReadArray<ulong>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
 
         Position = summary.ExportMapOffset;
-        ExportMap = ReadArray(() => new FExportMapEntry(this),
-	        (summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size);
+        ExportMap = ExportContainer.Read(this, summary);
         ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
 
         Position = summary.DependencyBundleHeadersOffset;
@@ -100,48 +101,14 @@ public class ZenAsset : UAsset
         
         return summary.HeaderSize;
     }
-    
-    public static NameMapContainer ReadNameMap(Reader reader)
-    {
-	    var count = reader.Read<int>();
-	    switch (count)
-	    {
-		    case < 0:
-			    throw new IndexOutOfRangeException($"Name map cannot have a length of {count}!");
-		    case 0:
-			    return default;
-	    }
 
-	    var numBytes = reader.Read<uint>();
-	    var hashVersion = reader.Read<ulong>();
-
-	    var hashes = new ulong[count];
-	    for (int i = 0; i < hashes.Length; i++) 
-		    hashes[i] = reader.Read<ulong>();
-        
-	    var headers = new byte[count];
-	    for (int i = 0; i < headers.Length; i++)
-	    {
-		    reader.Position++; // skip utf-16 check
-		    headers[i] = reader.ReadByte();
-	    }
-
-	    var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
-	    return new NameMapContainer
-	    {
-		    HashVersion = hashVersion,
-		    Hashes = hashes.ToList(),
-		    Strings = strings
-	    };
-    }
-
-    public List<UProperty> ReadProperties(string type) => new UnversionedReader(this).ReadProperties(type);
+    public override List<UProperty> ReadProperties(string type) => new UnversionedReader(this).ReadProperties(type);
 
     /// <summary>
     /// Serializes the entire asset to a stream.
     /// </summary>
     /// <param name="writer"></param>
-    public void WriteAll(Writer writer)
+    public override void WriteAll(Writer writer)
     {
 	    var properties = new Writer();
 	    var propWriter = new UnversionedWriter(this);
@@ -150,41 +117,62 @@ public class ZenAsset : UAsset
 	    {
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
 		    var @class = GlobalData.GetScriptName(ExportMap[i].ClassIndex);
+
+		    ExportMap[i].SetCookedSerialOffset((ulong)properties.Position);
 		    
-		    ExportMap[i].CookedSerialOffset = offset;
 		    var props = propWriter.WriteProperties(@class, i, Properties[name].GetProperties());
-		    properties.Position = (long)offset;
 		    props.CopyTo(properties);
 		    properties.Position += 4; // Padding;
 		    
-		    ExportMap[i].CookedSerialSize = (ulong)props.BaseStream.Length + 4; // Padding
-		    offset += (ulong)props.BaseStream.Length;
+		    ExportMap[i].SetCookedSerialSize((ulong)props.Length);
 	    }
 	    
 	    WriteHeader(writer);
 	    properties.CopyTo(writer);
     }
 
-    public void WriteHeader(Writer writer)
+    // Not done TODO
+    public override void Fix()
+    {
+	    ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
+
+	    for (var i = 0; i < ExportMap.Length; i++)
+	    {
+		    var e = ExportMap[i];
+		    e.SetObjectName(e.Name);
+		    ExportBundleEntries[i] = new FExportBundleEntry
+		    {
+			    LocalExportIndex = (uint)i,
+			    CommandType = EExportCommandType.ExportCommandType_Create
+		    };
+		    ExportBundleEntries[ExportMap.Length + i] = new FExportBundleEntry
+		    {
+			    LocalExportIndex = (uint)i,
+			    CommandType = EExportCommandType.ExportCommandType_Serialize
+		    };
+	    }
+    }
+
+    public override void WriteHeader(Writer writer)
     {
 	    var summary = default(FZenPackageSummary);
-	    summary.Name = new FMappedName((uint)NameMap.Strings.FindIndex(x => x == Name), 0);
-	    
+	    summary.Name = new FMappedName((uint)NameMap.GetIndex(Name), 0);
+
 	    writer.Position = FZenPackageSummary.Size;
-	    WriteNameMap(writer, NameMap);
+	    NameMapContainer.WriteNameMap(writer, NameMap);
 
 	    writer.Position += sizeof(long) + sizeof(ulong); // pad size + bulk data size
-	    
+
 	    summary.ImportedPublicExportHashesOffset = (int)writer.Position;
 	    writer.WriteArray(ImportedPublicExportHashes);
 
 	    summary.ImportMapOffset = (int)writer.Position;
 	    writer.WriteArray(ImportMap);
-	    
+
 	    summary.ExportMapOffset = (int)writer.Position;
 	    foreach (var export in ExportMap)
 		    export.Serialize(writer);
-	    
+
 	    summary.ExportBundleEntriesOffset = (int)writer.Position;
 	    writer.WriteArray(ExportBundleEntries);
 
@@ -198,38 +186,38 @@ public class ZenAsset : UAsset
 
 	    summary.DependencyBundleEntriesOffset = (int)writer.Position;
 	    writer.WriteArray(DependencyBundleEntries);
-	    
+
 	    var end = writer.Position;
 	    summary.ImportedPackageNamesOffset = (int)end;
-	    
+
 	    summary.HeaderSize = (uint)writer.Position;
 	    summary.PackageFlags = Flags;
 
 	    writer.Position = 0;
 	    summary.Serialize(writer);
-	    
+
 	    writer.Position = end;
     }
 
-    public static void WriteNameMap(Writer writer, NameMapContainer nameMap)
-    {
-	    writer.Write(nameMap.Length);
-	    writer.Write(nameMap.NumBytes);
-	    writer.Write(nameMap.HashVersion);
-
-	    foreach (var s in nameMap.Strings)
-		    writer.Write(CityHash.TransformString(s));
-
-	    foreach (var s in nameMap.Strings)
-	    {
-		    writer.Write((byte)0);
-		    writer.Write((byte)s.Length);
-	    }
-
-	    foreach (var s in nameMap.Strings)
-		    writer.WriteString(s);
-    }
-
-    public Writer WriteProperties(string type, int exportIndex, List<UProperty> properties) =>
+    public override Writer WriteProperties(string type, int exportIndex, List<UProperty> properties) =>
 	    new UnversionedWriter(this).WriteProperties(type, exportIndex, properties);
+}
+
+public class ExportContainer : Container<FExportMapEntry>
+{
+	public override int GetIndex(string str) => Items.FindIndex(x => x.Name == str);
+
+	public ExportContainer(List<FExportMapEntry> items) : base(items)
+	{ }
+
+	public static ExportContainer Read(ZenAsset asset, FZenPackageSummary summary)
+	{
+		return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset),
+			(summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size).ToList());
+	}
+
+	public List<UProperty>? GetProperties(string name)
+	{
+		return !Items[GetIndex(name)].TryGetProperties(out var ctn) ? null : ctn!.GetProperties();
+	}
 }

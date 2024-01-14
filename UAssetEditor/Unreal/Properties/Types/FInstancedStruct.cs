@@ -1,3 +1,5 @@
+using UAssetEditor.Binary;
+
 namespace UAssetEditor.Properties;
 
 public class FInstancedStruct

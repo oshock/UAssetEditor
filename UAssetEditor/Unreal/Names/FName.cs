@@ -1,9 +1,11 @@
-namespace UAssetEditor.Names;
+using UAssetEditor.Binary;
+
+namespace UAssetEditor.Unreal.Names;
 
 
 public class FName
 {
-    public string Name;
+    public string Name = "None";
     public int NameIndex;
     public int ExtraIndex;
 
@@ -17,13 +19,14 @@ public class FName
 
     public FName(NameMapContainer nameMapContainer, string name, int extraIndex)
     {
-        NameIndex = nameMapContainer.Strings.FindIndex(x => x.Equals(name));
+        Name = name;
+        NameIndex = nameMapContainer.GetIndex(name);
         ExtraIndex = extraIndex;
     }
 
     public void Serialize(Writer writer, NameMapContainer nameMapContainer)
     {
-        writer.Write(nameMapContainer.Strings.FindIndex(x => x == Name));
+        writer.Write(nameMapContainer.GetIndex(Name));
         writer.Write(ExtraIndex);
     }
 
