@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Usmap.NET", "Usmap.NET\Usma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringEditor", "StringEditor\StringEditor.csproj", "{E53EB23D-7A34-401A-9AC0-4FB6B6C2395B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor.App", "UAssetEditor.App\UAssetEditor.App.csproj", "{5D18CFFE-E321-4A07-A62A-724F88C7B123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{E53EB23D-7A34-401A-9AC0-4FB6B6C2395B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E53EB23D-7A34-401A-9AC0-4FB6B6C2395B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E53EB23D-7A34-401A-9AC0-4FB6B6C2395B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -35,4 +35,9 @@ public class FName
         writer.Write(NameIndex);
         writer.Write(ExtraIndex);
     }
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }

@@ -26,6 +26,11 @@ public abstract class AbstractProperty
 {
     public object? Value;
 
+    public override string ToString()
+    {
+        return Value?.ToString() ?? "None";
+    }
+
     protected AbstractProperty()
     { }
 
