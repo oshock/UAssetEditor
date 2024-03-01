@@ -10,6 +10,17 @@ public class SoftObjectProperty : AbstractProperty
     public string AssetPathName;
     public string PackageName;
     public string SubPathName = "";
+
+    public static SoftObjectProperty Create(string path)
+    {
+        var split = path.Split('.');
+        return new SoftObjectProperty
+        {
+            AssetPathName = split[0],
+            PackageName = split[1],
+            Value = $"{split[0]}.{split[1]}"
+        };
+    }
     
     public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
     {

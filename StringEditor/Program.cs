@@ -9,10 +9,10 @@ var end = uasset.ReadBytes((int)(uasset.BaseStream.Length - uasset.Position));
 
 while (true)
 {
-    var names = uasset.NameMap.Strings;
+    var names = uasset.NameMap;
     Console.Clear();
 
-    for (int i = 0; i < names.Count; i++)
+    for (int i = 0; i < names.Length; i++)
         Console.WriteLine($"{i + 1}) '{names.ElementAt(i)}'");
 
     Console.WriteLine("\nEnter Q to save and exit.");

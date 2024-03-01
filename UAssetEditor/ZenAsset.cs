@@ -114,7 +114,7 @@ public class ZenAsset : BaseAsset
     {
 	    var properties = new Writer();
 	    var propWriter = new UnversionedWriter(this);
-	    var offset = 0UL;
+	    
 	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
@@ -135,13 +135,13 @@ public class ZenAsset : BaseAsset
 
     public override void Fix()
     {
-	    ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
+	    //ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
 
 	    for (var i = 0; i < ExportMap.Length; i++)
 	    {
 		    var e = ExportMap[i];
 		    e.SetObjectName(e.Name);
-		    ExportBundleEntries[i] = new FExportBundleEntry
+		    /*ExportBundleEntries[i] = new FExportBundleEntry
 		    {
 			    LocalExportIndex = (uint)i,
 			    CommandType = EExportCommandType.ExportCommandType_Create
@@ -150,7 +150,7 @@ public class ZenAsset : BaseAsset
 		    {
 			    LocalExportIndex = (uint)i,
 			    CommandType = EExportCommandType.ExportCommandType_Serialize
-		    };
+		    };*/
 
 		    if (e.TryGetProperties(out var ctn))
 			    HandleProperties(this, ctn!.Properties);

@@ -20,10 +20,19 @@ public abstract class Container<T> : IEnumerable<T>
     }
 
     public bool Contains(T i) => Items.Contains(i);
-    
-    public T this[int index] => Items[index];
-    public T this[uint index] => Items[(int)index];
-    
+
+    public T this[int index]
+    {
+        get => Items[index];
+        set => Items[index] = value;
+    }
+
+    public T this[uint index]
+    {
+        get => Items[(int)index];
+        set => Items[(int)index] = value;
+    }
+
     public int Length => Items.Count;
     
     public IEnumerator<T> GetEnumerator()
