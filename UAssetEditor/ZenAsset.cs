@@ -8,7 +8,8 @@ using UAssetEditor.Names;
 using UAssetEditor.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
-using Usmap.NET;
+using UsmapDotNet;
+using Oodle = OodleDotNet.Oodle;
 
 namespace UAssetEditor;
 
@@ -26,9 +27,9 @@ public class ZenAsset : BaseAsset
     
     public void LoadMappings(string path)
     {
-	    Mappings = new Usmap.NET.Usmap(path, new UsmapOptions
+	    Mappings = new Usmap(path, new UsmapOptions
 	    {
-		    OodlePath = "oo2core_9_win64.dll",
+		    Oodle = new Oodle("oo2core_9_win64.dll"),
 		    SaveNames = false
 	    });
     }

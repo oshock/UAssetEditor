@@ -8,11 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Usmap.NET\Usmap.NET.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="Usmap.NET" Version="2.1.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,7 +1,8 @@
 using UAssetEditor.Binary;
 using UAssetEditor.Names;
 using UAssetEditor.Unreal.Names;
-using Usmap.NET;
+using UsmapDotNet;
+
 
 namespace UAssetEditor.Properties;
 

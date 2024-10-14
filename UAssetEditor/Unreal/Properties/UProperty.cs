@@ -5,7 +5,8 @@ using UAssetEditor.Names;
 using UAssetEditor.Properties;
 using UAssetEditor.Properties.Structs;
 using UAssetEditor.Unreal.Names;
-using Usmap.NET;
+using UsmapDotNet;
+
 
 namespace UAssetEditor;
 
@@ -166,7 +167,7 @@ public abstract class AbstractProperty
                 var result = new List<object>();
                 
                 for (int i = 0; i < count; i++)
-                    result.Add(ReadProperty(prop.Value.Data.InnerType.Type.ToString(), reader, prop, asset)!);
+                    result.Add(ReadProperty(prop.Data.InnerType.Type.ToString(), reader, prop, asset)!);
                 
                 return result;
             case "BoolProperty":
@@ -175,7 +176,7 @@ public abstract class AbstractProperty
                 return isZero ? 0.0 : reader.Read<double>();
             case "EnumProperty":
                 var enumProp = new EnumProperty(isZero);
-                enumProp.Read(reader, prop.Value.Data);
+                enumProp.Read(reader, prop.Data);
                 return enumProp.Value;
             case "FloatProperty":
                 return isZero ? 0 : reader.Read<float>();
@@ -207,18 +208,17 @@ public abstract class AbstractProperty
                     return tags;
                 }
 
-                return prop!.Value.Data.StructType switch
+                return prop!.Data.StructType switch
                 {
                     "GameplayTagContainer" => new FGameplayTagContainer
                     {
                         GameplayTags = ReadGameplayTagArray(), ParentTags = ReadGameplayTagArray()
                     },
                     "InstancedStruct" => new FInstancedStruct(reader),
-                    "GameplayTagQuery" => new FGameplayTagQuery(),
-                    _ => prop.Value.Name switch
+                    _ => prop.Name switch
                     {
                         "GameplayTags" => ReadGameplayTagArray(),
-                        _ => asset!.ReadProperties(prop.Value.Data!.StructType ?? prop.Value.Data.InnerType.StructType)
+                        _ => asset!.ReadProperties(prop.Data!.StructType ?? prop.Data.InnerType.StructType)
                     }
                 };
 
@@ -253,7 +253,7 @@ public abstract class AbstractProperty
                 if (isZero)
                     return new Dictionary<object, object>();
                 var map = new MapProperty();
-                map.Read(reader, prop.Value.Data);
+                map.Read(reader, prop.Data);
                 return map.Value;
             default:
                 throw new KeyNotFoundException($"Could not find a property named '{type}'.");

@@ -5,9 +5,9 @@ using UAssetEditor;
 using UAssetEditor.Misc;
 
 var stopwatch = Stopwatch.StartNew();
-var uasset = new ZenAsset(@"CP_Athena_Body_F_GoodMood.uasset");
-uasset.Initialize(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks\global.utoc");
-uasset.LoadMappings(@"++Fortnite+Release-28.30-CL-31511038-Android_oo.usmap");
+var uasset = new ZenAsset(@"C:\Users\Owen\Documents\FModel\Output\Exports\FortniteGame\Content\Balance\DefaultGameDataCosmetics.uasset");
+uasset.Initialize(@"C:\Fortnite\FortniteGame\Content\Paks\global.utoc");
+uasset.LoadMappings(@"C:\Users\Owen\Documents\FModel\Output\.data\++Fortnite+Release-31.40-CL-36874825-Windows_oo.usmap");
 uasset.ReadAll();
 stopwatch.Stop();
 Console.WriteLine($"Read in {stopwatch.ElapsedMilliseconds}ms!");

@@ -1,6 +1,6 @@
 using System.Data;
 using UAssetEditor.Binary;
-using Usmap.NET;
+using UsmapDotNet;
 
 namespace UAssetEditor.Properties.Unversioned;
 
@@ -25,8 +25,8 @@ public class UnversionedWriter(ZenAsset asset)
 
 	    while (!string.IsNullOrEmpty(schema?.Name))
 	    {
-		    allProps.AddRange(schema.Value.Properties);
-		    schema = Asset.Mappings?.Schemas.FirstOrDefault(x => x.Name == schema.Value.SuperType);
+		    allProps.AddRange(schema.Properties);
+		    schema = Asset.Mappings?.Schemas.FirstOrDefault(x => x.Name == schema.SuperType);
 	    }
 	    
 	    foreach (var prop in allProps)

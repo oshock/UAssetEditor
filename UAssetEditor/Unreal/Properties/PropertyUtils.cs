@@ -1,5 +1,6 @@
 using UAssetEditor.Properties;
-using Usmap.NET;
+using UsmapDotNet;
+
 
 namespace UAssetEditor;
 
@@ -18,7 +19,7 @@ public struct NameValuePair
 public static class PropertyUtils
 {
     // TODO NOT DONE
-    public static UProperty? CreateStruct(Usmap.NET.Usmap mappings, string name, params NameValuePair[] properties)
+    public static UProperty? CreateStruct(Usmap mappings, string name, params NameValuePair[] properties)
     {
         var schema = mappings.Schemas.FirstOrDefault(x => x.Name == name);
         if (schema.PropCount == 0)
@@ -48,7 +49,7 @@ public static class PropertyUtils
 
     public static void AppendObject(this object obj, object a) => (obj as List<object>)!.Add(a);
 
-    private static UProperty? HandleProperty(string name, string type, object value, UsmapPropertyData? data, Usmap.NET.Usmap? mappings = null)
+    private static UProperty? HandleProperty(string name, string type, object value, UsmapPropertyData? data, Usmap? mappings = null)
     {
         switch (type)
         {

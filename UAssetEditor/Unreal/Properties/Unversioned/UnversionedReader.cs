@@ -81,12 +81,12 @@ public class UnversionedReader(ZenAsset asset)
 
 		    do
 		    {
-			    var prop = schema.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+			    var prop = schema.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 			    while (string.IsNullOrEmpty(prop.Name))
 			    {
-				    totalSchemaIndex += schema.Value.PropCount;
-				    schema = Asset.Mappings?.Schemas.First(x => x.Name == schema.Value.SuperType);
-				    prop = schema!.Value.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+				    totalSchemaIndex += schema.PropCount;
+				    schema = Asset.Mappings?.Schemas.First(x => x.Name == schema.SuperType);
+				    prop = schema!.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 			    }
 			    
 			    var propType = prop.Data.Type.ToString();

@@ -1,7 +1,8 @@
 using System.Runtime.CompilerServices;
 using UAssetEditor.Binary;
 using UAssetEditor.Names;
-using Usmap.NET;
+using UsmapDotNet;
+
 
 namespace UAssetEditor.Properties;
 
