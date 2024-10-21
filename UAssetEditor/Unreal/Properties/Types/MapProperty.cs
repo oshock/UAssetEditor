@@ -9,7 +9,7 @@ public class MapProperty : AbstractProperty
     public Dictionary<object, object> Value;
     
     // TODO
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
+    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
     {
         /*var numKeysToRemove = reader.Read<int>();
         for (int i = 0; i < numKeysToRemove; i++)
@@ -31,7 +31,7 @@ public class MapProperty : AbstractProperty
         }*/
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset asset = null)
+    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
         
     }

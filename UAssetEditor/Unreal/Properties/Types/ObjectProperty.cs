@@ -13,7 +13,7 @@ public class ObjectProperty : AbstractProperty
     public bool IsImport => (int)Value < 0;
     public bool IsNull => (int)Value == 0;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
+    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
     {
         Value = reader.Read<int>();
         

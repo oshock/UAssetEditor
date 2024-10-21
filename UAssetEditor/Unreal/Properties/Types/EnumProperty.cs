@@ -14,14 +14,20 @@ public class EnumProperty : AbstractProperty
         IsZero = isZero;
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
+    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
     {
-        var index = IsZero ? 0 : Convert.ToInt32(ReadProperty("Int8Property", reader, null));
+        var index = IsZero ? 0 : Convert.ToInt32(ReadProperty("Int8Property", data.EnumName ?? "None", reader, null));
         var enumData = reader.Mappings!.Enums.FirstOrDefault(x => x.Name == data.EnumName);
-        Value = enumData.Names[index];
+        
+        if (enumData is null)
+            throw new NullReferenceException($"Enum {data.EnumName} not found in mappings.");
+
+        Value = enumData.Names.Length >= index
+            ? enumData.Names[index]
+            : throw new KeyNotFoundException($"Could not find enum name ('{data.EnumName}') at index {index}.");
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset asset = null)
+    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
         var enumData = asset!.Mappings!.Enums.FirstOrDefault(x => x.Name == property.EnumName);
         var index = enumData.Names.ToList().FindIndex(x => x == (string)property.Value!);

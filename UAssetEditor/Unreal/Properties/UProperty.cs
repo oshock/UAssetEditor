@@ -35,6 +35,11 @@ public abstract class AbstractProperty
     protected AbstractProperty()
     { }
 
+    /*public static AbstractProperty? CreateAndRead(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
+    {
+        
+    }*/
+
     public AbstractProperty(object value)
     {
         Value = value;
@@ -52,12 +57,14 @@ public abstract class AbstractProperty
         return instance.Value;
     }
     
-    public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
+    public virtual void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
     { }
 
-    public virtual void Write(Writer writer, UProperty property, BaseAsset asset = null)
+    public virtual void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     { }
 
+    // TODO put in different file
+    // TODO remake using reflection
     public static void WriteProperty(Writer writer, UProperty prop, BaseAsset? asset = null)
     {
         if (prop.IsZero)
@@ -155,70 +162,99 @@ public abstract class AbstractProperty
         }
     }
     
-    public static object? ReadProperty(string type, Reader reader, UsmapProperty? prop, BaseAsset? asset = null, bool isZero = false)
+    // TODO put in different file
+    public static object? ReadProperty(string type, string name, Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
-        switch (type)
+        if (string.IsNullOrEmpty(type) || string.IsNullOrEmpty(name))
+            throw new ArgumentNullException($"'{nameof(type)}' and '{nameof(name)}' cannot be null or empty.");
+        
+        ArgumentNullException.ThrowIfNull(data);
+        
+        switch (type) // TODO Integrate reflection
         {
             case "ArrayProperty":
-                if (isZero)
-                    return Array.Empty<object>();
-                
-                var count = reader.Read<int>();
-                var result = new List<object>();
-                
-                for (int i = 0; i < count; i++)
-                    result.Add(ReadProperty(prop.Data.InnerType.Type.ToString(), reader, prop, asset)!);
-                
-                return result;
+            {
+                var arrayProperty = new ArrayProperty();
+                arrayProperty.Read(reader, data);
+
+                return arrayProperty;
+            }
             case "BoolProperty":
-                return !isZero && reader.ReadByte() == 1;
+                var boolProperty = new BoolProperty();
+                boolProperty.Read(reader, data);
+                
+                return boolProperty;
             case "DoubleProperty":
-                return isZero ? 0.0 : reader.Read<double>();
+                var doubleProperty = new DoubleProperty();
+                doubleProperty.Read(reader, data);
+                
+                return doubleProperty;
             case "EnumProperty":
                 var enumProp = new EnumProperty(isZero);
-                enumProp.Read(reader, prop.Data);
-                return enumProp.Value;
+                enumProp.Read(reader, data);
+                
+                return enumProp;
             case "FloatProperty":
-                return isZero ? 0 : reader.Read<float>();
+                var floatProperty = new FloatProperty();
+                floatProperty.Read(reader, data);
+                
+                return floatProperty;
             case "Int8Property":
             case "ByteProperty":
-                return isZero ? 0 : reader.Read<byte>();
+                var byteProperty = new ByteProperty();
+                byteProperty.Read(reader, data);
+                
+                return byteProperty;
             case "Int16Property":
-                return isZero ? 0 : reader.Read<short>();
+                var shortProperty = new Int16Property();
+                shortProperty.Read(reader, data);
+                
+                return shortProperty;
             case "IntProperty":
-                return isZero ? 0 : reader.Read<int>();
+                var intProperty = new IntProperty();
+                intProperty.Read(reader, data);
+                
+                return intProperty;
             case "Int64Property":
-                return isZero ? 0 : reader.Read<long>();
+                var int64Property = new Int64Property();
+                int64Property.Read(reader, data);
+                
+                return int64Property;
             case "UInt16Property":
-                return isZero ? 0U : reader.Read<ushort>();
+                var uInt16Property = new UInt16Property();
+                uInt16Property.Read(reader, data);
+                
+                return uInt16Property;
             case "UInt64Property":
-                return isZero ? 0U : reader.Read<ulong>();
+                var uInt64Property = new UInt64Property();
+                uInt64Property.Read(reader, data);
+                
+                return uInt64Property;
             case "StructProperty":
                 if (isZero)
                     return null;
                 
-                List<FName> ReadGameplayTagArray()
+                // TODO unskunkify
+                GameplayTagArrayProperty ReadGameplayTagArray()
                 {
-                    var tags = new List<FName>();
-                    var tagCount = reader.Read<uint>();
+                    var gameplayTags = new GameplayTagArrayProperty();
+                    gameplayTags.Read(reader, data);
                     
-                    for (int i = 0; i < tagCount; i++)
-                        tags.Add(new FName(reader, asset!.NameMap));
-                    
-                    return tags;
+                    return gameplayTags;
                 }
 
-                return prop!.Data.StructType switch
+                // TODO unskunkify
+                return data.StructType switch
                 {
                     "GameplayTagContainer" => new FGameplayTagContainer
                     {
-                        GameplayTags = ReadGameplayTagArray(), ParentTags = ReadGameplayTagArray()
+                        GameplayTags = ReadGameplayTagArray().Value, ParentTags = ReadGameplayTagArray().Value
                     },
                     "InstancedStruct" => new FInstancedStruct(reader),
-                    _ => prop.Name switch
+                    _ => name switch
                     {
                         "GameplayTags" => ReadGameplayTagArray(),
-                        _ => asset!.ReadProperties(prop.Data!.StructType ?? prop.Data.InnerType.StructType)
+                        _ => asset!.ReadProperties(data.StructType ?? data.InnerType.StructType)
                     }
                 };
 
@@ -231,8 +267,8 @@ public abstract class AbstractProperty
             case "NameProperty":
                 if (isZero)
                     return default(FName);
-                var name = new FName(reader, asset!.NameMap);
-                return name;
+                var value = new FName(reader, asset!.NameMap);
+                return value;
             case "StrProperty":
                 return isZero ? "None" : FString.Read(reader);
             case "SoftClassProperty":
@@ -253,7 +289,7 @@ public abstract class AbstractProperty
                 if (isZero)
                     return new Dictionary<object, object>();
                 var map = new MapProperty();
-                map.Read(reader, prop.Data);
+                map.Read(reader, data);
                 return map.Value;
             default:
                 throw new KeyNotFoundException($"Could not find a property named '{type}'.");

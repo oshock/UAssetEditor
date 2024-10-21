@@ -91,12 +91,15 @@ public class UnversionedReader(ZenAsset asset)
 			    
 			    var propType = prop.Data.Type.ToString();
 			    var isNonZero = !frag.bHasAnyZeroes || !zeroMask.Get(zeroMaskIndex);
+
+			    var value = 
+				    AbstractProperty.ReadProperty(prop.Data.Type.ToString(), prop.Name, Asset, prop.Data, Asset, !isNonZero);
 			    
 			    props.Add(new UProperty
 			    {
 				    Type = propType,
 				    Name = prop.Name,
-				    Value = AbstractProperty.ReadProperty(prop.Data.Type.ToString(), Asset, prop, Asset, !isNonZero),
+				    Value = value,
 				    StructType = prop.Data.StructType ?? prop.Data.InnerType?.StructType,
 				    EnumName = prop.Data.EnumName,
 				    InnerType = prop.Data.InnerType?.Type.ToString(),

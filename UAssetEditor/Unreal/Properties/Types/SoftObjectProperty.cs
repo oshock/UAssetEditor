@@ -23,7 +23,7 @@ public class SoftObjectProperty : AbstractProperty
         };
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset asset = null)
+    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
     {
         AssetPathName = new FName(reader, asset.NameMap).Name;
         PackageName = new FName(reader, asset.NameMap).Name;
@@ -31,7 +31,7 @@ public class SoftObjectProperty : AbstractProperty
         Value = $"{AssetPathName}.{PackageName}";
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset asset = null)
+    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
         new FName(asset.NameMap, AssetPathName, 0).Serialize(writer);
         new FName(asset.NameMap, PackageName, 0).Serialize(writer);
