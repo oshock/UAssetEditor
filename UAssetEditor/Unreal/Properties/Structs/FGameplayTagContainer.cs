@@ -7,8 +7,7 @@ namespace UAssetEditor.Unreal.Properties.Structs;
 
 public class FGameplayTagContainer : UStruct
 {
-    public List<FName> GameplayTags;
-    public List<FName> ParentTags;
+    public List<FName> Tags;
 
     public static List<FName> ReadGameplayTagArray(BaseAsset? asset, Reader reader)
     {
@@ -26,8 +25,7 @@ public class FGameplayTagContainer : UStruct
     
     public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
-        GameplayTags = ReadGameplayTagArray(asset, reader);
-        ParentTags = ReadGameplayTagArray(asset, reader);
+        Tags = ReadGameplayTagArray(asset, reader);
     }
 
     public override void Write(Writer writer, BaseAsset? asset = null)
