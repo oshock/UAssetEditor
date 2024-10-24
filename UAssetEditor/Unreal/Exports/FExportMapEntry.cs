@@ -72,6 +72,8 @@ public struct FExportMapEntry
     public void SetCookedSerialOffset(ulong offset) => CookedSerialOffset = offset;
     public void SetCookedSerialSize(ulong size) => CookedSerialSize = size;
 
+    public void SetPublicExportHash(ulong hash) => PublicExportHash = hash;
+
     public void SetObjectName(string name)
     {
         var i = BaseAsset.ReferenceOrAddString(Asset, name);

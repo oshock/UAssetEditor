@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Data;
+using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Unversioned;
 
@@ -80,9 +81,27 @@ public class UnversionedReader(ZenAsset asset)
 
 		    do
 		    {
-			    var prop = schema.Properties.FirstOrDefault(property =>
-				    totalSchemaIndex + property.SchemaIdx == schemaIndex);
+			    UsmapProperty? prop = null;
 
+			    while (true)
+			    {
+				    for (int i = 0; i < schema.Properties.Length; i++)
+				    {
+					    var property = schema.Properties.ElementAt(i);
+					    if (totalSchemaIndex + property.SchemaIdx == schemaIndex)
+					    {
+						    prop = property;
+						    break;
+					    }
+				    }
+				    
+				    if (prop is not null)
+					    break;
+				    
+				    var super = schema.SuperType;
+				    schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == super);
+			    }
+			    
 			    if (prop is null)
 				    throw new KeyNotFoundException("Could not find property that matches current schema index.");
 
