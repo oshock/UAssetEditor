@@ -85,21 +85,21 @@ public class UnversionedReader(ZenAsset asset)
 
 			    while (true)
 			    {
-				    for (int i = 0; i < schema.Properties.Length; i++)
+				    if (schema.Properties.Length > schemaIndex)
+					    prop = schema.Properties[schemaIndex];
+				    else
 				    {
-					    var property = schema.Properties.ElementAt(i);
-					    if (totalSchemaIndex + property.SchemaIdx == schemaIndex)
-					    {
-						    prop = property;
-						    break;
-					    }
+					    schemaIndex -= schema.Properties.Length;
+					    
+					    var super = schema.SuperType;
+					    schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == super);
+					    
+					    if (schema is null) 
+						    throw new NoNullAllowedException($"Cannot find super type '{type}' in mappings. Unable to parse data!");
 				    }
 				    
 				    if (prop is not null)
 					    break;
-				    
-				    var super = schema.SuperType;
-				    schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == super);
 			    }
 			    
 			    if (prop is null)

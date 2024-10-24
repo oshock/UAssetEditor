@@ -89,9 +89,10 @@ public static class PropertyReflector
         }
 
         ArgumentNullException.ThrowIfNull(asset);
-        ArgumentNullException.ThrowIfNull(data.InnerType);
-        
-        return asset.ReadProperties(data.InnerType.StructType ?? throw new NoNullAllowedException(nameof(data.InnerType.StructType) + " cannot be null."));
+
+        var type = data.StructType ?? data.InnerType?.StructType ??
+                   throw new NoNullAllowedException("Struct type cannot be null.");
+        return asset.ReadProperties(type);
     }
     
     public static void WriteStruct(Writer writer, object property, string type, BaseAsset? asset = null)
