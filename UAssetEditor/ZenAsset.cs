@@ -163,7 +163,7 @@ public class ZenAsset : BaseAsset
     public override void WriteHeader(Writer writer)
     {
 	    var summary = default(FZenPackageSummary);
-	    summary.Name = new FMappedName((uint)NameMap.GetIndex(Name), 0);
+	    summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
 
 	    writer.Position = FZenPackageSummary.Size;
 	    NameMapContainer.WriteNameMap(writer, NameMap);

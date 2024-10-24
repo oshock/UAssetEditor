@@ -15,8 +15,21 @@ public class EnumProperty : AbstractProperty<string>
         if (reader.Mappings is null)
             throw new NoNullAllowedException($"'{nameof(reader.Mappings)}' cannot be null");
 
-        var enumByte = reader.Read<byte>();
-        var index = isZero ? 0 : Convert.ToInt32(enumByte);
+        if (data.InnerType is null)
+            throw new NoNullAllowedException($"'{nameof(data.InnerType)}' cannot be null");
+
+        object enumObj = 0;
+
+        if (!isZero)
+        {
+            var value = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
+            if (value is not AbstractProperty prop)
+                throw new InvalidCastException("Property is not a AbstractProperty?");
+
+            enumObj = prop.ValueAsObject ?? 0;
+        }
+        
+        var index = Convert.ToInt32(enumObj);
         var enumData = reader.Mappings.Enums.FirstOrDefault(x => x.Name == data.EnumName);
         
         if (enumData is null)

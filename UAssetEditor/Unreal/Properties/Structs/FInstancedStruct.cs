@@ -1,22 +1,24 @@
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Properties.Reflection;
 using UAssetEditor.Unreal.Properties.Structs;
+using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Types;
 
 // TODO
 public class FInstancedStruct : UStruct
 {
+    public ObjectProperty Index;
     public byte[] Buffer;
-    
-    public FInstancedStruct(Reader reader)
+
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
-        var index = PropertyReflector.ReadProperty("ObjectProperty", reader, null);
+        Index = (ObjectProperty)PropertyReflector.ReadProperty("ObjectProperty", reader, null);
         var serialSize = reader.Read<int>();
 
         /*if (TryGetStructByIndexOrWhatever(index, out var @struct))
         {
-            
+
         }
         else*/
         {
@@ -24,8 +26,11 @@ public class FInstancedStruct : UStruct
         }
     }
 
-    public void Serialize(Writer writer)
+    public override void Write(Writer writer, BaseAsset? asset = null)
     {
-        writer.Write(Buffer);
+        PropertyReflector.WriteProperty(writer, Index, asset);
+        
+        writer.Write(Buffer.Length);
+        writer.WriteBytes(Buffer);
     }
 }

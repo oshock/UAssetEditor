@@ -20,6 +20,8 @@ public class UProperty
 
 public abstract class AbstractProperty : ICloneable
 {
+    public abstract object? ValueAsObject { get; }
+    
     public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     { } 
 
@@ -35,6 +37,8 @@ public abstract class AbstractProperty : ICloneable
 public abstract class AbstractProperty<T> : AbstractProperty
 {
     public T? Value;
+    
+    public override object? ValueAsObject => Value;
 
     public override string ToString()
     {

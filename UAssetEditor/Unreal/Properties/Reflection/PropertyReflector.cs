@@ -67,31 +67,42 @@ public static class PropertyReflector
         property.Write(writer, prop, asset);
     }
     
+    public static void WriteProperty(Writer writer, AbstractProperty prop, BaseAsset? asset = null)
+    {
+        var uProperty = new UProperty
+        {
+            Value = prop
+        };
+        
+        prop.Write(writer, uProperty, asset);
+    }
+    
     public static object ReadStruct(Reader reader, UsmapPropertyData? data,
         BaseAsset? asset = null, bool isZero = false)
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        if (data.StructType is not null)
+        var type = data.StructType ?? data.InnerType?.StructType ??
+            throw new NoNullAllowedException("Struct type cannot be null.");
+        
+        // TODO determine properly
+        var structType = data.InnerType?.StructType ?? data.StructType;
+
+        foreach (var kvp in DefinedStructsByName)
         {
-            foreach (var kvp in DefinedStructsByName)
-            {
-                if (data.StructType != kvp.Key)
-                    continue;
+            if (structType != kvp.Key)
+                continue;
 
-                if (Activator.CreateInstance(kvp.Value) is not UStruct instance)
-                    throw new ApplicationException(
-                        $"{kvp.Value.Name} is listed as a property but does not inherit 'UStruct'.");
+            if (Activator.CreateInstance(kvp.Value) is not UStruct instance)
+                throw new ApplicationException(
+                    $"{kvp.Value.Name} is listed as a property but does not inherit 'UStruct'.");
 
-                instance.Read(reader, data, asset, isZero);
-                return instance;
-            }
+            instance.Read(reader, data, asset, isZero);
+            return instance;
         }
 
         ArgumentNullException.ThrowIfNull(asset);
-
-        var type = data.StructType ?? data.InnerType?.StructType ??
-                   throw new NoNullAllowedException("Struct type cannot be null.");
+        
         return asset.ReadProperties(type);
     }
     

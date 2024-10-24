@@ -95,6 +95,13 @@ public abstract class BaseAsset : Reader
         return asset.NameMap.GetIndex(str);
     }
 
+    public void SetPropertyContainerKey(string current, string newName)
+    {
+        var properties = Properties[current];
+        Properties.Remove(current);
+        Properties.Add(newName, properties);
+    }
+
     // TODO
     /*public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
     {
