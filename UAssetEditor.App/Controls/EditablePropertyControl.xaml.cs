@@ -26,9 +26,10 @@ public partial class EditablePropertyControl : UserControl
         set => TextBox.Text = value;
     }
     
+    // TODO
     public EditablePropertyControl(UProperty reference)
     {
-        _ref = reference;
+        /*_ref = reference;
         _backendType = _ref.Type;
         Value = _ref.Value ?? "None";
         
@@ -50,6 +51,6 @@ public partial class EditablePropertyControl : UserControl
                 break;
         }
 
-        InitializeComponent();
+        InitializeComponent();*/
     }
 }

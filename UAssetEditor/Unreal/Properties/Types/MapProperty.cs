@@ -2,14 +2,12 @@ using UAssetEditor.Binary;
 using UsmapDotNet;
 
 
-namespace UAssetEditor.Properties;
+namespace UAssetEditor.Unreal.Properties.Types;
 
-public class MapProperty : AbstractProperty
+public class MapProperty : AbstractProperty<Dictionary<object, object>>
 {
-    public Dictionary<object, object> Value;
-    
     // TODO
-    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
         /*var numKeysToRemove = reader.Read<int>();
         for (int i = 0; i < numKeysToRemove; i++)
@@ -31,6 +29,7 @@ public class MapProperty : AbstractProperty
         }*/
     }
 
+    // TODO
     public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
         

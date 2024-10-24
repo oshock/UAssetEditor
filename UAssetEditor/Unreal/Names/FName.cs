@@ -9,6 +9,13 @@ public class FName
     public int NameIndex;
     public int ExtraIndex;
 
+    public FName(string name)
+    {
+        Name = name;
+        NameIndex = -1;
+        ExtraIndex = -1;
+    }
+    
     public FName(Reader reader, NameMapContainer nameMap)
     {
         NameIndex = reader.Read<int>();
@@ -26,7 +33,7 @@ public class FName
 
     public void Serialize(Writer writer, NameMapContainer nameMapContainer)
     {
-        writer.Write(nameMapContainer.GetIndex(Name));
+        writer.Write(nameMapContainer.GetIndexOrAdd(Name));
         writer.Write(ExtraIndex);
     }
 

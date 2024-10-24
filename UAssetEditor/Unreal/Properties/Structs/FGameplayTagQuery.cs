@@ -1,9 +1,7 @@
-using UAssetEditor.Names;
+namespace UAssetEditor.Unreal.Properties.Structs;
 
-namespace UAssetEditor.Properties.Structs;
-
-// idk wtf this is
-public class FGameplayTagQuery
+// TODO
+public class FGameplayTagQuery : UStruct
 {
     
 }

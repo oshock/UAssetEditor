@@ -1,32 +1,56 @@
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Properties.Structs;
 using UsmapDotNet;
 
 
-namespace UAssetEditor.Properties;
+namespace UAssetEditor.Unreal.Properties.Types;
 
-public class ArrayProperty : AbstractProperty
+public class ArrayProperty : AbstractProperty<List<object>>
 {
-    public List<object> Value;
-    
-    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
+    public override string ToString()
+    {
+        return $"[{Value?.Count}]";
+    }
+
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
 
+        Value = [];
+        
+        if (isZero)
+            return;
+        
         var count = reader.Read<int>();
-        var result = new List<object>();
 
         for (int i = 0; i < count; i++)
         {
-            var item = ReadProperty(data.InnerType.Type.ToString(), "", reader, data, asset);
-            result.Add(item);
+            var item = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data, asset);
+            Value.Add(item);
         }
-
-        Value = result;
     }
 
     public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
+        if (Value is null)
+        {
+            writer.Write(0);
+            return;
+        }
         
+        writer.Write(Value.Count);
+        
+        foreach (var elm in Value)
+        {
+            switch (elm)
+            {
+                case AbstractProperty prop:
+                    prop.Write(writer, property, asset);
+                    break;
+                default:
+                    throw new ApplicationException("Array element is not a AbstractProperty!");
+            }
+        }
     }
 }

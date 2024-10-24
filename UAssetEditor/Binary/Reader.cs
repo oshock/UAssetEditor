@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using UAssetEditor.Properties;
 using UsmapDotNet;
 
 namespace UAssetEditor;

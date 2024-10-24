@@ -2,19 +2,17 @@ using UAssetEditor.Binary;
 using UsmapDotNet;
 
 
-namespace UAssetEditor.Properties;
+namespace UAssetEditor.Unreal.Properties.Types;
 
-public class ByteProperty : AbstractProperty
+public class ByteProperty : AbstractProperty<byte>
 {
-    public byte Value;
-    
-    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
-        Value = reader.ReadByte();
+        Value = isZero ? (byte)0 : reader.ReadByte();
     }
 
     public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
-        
+        writer.WriteByte(Value);
     }
 }

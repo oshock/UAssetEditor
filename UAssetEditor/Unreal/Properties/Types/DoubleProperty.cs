@@ -2,19 +2,17 @@ using UAssetEditor.Binary;
 using UsmapDotNet;
 
 
-namespace UAssetEditor.Properties;
+namespace UAssetEditor.Unreal.Properties.Types;
 
-public class DoubleProperty : AbstractProperty
+public class DoubleProperty : AbstractProperty<double>
 {
-    public double Value;
-    
-    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
-        Value = reader.Read<double>();
+        Value = isZero ? 0.0 : reader.Read<double>();
     }
 
     public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
     {
-        
+        writer.Write(Value);
     }
 }

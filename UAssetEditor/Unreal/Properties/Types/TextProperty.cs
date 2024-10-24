@@ -1,10 +1,9 @@
-using System.Runtime.CompilerServices;
 using UAssetEditor.Binary;
 using UAssetEditor.Names;
 using UsmapDotNet;
 
 
-namespace UAssetEditor.Properties;
+namespace UAssetEditor.Unreal.Properties.Types;
 
 public enum ETextHistoryType : sbyte
 {
@@ -35,12 +34,12 @@ public struct FTextHistory
     public override string ToString() => SourceString;
 }
 
-public class TextProperty : AbstractProperty
+public class TextProperty : AbstractProperty<FTextHistory>
 {
     public uint Flags;
     public ETextHistoryType Type;
     
-    public override void Read(Reader reader, UsmapPropertyData data, BaseAsset? asset = null)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
     {
         Flags = reader.Read<uint>();
         Type = reader.Read<ETextHistoryType>();
@@ -60,7 +59,7 @@ public class TextProperty : AbstractProperty
     {
         writer.Write(Flags);
         writer.Write(Type);
-        var text = (FTextHistory)Value!;
+        var text = Value;
         
         switch (Type)
         {

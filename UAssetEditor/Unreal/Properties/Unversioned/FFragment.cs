@@ -1,4 +1,4 @@
-namespace UAssetEditor.Properties.Unversioned;
+namespace UAssetEditor.Unreal.Properties.Unversioned;
 
 // Based heavily on https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Assets/Objects/Unversioned/FFragment.cs
 public struct FFragment

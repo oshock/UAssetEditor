@@ -2,15 +2,13 @@ using System.Data;
 using UAssetEditor.Binary;
 using UsmapDotNet;
 
-namespace UAssetEditor.Properties.Unversioned;
+namespace UAssetEditor.Unreal.Properties.Unversioned;
 
 public class UnversionedWriter(ZenAsset asset)
 {
-	public readonly ZenAsset Asset = asset;
-
 	public Writer WriteProperties(string type, int exportIndex, List<UProperty> properties)
     {
-	    if (Asset.Mappings == null)
+	    if (asset.Mappings == null)
 		    throw new NoNullAllowedException("Mappings cannot be null!");
 	    
 	    var writer = new Writer();
@@ -18,15 +16,21 @@ public class UnversionedWriter(ZenAsset asset)
 	    var zeroMask = new List<bool>();
 
 	    AddFrag();
+	    
 	    using var enumerator = properties.GetEnumerator();
 	    enumerator.MoveNext();
-	    var schema = Asset.Mappings?.Schemas.FirstOrDefault(x => x.Name == type);
+	    
+	    var schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == type);
+
+	    if (schema is null)
+		    throw new NoNullAllowedException($"Cannot find '{type}' in mappings. Unable to write data!");
+	    
 	    var allProps = new List<UsmapProperty>();
 
 	    while (!string.IsNullOrEmpty(schema?.Name))
 	    {
 		    allProps.AddRange(schema.Properties);
-		    schema = Asset.Mappings?.Schemas.FirstOrDefault(x => x.Name == schema.SuperType);
+		    schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == schema.SuperType);
 	    }
 	    
 	    foreach (var prop in allProps)
@@ -36,15 +40,15 @@ public class UnversionedWriter(ZenAsset asset)
 		    if (prop.Name == enumerator.Current.Name)
 		    {
 			    IncludeProperty(isZero);
+
+			    if (enumerator.MoveNext()) 
+				    continue;
 			    
-			    if (!enumerator.MoveNext())
-			    {
-				    MakeLast();
-				    break;
-			    }
+			    MakeLast();
+			    break;
 		    }
-		    else
-			    ExcludeProperty();
+		    
+		    ExcludeProperty();
 	    }
 
 	    foreach (var frag in frags)
@@ -74,12 +78,12 @@ public class UnversionedWriter(ZenAsset asset)
 		    if (prop.IsZero)
 			    continue;
 		    
-		    AbstractProperty.WriteProperty(writer, prop, Asset);
+		    PropertyUtils.WriteProperty(writer, prop, asset);
 	    }
 
-	    if (exportIndex > 0)
+	    if (exportIndex >= 0)
 	    {
-		    Asset.ExportMap[exportIndex].SetCookedSerialSize((ulong)writer.BaseStream.Length);
+		    asset.ExportMap[exportIndex].SetCookedSerialSize((ulong)writer.BaseStream.Length);
 	    }
 
 	    return writer;

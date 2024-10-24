@@ -1,28 +1,58 @@
-﻿using System.Text;
+﻿using System.Data;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Misc;
-using UAssetEditor.Properties;
 using UAssetEditor.Summaries;
-using UAssetEditor.Unreal.Names;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace UAssetEditor;
 
 public class PropertyContainer : Container<UProperty>
 {
-    [JsonConverter(typeof(SerializableProperties))]
+    public string Type;
     public List<UProperty> Properties => Items;
 
     public override int GetIndex(string str)
     {
         return Items.FindIndex(x => x.Name == str);
     }
+    
+    public UProperty? this[string name]
+    {
+        get
+        {
+            foreach (var property in this)
+            {
+                if (property.Name != name)
+                    continue;
 
-    public PropertyContainer(List<UProperty> items) : base(items)
-    { }
+                return property;
+            }
+
+            return null;
+        }
+        set
+        {
+            for (int i = 0; i < Length; i++)
+            {
+                var property = this[i];
+                if (property.Name != name)
+                    continue;
+
+                if (value is null)
+                    throw new NoNullAllowedException("Cannot set property to null");
+                
+                this[i] = value;
+            }
+        }
+    }
+
+    public PropertyContainer(string type, List<UProperty> items) : base(items)
+    {
+        Type = type;
+    }
 }
 
 public abstract class BaseAsset : Reader
@@ -65,7 +95,8 @@ public abstract class BaseAsset : Reader
         return asset.NameMap.GetIndex(str);
     }
 
-    public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
+    // TODO
+    /*public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
     {
         foreach (var p in properties)
         {
@@ -139,19 +170,44 @@ public abstract class BaseAsset : Reader
                 }
             }
         }
-    }
+    }*/
 
+    /// <summary>
+    /// Serializes the asset into json
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
-	    var result = new List<KeyValuePair<string, Dictionary<string, object>>>();
+        var objs = new List<object>();
+        
+        foreach (var kvp in Properties)
+        {
+            var properties = new List<object>();
 
-	    foreach (var prop in Properties)
-	    {
-		    result.Add(new KeyValuePair<string, Dictionary<string, object>>(prop.Key,
-			    prop.Value.Properties.ToDictionary(x => x.Name, x => x.Value)));
-	    }
-
-        return JsonConvert.SerializeObject(result, Formatting.Indented);
+            foreach (var prop in kvp.Value)
+            {
+                dynamic? value = prop.Value;
+                var propObj = new
+                {
+                    Type = prop.Type,
+                    Name = prop.Name,
+                    Value = value?.Value
+                };
+                
+                properties.Add(propObj);
+            }
+            
+            var obj = new
+            {
+                Type = kvp.Value.Type,
+                Name = kvp.Key,
+                Properties = properties
+            };
+            
+            objs.Add(obj);
+        }
+        
+        return JsonConvert.SerializeObject(objs, Formatting.Indented);
     }
 }
 
@@ -163,6 +219,16 @@ public class NameMapContainer : Container<string>
 
     public NameMapContainer(List<string> items) : base(items)
     { }
+
+    public int GetIndexOrAdd(string str)
+    {
+        var index = GetIndex(str);
+        if (index > 0)
+            return index;
+
+        Add(str);
+        return Length - 1;
+    }
 
     public NameMapContainer(ulong hashVersion, List<string> strings) : base(strings)
     {

@@ -1,11 +1,9 @@
-﻿using System.Text;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.IoStore;
-using UAssetEditor.Misc;
 using UAssetEditor.Names;
-using UAssetEditor.Properties.Unversioned;
+using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
 using UsmapDotNet;
@@ -66,7 +64,7 @@ public class ZenAsset : BaseAsset
 		    var @class = export.Class;
 
 		    Position = headerSize + (long)export.CookedSerialOffset;
-		    Properties.Add(name, new PropertyContainer(propReader.ReadProperties(@class)));
+		    Properties.Add(name, new PropertyContainer(@class, propReader.ReadProperties(@class)));
 	    }
     }
 
@@ -132,11 +130,15 @@ public class ZenAsset : BaseAsset
 	    
 	    WriteHeader(writer);
 	    properties.CopyTo(writer);
+	    properties.Close();
     }
 
+    // TODO
     public override void Fix()
     {
-	    //ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
+	    throw new NotImplementedException();
+	    
+	    /*//ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
 
 	    for (var i = 0; i < ExportMap.Length; i++)
 	    {
@@ -151,11 +153,11 @@ public class ZenAsset : BaseAsset
 		    {
 			    LocalExportIndex = (uint)i,
 			    CommandType = EExportCommandType.ExportCommandType_Serialize
-		    };*/
+		    };#2#
 
 		    if (e.TryGetProperties(out var ctn))
 			    HandleProperties(this, ctn!.Properties);
-	    }
+	    }*/
     }
 
     public override void WriteHeader(Writer writer)
