@@ -4,7 +4,7 @@ using UAssetEditor.Summaries;
 
 namespace UAssetEditor.Unreal.Exports;
 
-public struct FExportMapEntry
+public class FExportMapEntry
 {
     public const int Size = 72;
 
@@ -39,7 +39,7 @@ public struct FExportMapEntry
         Ar.Position += 3;
         
         Name = Ar.NameMap[(int)ObjectName.NameIndex];
-        Class = Ar.GlobalData.GetScriptName(ClassIndex);
+        Class = Ar.GlobalData?.GetScriptName(ClassIndex) ?? "None";
     }
 
     public bool TryGetProperties(out PropertyContainer? container)
@@ -66,14 +66,9 @@ public struct FExportMapEntry
         writer.Write(PublicExportHash);
         writer.Write(ObjectFlags);
         writer.WriteByte(FilterFlags);
-        writer.Position += 3;
+        writer.Position += 3; // Padding
     }
-
-    public void SetCookedSerialOffset(ulong offset) => CookedSerialOffset = offset;
-    public void SetCookedSerialSize(ulong size) => CookedSerialSize = size;
-
-    public void SetPublicExportHash(ulong hash) => PublicExportHash = hash;
-
+    
     public void SetObjectName(string name)
     {
         var i = BaseAsset.ReferenceOrAddString(Asset, name);

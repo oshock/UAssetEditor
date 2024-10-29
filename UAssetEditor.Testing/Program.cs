@@ -32,41 +32,32 @@ var writer = new Writer(File.OpenWrite("output.uasset"));
 uassetToModify.WriteAll(writer);
 writer.Close();*/
 
-var testAsset = new ZenAsset(@"WID_Harvest_Pickaxe_Athena_C_T01.uasset");
+/*var testAsset = new ZenAsset(@"WID_Harvest_Pickaxe_Athena_C_T01.uasset");
 testAsset.Initialize(@"C:\Fortnite\FortniteGame\Content\Paks\global.utoc");
 testAsset.LoadMappings(@"C:\Users\Owen\Documents\FModel\Output\.data\++Fortnite+Release-31.40-CL-36874825-Windows_oo.usmap");
-testAsset.ReadAll();
+testAsset.ReadAll();*/
 
 var defaultPickAsset = new ZenAsset(@"C:\Users\Owen\Documents\FModel\Output\Exports\FortniteGame\Content\Athena\Items\Weapons\WID_Harvest_Pickaxe_Athena_C_T01.uasset");
 defaultPickAsset.Initialize(@"C:\Fortnite\FortniteGame\Content\Paks\global.utoc");
-defaultPickAsset.LoadMappings(@"C:\Users\Owen\Documents\FModel\Output\.data\++Fortnite+Release-31.40-CL-36874825-Windows_oo.usmap");
-defaultPickAsset.ReadAll();
+//defaultPickAsset.LoadMappings(@"C:\Users\Owen\Documents\FModel\Output\.data\++Fortnite+Release-31.40-CL-36874825-Windows_oo.usmap");
+defaultPickAsset.ReadHeader();
 
 var stellarAxeAsset = new ZenAsset(@"C:\Users\Owen\Documents\FModel\Output\Exports\FortniteGame\Plugins\GameFeatures\BRCosmetics\Content\Athena\Items\Weapons\WID_Harvest_Pickaxe_Celestial.uasset");
 stellarAxeAsset.Initialize(@"C:\Fortnite\FortniteGame\Content\Paks\global.utoc");
 stellarAxeAsset.LoadMappings(@"C:\Users\Owen\Documents\FModel\Output\.data\++Fortnite+Release-31.40-CL-36874825-Windows_oo.usmap");
-stellarAxeAsset.ReadAll();
+stellarAxeAsset.ReadHeader();
+
+var rest = stellarAxeAsset.ReadBytes((int)(stellarAxeAsset.BaseStream.Length - stellarAxeAsset.Position));
 
 // Set the package's path
 stellarAxeAsset.Name = defaultPickAsset.Name;
 
-// Get the index of the current PackageName
-var index = stellarAxeAsset.NameMap.GetIndex("WID_Harvest_Pickaxe_Celestial");
-
-// Set the PackageName
-stellarAxeAsset.NameMap[index] = "WID_Harvest_Pickaxe_Athena_C_T01";
-
-// Set export hash
-stellarAxeAsset.ExportMap[0].SetPublicExportHash(defaultPickAsset.ExportMap[0].PublicExportHash);
-
-// Set export's name
-stellarAxeAsset.ExportMap[0].SetObjectName("WID_Harvest_Pickaxe_Athena_C_T01");
-
 // Rename the property container to match export name
-stellarAxeAsset.SetPropertyContainerKey("WID_Harvest_Pickaxe_Celestial", "WID_Harvest_Pickaxe_Athena_C_T01");
+//stellarAxeAsset.SetPropertyContainerKey("WID_Harvest_Pickaxe_Celestial", "WID_Harvest_Pickaxe_Athena_C_T01");
 
 var writer = new Writer(File.OpenWrite("WID_Harvest_Pickaxe_Athena_C_T01.uasset"));
-stellarAxeAsset.WriteAll(writer);
+stellarAxeAsset.WriteHeader(writer);
+writer.WriteBytes(rest);
 writer.Close();
 
 Console.ReadKey();

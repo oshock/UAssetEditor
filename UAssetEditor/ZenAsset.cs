@@ -13,7 +13,7 @@ namespace UAssetEditor;
 
 public class ZenAsset : BaseAsset
 {
-    public IoGlobalReader GlobalData;
+    public IoGlobalReader? GlobalData;
 
     public ulong[] ImportedPublicExportHashes;
     public ulong[] ImportMap;
@@ -119,13 +119,13 @@ public class ZenAsset : BaseAsset
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
 		    var @class = GlobalData.GetScriptName(ExportMap[i].ClassIndex);
 
-		    ExportMap[i].SetCookedSerialOffset((ulong)properties.Position);
+		    ExportMap[i].CookedSerialOffset = (ulong)properties.Position;
 		    
 		    var props = propWriter.WriteProperties(@class, i, Properties[name].Properties);
 		    props.CopyTo(properties);
 		    properties.Position += 4; // Padding;
-		    
-		    ExportMap[i].SetCookedSerialSize((ulong)props.Length);
+
+		    ExportMap[i].CookedSerialSize = (ulong)props.Length;
 	    }
 	    
 	    WriteHeader(writer);

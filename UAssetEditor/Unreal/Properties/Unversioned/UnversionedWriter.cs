@@ -83,7 +83,7 @@ public class UnversionedWriter(ZenAsset asset)
 
 	    if (exportIndex >= 0)
 	    {
-		    asset.ExportMap[exportIndex].SetCookedSerialSize((ulong)writer.BaseStream.Length);
+		    asset.ExportMap[exportIndex].CookedSerialOffset = (ulong)writer.BaseStream.Length;
 	    }
 
 	    return writer;
