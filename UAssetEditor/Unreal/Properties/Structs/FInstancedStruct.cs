@@ -11,7 +11,7 @@ public class FInstancedStruct : UStruct
     public ObjectProperty Index;
     public byte[] Buffer;
 
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Index = (ObjectProperty)PropertyReflector.ReadProperty("ObjectProperty", reader, null);
         var serialSize = reader.Read<int>();

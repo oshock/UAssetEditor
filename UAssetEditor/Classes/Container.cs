@@ -15,7 +15,17 @@ public abstract class Container<T> : IEnumerable<T>
 
     public virtual int GetIndex(string str)
     {
-        throw new  NotImplementedException();
+        throw new NotImplementedException();
+    }
+
+    public void Remove(int index)
+    {
+        Items.RemoveAt(index);
+    }
+    
+    public void Remove(T item)
+    {
+        Items.Remove(item);
     }
 
     public bool Contains(T i) => Items.Contains(i);

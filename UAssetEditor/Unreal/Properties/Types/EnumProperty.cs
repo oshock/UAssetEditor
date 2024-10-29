@@ -1,5 +1,6 @@
 using System.Data;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Names;
 using UsmapDotNet;
 
 
@@ -7,26 +8,30 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class EnumProperty : AbstractProperty<string>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
-        if (data is null)
-            throw new NoNullAllowedException($"'{nameof(data)}' cannot be null");
         
-        if (reader.Mappings is null)
-            throw new NoNullAllowedException($"'{nameof(reader.Mappings)}' cannot be null");
-
-        if (data.InnerType is null)
-            throw new NoNullAllowedException($"'{nameof(data.InnerType)}' cannot be null");
-
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(data.InnerType);
+        ArgumentNullException.ThrowIfNull(asset);
+        ArgumentNullException.ThrowIfNull(reader.Mappings);
+        
         object enumObj = 0;
 
-        if (!isZero)
+        switch (mode)
         {
-            var value = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
-            if (value is not AbstractProperty prop)
-                throw new InvalidCastException("Property is not a AbstractProperty?");
+            case EReadMode.Zero:
+                break;
+            case EReadMode.Normal:
+                var value = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
+                if (value is not AbstractProperty prop)
+                    throw new InvalidCastException("Property is not a AbstractProperty?");
 
-            enumObj = prop.ValueAsObject ?? 0;
+                enumObj = prop.ValueAsObject ?? 0;
+                break;
+            case EReadMode.Map:
+                Value = new FName(reader, asset.NameMap).Name;
+                return;
         }
         
         var index = Convert.ToInt32(enumObj);
@@ -37,7 +42,7 @@ public class EnumProperty : AbstractProperty<string>
         
         Value = enumData.Names.Length >= index
             ? enumData.Names[index]
-            : throw new KeyNotFoundException($"Could not find enum name ('{data.EnumName}') at index {index}.");
+            : throw new KeyNotFoundException($"Could not find a enum name ('{data.EnumName}') at index {index}.");
     }
     
     public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)

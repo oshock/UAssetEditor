@@ -12,21 +12,21 @@ public class ArrayProperty : AbstractProperty<List<object>>
         return $"[{Value?.Count}]";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
 
         Value = [];
         
-        if (isZero)
+        if (mode == EReadMode.Zero)
             return;
         
         var count = reader.Read<int>();
 
         for (int i = 0; i < count; i++)
         {
-            var item = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data, asset);
+            var item = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
             Value.Add(item);
         }
     }

@@ -7,7 +7,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class StrProperty : AbstractProperty<string>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Value = FString.Read(reader);
     }

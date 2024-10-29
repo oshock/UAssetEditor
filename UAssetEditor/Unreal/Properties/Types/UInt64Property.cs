@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class UInt64Property : AbstractProperty<ulong>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Value = reader.Read<ulong>();
     }

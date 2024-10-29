@@ -28,9 +28,17 @@ public class SoftObjectProperty : AbstractProperty<string>
         };
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(asset);
+
+        if (mode == EReadMode.Zero)
+        {
+            AssetPathName = "None";
+            PackageName = "None";
+            SubPathName = "";
+            return;
+        }
         
         AssetPathName = new FName(reader, asset.NameMap).Name;
         PackageName = new FName(reader, asset.NameMap).Name;

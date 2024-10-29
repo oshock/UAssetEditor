@@ -18,10 +18,10 @@ public class StructProperty : AbstractProperty<object>
         return $"({Type})";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
-        Type = data?.InnerType?.StructType ?? "None";
-        Value = PropertyReflector.ReadStruct(reader, data, asset, isZero);
+        Type = data?.StructType ?? "None";
+        Value = PropertyReflector.ReadStruct(reader, data, asset, mode);
     }
 
     public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)

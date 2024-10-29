@@ -6,12 +6,18 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class MapProperty : AbstractProperty<Dictionary<object, object>>
 {
-    // TODO
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
-        /*var numKeysToRemove = reader.Read<int>();
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(data.InnerType);
+        ArgumentNullException.ThrowIfNull(data.ValueType);
+        //ArgumentNullException.ThrowIfNull(asset);
+        
+        var numKeysToRemove = reader.Read<int>();
         for (int i = 0; i < numKeysToRemove; i++)
-            ReadProperty(data.InnerType.Type.ToString(), reader, null, asset);
+        {
+            PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, null, asset);
+        }
 
         var num = reader.Read<int>();
         Value = new Dictionary<object, object>();
@@ -19,14 +25,14 @@ public class MapProperty : AbstractProperty<Dictionary<object, object>>
         var keyType = data.InnerType.Type.ToString();
         var valueType = data.ValueType.Type.ToString();
 
-        var mappings = asset.Mappings;
+        //var mappings = asset.Mappings;
         
         for (int i = 0; i < num; i++)
         {
-            var key = ReadProperty(keyType, reader, null, asset);
-            var value = ReadProperty(valueType, reader, new UsmapProperty(data.ValueType.StructType, 0, 1, data.ValueType), asset);
-            Value.Add(key ?? "None", value ?? "None");
-        }*/
+            var key = PropertyUtils.ReadProperty(keyType, reader, data.InnerType, asset, EReadMode.Map);
+            var value = PropertyUtils.ReadProperty(valueType, reader, data.ValueType, asset, EReadMode.Map);
+            Value.Add(key, value);
+        }
     }
 
     // TODO

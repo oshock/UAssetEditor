@@ -1,4 +1,5 @@
 using UAssetEditor.Binary;
+using UsmapDotNet;
 
 namespace UAssetEditor;
 
@@ -22,7 +23,8 @@ public class PakAsset : BaseAsset
         throw new NotImplementedException();
     }
 
-    public override List<UProperty> ReadProperties(string type)
+    // TODO when I actually implement pak assets
+    public override List<UProperty> ReadProperties(UsmapSchema structure)
     {
         throw new NotImplementedException();
     }

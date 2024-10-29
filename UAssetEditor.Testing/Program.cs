@@ -19,7 +19,7 @@ File.WriteAllText("output.json", uasset.ToString());
 if (File.Exists("output.uasset"))
     File.Delete("output.uasset");
 
-var writer = new Writer("output.uasset");
+var writer = new Writer(File.Open("output.uasset", FileMode.OpenOrCreate, FileAccess.ReadWrite));
 uasset.WriteAll(writer);
 
 var modifiedAsset = new ZenAsset(writer.ToArray());

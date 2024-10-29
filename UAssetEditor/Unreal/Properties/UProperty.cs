@@ -18,11 +18,18 @@ public class UProperty
     public override string ToString() => $"{Name}: {Value} ({Type})";
 }
 
+public enum EReadMode
+{
+    Zero,
+    Normal,
+    Map
+}
+
 public abstract class AbstractProperty : ICloneable
 {
     public abstract object? ValueAsObject { get; }
     
-    public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     { } 
 
     public virtual void Write(Writer writer, UProperty property, BaseAsset? asset = null)

@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Properties.Structs;
+using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
 using UsmapDotNet;
 
@@ -30,18 +31,20 @@ public static class PropertyReflector
         { "SoftClassProperty", typeof(SoftObjectProperty) },
         { "SoftObjectProperty", typeof(SoftObjectProperty) },
         { "ScriptInterface", typeof(ObjectProperty) },
-        { "ObjectProperty", typeof(ObjectProperty) }
+        { "ObjectProperty", typeof(ObjectProperty) },
+        { "MapProperty", typeof(MapProperty) }
     };
     
     public static Dictionary<string, Type> DefinedStructsByName = new()
     {
         { "GameplayTagContainer", typeof(FGameplayTagContainer) },
         { "InstancedStruct", typeof(FInstancedStruct) },
-        { "DoubleProperty", typeof(DoubleProperty) }
+        { "Vector", typeof(FVector) },
+        { "Rotator", typeof(FRotator) }
     };
 
     public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data,
-        BaseAsset? asset = null, bool isZero = false)
+        BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         foreach (var kvp in PropertiesByName)
         {
@@ -52,7 +55,7 @@ public static class PropertyReflector
                 throw new ApplicationException(
                     $"{kvp.Value.Name} is listed as a property but does not inherit 'AbstractProperty'.");
             
-            instance.Read(reader, data, asset, isZero);
+            instance.Read(reader, data, asset, mode);
             return instance;
         }
 
@@ -78,7 +81,7 @@ public static class PropertyReflector
     }
     
     public static object ReadStruct(Reader reader, UsmapPropertyData? data,
-        BaseAsset? asset = null, bool isZero = false)
+        BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -97,7 +100,7 @@ public static class PropertyReflector
                 throw new ApplicationException(
                     $"{kvp.Value.Name} is listed as a property but does not inherit 'UStruct'.");
 
-            instance.Read(reader, data, asset, isZero);
+            instance.Read(reader, data, asset, mode);
             return instance;
         }
 

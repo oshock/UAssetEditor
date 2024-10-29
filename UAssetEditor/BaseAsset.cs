@@ -6,6 +6,10 @@ using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Misc;
 using UAssetEditor.Summaries;
+using UAssetEditor.Unreal.Properties.Structs;
+using UAssetEditor.Unreal.Properties.Types;
+using UAssetEditor.Unreal.Properties.Unversioned;
+using UsmapDotNet;
 
 namespace UAssetEditor;
 
@@ -61,6 +65,7 @@ public abstract class BaseAsset : Reader
     public NameMapContainer NameMap;
     public EPackageFlags Flags;
 
+    public StructureContainer DefinedStructures = new();
     
     public readonly Dictionary<string, PropertyContainer> Properties = new();
     
@@ -70,12 +75,30 @@ public abstract class BaseAsset : Reader
     public BaseAsset(string path) : this(File.ReadAllBytes(path))
     { }
 
+
     /// <summary>
     /// Read the entirety of this asset
     /// </summary>
     public abstract void ReadAll();
     public abstract uint ReadHeader();
-    public abstract List<UProperty> ReadProperties(string type);
+    
+    // TODO eventually redo when I add pak assets (not unversioned)
+    public List<UProperty> ReadProperties(string type)
+    {
+        if (!DefinedStructures.Contains(type))
+        {
+            var schema = Mappings?.FindSchema(type);
+            if (schema is null)
+                throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
+		    
+            DefinedStructures.Add(schema);
+        }
+
+        return ReadProperties(DefinedStructures[type] ?? throw new KeyNotFoundException("How'd we get here?"));
+    }
+    
+    // TODO eventually redo when I add pak assets (not unversioned)
+    public abstract List<UProperty> ReadProperties(UsmapSchema structure);
     public abstract Writer WriteProperties(string type, int exportIndex, List<UProperty> properties);
 
     /// <summary>

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Data;
+using Newtonsoft.Json;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.IoStore;
@@ -6,6 +7,7 @@ using UAssetEditor.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
+using UAssetEditor.Unreal.Properties.Structs;
 using UsmapDotNet;
 using Oodle = OodleDotNet.Oodle;
 
@@ -53,7 +55,6 @@ public class ZenAsset : BaseAsset
     public override void ReadAll()
     {
 	    var headerSize = Position = ReadHeader();
-	    var propReader = new UnversionedReader(this);
 	    foreach (var entry in ExportBundleEntries)
 	    {
 		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
@@ -64,7 +65,7 @@ public class ZenAsset : BaseAsset
 		    var @class = export.Class;
 
 		    Position = headerSize + (long)export.CookedSerialOffset;
-		    Properties.Add(name, new PropertyContainer(@class, propReader.ReadProperties(@class)));
+		    Properties.Add(name, new PropertyContainer(@class, ReadProperties(@class)));
 	    }
     }
 
@@ -103,7 +104,10 @@ public class ZenAsset : BaseAsset
         return summary.HeaderSize;
     }
 
-    public override List<UProperty> ReadProperties(string type) => new UnversionedReader(this).ReadProperties(type);
+    public override List<UProperty> ReadProperties(UsmapSchema schema)
+    {
+	    return UnversionedReader.ReadProperties(this, schema);
+    }
 
     /// <summary>
     /// Serializes the entire asset to a stream.

@@ -6,9 +6,9 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class FloatProperty : AbstractProperty<float>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
-        if (isZero)
+        if (mode == EReadMode.Zero)
         {
             Value = 0f;
             return;

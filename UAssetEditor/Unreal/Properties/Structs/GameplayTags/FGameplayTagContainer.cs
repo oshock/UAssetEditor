@@ -34,7 +34,7 @@ public class FGameplayTagContainer : UStruct
             name.Serialize(writer, asset.NameMap);
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Tags = ReadGameplayTagArray(asset, reader);
     }

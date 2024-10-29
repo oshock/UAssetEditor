@@ -39,7 +39,7 @@ public class TextProperty : AbstractProperty<FTextHistory>
     public uint Flags;
     public ETextHistoryType Type;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Flags = reader.Read<uint>();
         Type = reader.Read<ETextHistoryType>();

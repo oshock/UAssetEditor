@@ -1,13 +1,19 @@
 using System.Collections;
 using System.Data;
+using UAssetEditor.Unreal.Properties.Structs;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Unversioned;
 
-public class UnversionedReader(ZenAsset asset)
+public static class UnversionedReader
 {
+	public static UsmapSchema? FindSchema(this Usmap mappings, string type)
+	{
+		return mappings.Schemas.FirstOrDefault(x => x.Name == type);
+	}
+	
 	// https://github.com/EpicGames/UnrealEngine/blob/a3cb3d8fdec1fc32f071ae7d22250f33f80b21c4/Engine/Source/Runtime/CoreUObject/Private/Serialization/UnversionedPropertySerialization.cpp#L528
-    public List<UProperty> ReadProperties(string type)
+    public static List<UProperty> ReadProperties(ZenAsset asset, UsmapSchema schema)
     {
 	    var props = new List<UProperty>();
 	    bool bHasNonZeroValues;
@@ -62,10 +68,8 @@ public class UnversionedReader(ZenAsset asset)
 	    if (asset.Mappings is null)
 		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
 
-	    var schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == type);
-	    if (schema is null)
-		    throw new NoNullAllowedException($"Cannot find '{type}' in mappings. Unable to parse data!");
-
+	    asset.DefinedStructures.Add(schema);
+	    
 	    var totalSchemaIndex = 0;
 	    var schemaIndex = 0;
 	    var zeroMaskIndex = 0;
@@ -91,11 +95,12 @@ public class UnversionedReader(ZenAsset asset)
 				    {
 					    schemaIndex -= schema.Properties.Length;
 					    
-					    var super = schema.SuperType;
-					    schema = asset.Mappings.Schemas.FirstOrDefault(x => x.Name == super);
+					    /*var super = schema.SuperType;
+					    if (string.IsNullOrEmpty(super))
+						    throw new NoNullAllowedException($"{nameof(super)} cannot be null.");
 					    
-					    if (schema is null) 
-						    throw new NoNullAllowedException($"Cannot find super type '{type}' in mappings. Unable to parse data!");
+					    schema = asset.Mappings.FindSchema(super) 
+					             ?? throw new KeyNotFoundException("Cannot find super type '{type}' in mappings. Unable to parse data!");*/
 				    }
 				    
 				    if (prop is not null)
@@ -119,8 +124,9 @@ public class UnversionedReader(ZenAsset asset)
 			    if (zeroMask is not null)
 				    isNonZero |= !zeroMask.Get(zeroMaskIndex);
 
+			    var readMode = !isNonZero ? EReadMode.Zero : EReadMode.Normal;
 			    var propertyType = prop.Data.Type.ToString();
-			    var propertyValue = PropertyUtils.ReadProperty(propertyType, asset, prop.Data, asset, !isNonZero);
+			    var propertyValue = PropertyUtils.ReadProperty(propertyType, asset, prop.Data, asset, readMode);
 			    
 			    props.Add(new UProperty
 			    {

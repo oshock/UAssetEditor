@@ -14,9 +14,9 @@ public class ObjectProperty : AbstractProperty<int>
     public bool IsImport => (int)Value < 0;
     public bool IsNull => (int)Value == 0;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, bool isZero = false)
+    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
     {
-        Value = isZero ? 0 : reader.Read<int>();
+        Value = mode == EReadMode.Zero ? 0 : reader.Read<int>();
 
         if (asset is not ZenAsset zen) return;
         
