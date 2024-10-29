@@ -7,14 +7,14 @@
         xmlns:controls="clr-namespace:UAssetEditor.App.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid Background="#1a1a1a">
+    <Grid Background="#4859a3">
         <Grid.RowDefinitions>
-            <RowDefinition Height="70"></RowDefinition>
-            <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
         
-        <StackPanel Grid.Row="1" MinWidth="700">
-            <controls:PropertyControl Text="Test"></controls:PropertyControl>
-        </StackPanel>
+        <ScrollViewer Width="600" VerticalAlignment="Bottom" Height="400">
+            <StackPanel x:Name="Properties">
+                
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

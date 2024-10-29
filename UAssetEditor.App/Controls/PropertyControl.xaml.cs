@@ -6,7 +6,7 @@ namespace UAssetEditor.App.Controls;
 public class Property
 {
     public string Name;
-    public List<Property> SubProperties;
+    //public List<Property> SubProperties;
     public UProperty PropertyReference;
 
     public void Show(StackPanel panel)
@@ -22,12 +22,26 @@ public partial class PropertyControl : UserControl
         InitializeComponent();
     }
 
+    public static PropertyControl Create(UProperty property)
+    {
+        var prop = new Property
+        {
+            Name = property.Name,
+            PropertyReference = property
+        };
+
+        return new PropertyControl
+        {
+            Property = prop
+        };
+    }
+
     public Property Property;
 
-    public string Text
+    public void Refresh()
     {
-        get => TextBox.Text;
-        set => TextBox.Text = value;
+        PropertyName.Text = Property.Name;
+        TextBox.Text = Property.PropertyReference.Value?.ToString() ?? "None";
     }
 
     private void UIElement_OnMouseEnter(object sender, MouseEventArgs e)

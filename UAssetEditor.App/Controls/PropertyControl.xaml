@@ -7,25 +7,30 @@
              mc:Ignorable="d"
              d:DesignWidth="414"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
-    <Border BorderThickness="1" BorderBrush="Black" Background="#262626">
+    <Border BorderThickness="1" BorderBrush="Black" Background="#262626" CornerRadius="10" Padding="10" Margin="10">
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="38"/>
-                <ColumnDefinition Width="38"/>
-                <ColumnDefinition Width="38"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>      
             
-            <TextBox Name="TextBox" BorderThickness="0" Padding="5"></TextBox>
-            <Border Grid.Column="1" Width="38" Background="#346fcf" MouseUp="Edit">
-                <ui:SymbolIcon Symbol="Edit16" Foreground="White"/>
-            </Border>
-            <Border Grid.Column="2" Width="38" Background="#36b55e">
-                <ui:SymbolIcon Symbol="Copy16" Foreground="White"/>
-            </Border>
-            <Border Grid.Column="3" Width="38" Background="#cf5334">
-                <ui:SymbolIcon Symbol="Delete16" Foreground="White"/>
-            </Border>
+            <TextBlock x:Name="PropertyName" Text="Example Property Name" Foreground="White" HorizontalAlignment="Center"></TextBlock>
+            
+            <Grid Grid.Row="1" Margin="5, 10, 5, 5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="38"/>
+                    <ColumnDefinition Width="38"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Name="TextBox" Padding="5" Background="#0fffffff" Foreground="White" FontSize="10"></TextBlock>
+                <Border Grid.Column="1" Width="38" Background="#346fcf" MouseUp="Edit">
+                    <ui:SymbolIcon Symbol="Edit16" Foreground="White"/>
+                </Border>
+                <Border Grid.Column="3" Width="38" Background="#cf5334">
+                    <ui:SymbolIcon Symbol="Delete16" Foreground="White"/>
+                </Border>
+            </Grid>
             </Grid> 
     </Border>
 </UserControl>
