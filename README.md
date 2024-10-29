@@ -1,6 +1,11 @@
 # UAssetEditor
  An I/O Unreal Asset Editor
 
-## Bugs
+## TODOs
 - MapProperty does not read correctly (not finished)
-- Padding needs to be added for proper export reading (engine)
+- FInstancedStruct
+- Optional I/O Container reading to populate imports
+- Property creation handler
+- Bunch of other properties
+- Desktop app
+- Documentation
