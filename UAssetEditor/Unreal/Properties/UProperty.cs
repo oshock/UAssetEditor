@@ -27,6 +27,7 @@ public enum EReadMode
 
 public abstract class AbstractProperty : ICloneable
 {
+    public string? Name { get; set; }
     public abstract object? ValueAsObject { get; }
     
     public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)

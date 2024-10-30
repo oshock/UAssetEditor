@@ -1,11 +1,14 @@
-﻿using System.Data;
+﻿using System.Collections.ObjectModel;
+using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UAssetEditor.App.Classes;
 using UAssetEditor.App.Controls;
+using UAssetEditor.Unreal.Properties.Types;
 
 namespace UAssetEditor.App;
 
@@ -14,6 +17,8 @@ namespace UAssetEditor.App;
 /// </summary>
 public partial class MainWindow : Window
 {
+    public ObservableCollection<TableItem> Items { get; set; }
+    
     public MainWindow()
     {
         InitializeComponent();
@@ -36,15 +41,32 @@ public partial class MainWindow : Window
     {
         if (Asset is null)
             throw new NoNullAllowedException("Cannot populate without an asset loaded.");
+
+        TableItem MakeTableItem(UProperty property)
+        {
+            var item = new TableItem
+            {
+                Name = property.Name,
+                Property = property
+            };
+
+            if (property.Value is ArrayProperty array)
+            {
+                var properties = (List<AbstractProperty>)array.ValueAsObject;
+                foreach (var elm in properties)
+                {
+                    MakeTableItem(elm);
+                }
+            }
+
+            return item;
+        }
         
         foreach (var container in Asset.Properties)
         {
             foreach (var property in container.Value)
             {
-                var control = PropertyControl.Create(property);
-                control.Refresh();
-
-                Properties.Children.Add(control);
+                var item = MakeTableItem(property);
             }
         }
     }

@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DesignWidth="414"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
-    <Border BorderThickness="1" BorderBrush="Black" Background="#262626" CornerRadius="10" Padding="10" Margin="10">
+    <Border BorderThickness="1" BorderBrush="Black" Background="#262626" Padding="10" Margin="1">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -27,7 +27,7 @@
                 <Border Grid.Column="1" Width="38" Background="#346fcf" MouseUp="Edit">
                     <ui:SymbolIcon Symbol="Edit16" Foreground="White"/>
                 </Border>
-                <Border Grid.Column="3" Width="38" Background="#cf5334">
+                <Border Grid.Column="2" Width="38" Background="#cf5334">
                     <ui:SymbolIcon Symbol="Delete16" Foreground="White"/>
                 </Border>
             </Grid>

@@ -126,7 +126,9 @@ public static class UnversionedReader
 
 			    var readMode = !isNonZero ? EReadMode.Zero : EReadMode.Normal;
 			    var propertyType = prop.Data.Type.ToString();
-			    var propertyValue = PropertyUtils.ReadProperty(propertyType, asset, prop.Data, asset, readMode);
+			    var propertyValue = 
+				    (AbstractProperty)PropertyUtils.ReadProperty(propertyType, asset, prop.Data, asset, readMode);
+			    propertyValue.Name = prop.Name;
 			    
 			    props.Add(new UProperty
 			    {
