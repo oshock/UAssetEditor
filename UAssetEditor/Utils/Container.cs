@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace UAssetEditor.Classes;
+namespace UAssetEditor.Utils;
 
 public abstract class Container<T> : IEnumerable<T>
 {

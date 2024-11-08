@@ -8,7 +8,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class EnumProperty : AbstractProperty<string>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         
         ArgumentNullException.ThrowIfNull(data);
@@ -45,7 +45,7 @@ public class EnumProperty : AbstractProperty<string>
             : throw new KeyNotFoundException($"Could not find a enum name ('{data.EnumName}') at index {index}.");
     }
     
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         if (asset is null)
             throw new NoNullAllowedException($"'{nameof(asset)}' cannot be null");

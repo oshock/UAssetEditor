@@ -1,13 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Media;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UAssetEditor.App.Classes;
-using UAssetEditor.App.Controls;
 using UAssetEditor.Unreal.Properties.Types;
 
 namespace UAssetEditor.App;

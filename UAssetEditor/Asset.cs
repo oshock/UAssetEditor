@@ -1,16 +1,11 @@
 ﻿using System.Data;
-using System.Dynamic;
-using System.Security.Principal;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UAssetEditor.Binary;
-using UAssetEditor.Classes;
 using UAssetEditor.Misc;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Properties.Structs;
-using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Unreal.Properties.Unversioned;
+using UAssetEditor.Utils;
 using UsmapDotNet;
 
 namespace UAssetEditor;
@@ -61,7 +56,7 @@ public class PropertyContainer : Container<UProperty>
     }
 }
 
-public abstract class BaseAsset : Reader
+public abstract class Asset : Reader
 {
     public string Name { get; set; }
     public NameMapContainer NameMap;
@@ -71,10 +66,10 @@ public abstract class BaseAsset : Reader
     
     public readonly Dictionary<string, PropertyContainer> Properties = new();
     
-    public BaseAsset(byte[] data) : base(data)
+    public Asset(byte[] data) : base(data)
     { }
     
-    public BaseAsset(string path) : this(File.ReadAllBytes(path))
+    public Asset(string path) : this(File.ReadAllBytes(path))
     { }
 
 
@@ -112,7 +107,7 @@ public abstract class BaseAsset : Reader
     public abstract void Fix();
     public abstract void WriteHeader(Writer writer);
 
-    public static int ReferenceOrAddString(BaseAsset asset, string str)
+    public static int ReferenceOrAddString(Asset asset, string str)
     {
         if (!asset.NameMap.Contains(str))
             asset.NameMap.Add(str);
@@ -203,108 +198,6 @@ public abstract class BaseAsset : Reader
             }
         }
     }*/
-
-    private struct PropertyObject
-    {
-        public string Type;
-        public dynamic? Value;
-    }
-    
-    public static object PropertyToObject(AbstractProperty? property)
-    {
-        var obj = new PropertyObject { Type = property?.GetType().Name ?? "None" };
-        dynamic expando = new ExpandoObject();
-        
-        switch (property)
-        {
-            case null:
-                return obj;
-            case ArrayProperty array:
-            {
-                var arrayObj = new List<object>();
-                foreach (var elm in array.Value ?? new())
-                {
-                    var value = PropertyToObject((AbstractProperty)elm);
-                    arrayObj.Add(value);
-                }
-
-                ((IDictionary<string, object>)expando)[array.Name ?? "Unnamed Array"] = arrayObj;
-
-                break;
-            }
-            case MapProperty map:
-            {
-                var dict = new Dictionary<object, object>();
-                foreach (var kvp in map.Value ?? new())
-                {
-                    var key = PropertyToObject((AbstractProperty)kvp.Key);
-                    var value = PropertyToObject((AbstractProperty)kvp.Value);
-                    dict.Add(key, value);
-                }
-                
-                ((IDictionary<string, object>)expando)[map.Name ?? "Unnamed Map"] = dict;
-
-                break;
-            }
-            case StructProperty struc:
-            {
-                
-                if (struc.Value is List<UProperty> props)
-                {
-                    
-                    foreach (var kvp in props)
-                    {
-                        var key = kvp.Name;
-                        var value = PropertyToObject((AbstractProperty?)kvp.Value);
-                        ((IDictionary<string, object>)expando)[key] = value;
-                    }
-                }
-                else
-                {
-                    obj.Value = struc.Value;
-                }
-
-                break;
-            }
-            default:
-                ((IDictionary<string, object?>)expando)[property.Name ?? "Value"] = property.ValueAsObject;
-                break;
-        }
-
-        obj.Value = expando;
-        return obj;
-    }
-    
-    /// <summary>
-    /// Serializes the asset into json
-    /// </summary>
-    /// <returns></returns>
-    public override string ToString()
-    {
-        var objs = new List<object>();
-        
-        foreach (var kvp in Properties)
-        {
-            var properties = new List<object>();
-
-            foreach (var prop in kvp.Value)
-            {
-                var propObj = PropertyToObject((AbstractProperty?)prop.Value);
-                properties.Add(propObj);
-            }
-            
-            var obj = new
-            {
-                Type = kvp.Value.Type,
-                Name = kvp.Key,
-                Properties = properties
-            };
-            
-            objs.Add(obj);
-        }
-        
-        return JsonConvert.SerializeObject(objs, Formatting.Indented);
-    }
 }
 
 public class NameMapContainer : Container<string>

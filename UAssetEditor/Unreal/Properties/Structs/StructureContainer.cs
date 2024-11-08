@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using UAssetEditor.Classes;
+﻿using UAssetEditor.Utils;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Structs;

@@ -28,7 +28,7 @@ public class SoftObjectProperty : AbstractProperty<string>
         };
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(asset);
 
@@ -47,7 +47,7 @@ public class SoftObjectProperty : AbstractProperty<string>
         Value = $"{AssetPathName}.{PackageName}";
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(Value);

@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class BoolProperty : AbstractProperty<bool>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         if (mode == EReadMode.Zero) // TODO determine what the default value is
         {
@@ -17,7 +17,7 @@ public class BoolProperty : AbstractProperty<bool>
         Value = reader.ReadByte() != 0;
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         if (property.Value is null)
         {

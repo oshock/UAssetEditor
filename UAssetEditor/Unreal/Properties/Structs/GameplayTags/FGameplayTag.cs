@@ -8,11 +8,11 @@ public class FGameplayTag : UStruct
 {
     public FName Name;
 
-    public virtual void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public virtual void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         
     } 
     
-    public void Write(Writer writer, BaseAsset? asset = null)
+    public void Write(Writer writer, Asset? asset = null)
     { }
 }

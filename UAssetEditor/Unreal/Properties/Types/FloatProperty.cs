@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class FloatProperty : AbstractProperty<float>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         if (mode == EReadMode.Zero)
         {
@@ -17,7 +17,7 @@ public class FloatProperty : AbstractProperty<float>
         Value = reader.Read<float>();
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         writer.Write(Value);
     }

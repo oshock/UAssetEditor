@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using UAssetEditor;
+using UAssetEditor.IoStore;
 
 namespace Astro.App.IoReader;
 
@@ -151,8 +152,13 @@ public class IoStoreReader : Reader
         {
             Position = CompressionBlocksPosition + 12 * (info.FirstBlockIndex + i);
 
-            var offset = Read<uint>();
-            var partitionIndex = ReadByte();
+            unsafe
+            {
+                var blockData = stackalloc byte[5 + 3 + 3 + 1];
+            }
+            
+            // TODO convert to file
+            var offset = 
 
             var compressedSize = ReadUndersized<uint>(3);
             var uncompressedSize = ReadUndersized<uint>(3);
@@ -169,7 +175,7 @@ public class IoStoreReader : Reader
             var data = new byte[uncompressedSize];
             if (isCompressed)
             {
-                UAssetEditor.IoStore.Oodle.Decompress(compressed, 0, (int)compressedSize, data, 0,
+                Oodle.Decompress(compressed, 0, (int)compressedSize, data, 0,
                     (int)uncompressedSize);
             }
             else

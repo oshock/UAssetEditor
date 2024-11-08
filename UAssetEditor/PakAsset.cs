@@ -3,7 +3,7 @@ using UsmapDotNet;
 
 namespace UAssetEditor;
 
-public class PakAsset : BaseAsset
+public class PakAsset : Asset
 {
     public PakAsset(byte[] data) : base(data)
     {

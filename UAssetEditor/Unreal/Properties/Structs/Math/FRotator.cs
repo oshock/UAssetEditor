@@ -9,7 +9,7 @@ public class FRotator : UStruct
     public float Yaw;
     public float Roll;
 
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         if (mode == EReadMode.Zero)
         {
@@ -24,7 +24,7 @@ public class FRotator : UStruct
         Roll = reader.Read<float>();
     }
 
-    public override void Write(Writer writer, BaseAsset? asset = null)
+    public override void Write(Writer writer, Asset? asset = null)
     {
         writer.Write(Pitch);
         writer.Write(Yaw);

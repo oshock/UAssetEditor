@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class MapProperty : AbstractProperty<Dictionary<object, object>>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
@@ -36,7 +36,7 @@ public class MapProperty : AbstractProperty<Dictionary<object, object>>
     }
 
     // TODO
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         
     }

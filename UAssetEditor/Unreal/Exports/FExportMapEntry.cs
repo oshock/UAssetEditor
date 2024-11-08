@@ -71,7 +71,7 @@ public class FExportMapEntry
     
     public void SetObjectName(string name)
     {
-        var i = BaseAsset.ReferenceOrAddString(Asset, name);
+        var i = UAssetEditor.Asset.ReferenceOrAddString(Asset, name);
         ObjectName = new FMappedName((uint)i, 0);
     }
 }

@@ -7,7 +7,7 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class GameplayTagArrayProperty : AbstractProperty<List<FName>>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Value = [];
 
@@ -23,7 +23,7 @@ public class GameplayTagArrayProperty : AbstractProperty<List<FName>>
             Value.Add(new FName(reader, asset.NameMap));
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         if (Value is null)
         {

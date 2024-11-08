@@ -19,7 +19,7 @@ public struct NameValuePair
 
 public static class PropertyUtils
 {
-    public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         if (string.IsNullOrEmpty(type))
             throw new ArgumentNullException($"'{nameof(type)}' cannot be null or empty.");
@@ -27,7 +27,7 @@ public static class PropertyUtils
         return PropertyReflector.ReadProperty(type, reader, data, asset, mode);
     }
     
-    public static void WriteProperty(Writer writer, UProperty prop, BaseAsset? asset = null)
+    public static void WriteProperty(Writer writer, UProperty prop, Asset? asset = null)
     {
         PropertyReflector.WriteProperty(writer, prop, asset);
     }

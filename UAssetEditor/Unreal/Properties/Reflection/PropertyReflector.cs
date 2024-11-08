@@ -44,7 +44,7 @@ public static class PropertyReflector
     };
 
     public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data,
-        BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+        Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         foreach (var kvp in PropertiesByName)
         {
@@ -62,7 +62,7 @@ public static class PropertyReflector
         throw new NotImplementedException($"Property type '{type}' is not implemented!");
     }
     
-    public static void WriteProperty(Writer writer, UProperty prop, BaseAsset? asset = null)
+    public static void WriteProperty(Writer writer, UProperty prop, Asset? asset = null)
     {
         if (prop.Value is not AbstractProperty property)
             throw new ApplicationException($"{prop.Name} is not a 'AbstractProperty'.");
@@ -70,7 +70,7 @@ public static class PropertyReflector
         property.Write(writer, prop, asset);
     }
     
-    public static void WriteProperty(Writer writer, AbstractProperty prop, BaseAsset? asset = null)
+    public static void WriteProperty(Writer writer, AbstractProperty prop, Asset? asset = null)
     {
         var uProperty = new UProperty
         {
@@ -81,7 +81,7 @@ public static class PropertyReflector
     }
     
     public static object ReadStruct(Reader reader, UsmapPropertyData? data,
-        BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+        Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -109,7 +109,7 @@ public static class PropertyReflector
         return asset.ReadProperties(type);
     }
     
-    public static void WriteStruct(Writer writer, object property, string type, BaseAsset? asset = null)
+    public static void WriteStruct(Writer writer, object property, string type, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
         

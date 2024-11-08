@@ -9,7 +9,7 @@ public class FGameplayTagContainer : UStruct
 {
     public List<FName> Tags;
 
-    public static List<FName> ReadGameplayTagArray(BaseAsset? asset, Reader reader)
+    public static List<FName> ReadGameplayTagArray(Asset? asset, Reader reader)
     {
         if (asset is null)
             throw new NoNullAllowedException("Asset cannot be null.");
@@ -23,7 +23,7 @@ public class FGameplayTagContainer : UStruct
         return tags;
     }
     
-    public static void WriteGameplayTagArray(Writer writer, List<FName> names, BaseAsset asset)
+    public static void WriteGameplayTagArray(Writer writer, List<FName> names, Asset asset)
     {
         if (asset is null)
             throw new NoNullAllowedException("Asset cannot be null.");
@@ -34,12 +34,12 @@ public class FGameplayTagContainer : UStruct
             name.Serialize(writer, asset.NameMap);
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Tags = ReadGameplayTagArray(asset, reader);
     }
 
-    public override void Write(Writer writer, BaseAsset? asset = null)
+    public override void Write(Writer writer, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
         WriteGameplayTagArray(writer, Tags, asset);

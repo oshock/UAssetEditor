@@ -18,13 +18,13 @@ public class StructProperty : AbstractProperty<object>
         return $"({Type})";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         Type = data?.StructType ?? "None";
         Value = PropertyReflector.ReadStruct(reader, data, asset, mode);
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         if (Value is null)
             throw new NoNullAllowedException("Cannot write struct property without a non-null value.");

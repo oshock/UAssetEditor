@@ -1,25 +1,21 @@
-﻿using System.Data;
-using Newtonsoft.Json;
-using UAssetEditor.Binary;
-using UAssetEditor.Classes;
+﻿using UAssetEditor.Binary;
 using UAssetEditor.IoStore;
 using UAssetEditor.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
-using UAssetEditor.Unreal.Properties.Structs;
+using UAssetEditor.Utils;
 using UsmapDotNet;
 using Oodle = OodleDotNet.Oodle;
 
 namespace UAssetEditor;
 
-public class ZenAsset : BaseAsset
+public class ZenAsset : Asset
 {
     public IoGlobalReader? GlobalData;
 
     public ulong[] ImportedPublicExportHashes;
     public ulong[] ImportMap;
-    [JsonConverter(typeof(SerializableExportEntry))]
     public ExportContainer ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;

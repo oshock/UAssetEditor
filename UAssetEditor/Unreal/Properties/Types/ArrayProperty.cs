@@ -1,5 +1,4 @@
 using UAssetEditor.Binary;
-using UAssetEditor.Unreal.Properties.Structs;
 using UsmapDotNet;
 
 
@@ -12,7 +11,7 @@ public class ArrayProperty : AbstractProperty<List<object>>
         return $"[{Value?.Count}]";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, BaseAsset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
@@ -31,7 +30,7 @@ public class ArrayProperty : AbstractProperty<List<object>>
         }
     }
 
-    public override void Write(Writer writer, UProperty property, BaseAsset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null)
     {
         if (Value is null)
         {
