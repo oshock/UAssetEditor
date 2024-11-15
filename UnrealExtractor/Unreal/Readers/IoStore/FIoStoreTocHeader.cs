@@ -1,6 +1,8 @@
 ﻿using UnrealExtractor.Binary;
+using UnrealExtractor.Unreal.Misc;
+using UnrealExtractor.Utils;
 
-namespace UnrealExtractor.Unreal.IoStore;
+namespace UnrealExtractor.Unreal.Readers.IoStore;
 
 public enum EIoStoreTocVersion : byte
 {
@@ -45,7 +47,7 @@ public class FIoStoreTocHeader
     public readonly uint DirectoryIndexSize;
     public uint PartitionCount;
     // public readonly FIoContainerId ContainerId;
-    // public readonly FGuid EncryptionKeyGuid;
+    public readonly FGuid EncryptionKeyGuid;
     public readonly EIoContainerFlags ContainerFlags;
     // private readonly byte _reserved3;
     // private readonly ushort _reserved4;
@@ -74,16 +76,16 @@ public class FIoStoreTocHeader
         PartitionCount = reader.Read<uint>();
 
         reader.Position += sizeof(ulong); // sizeof(FIoContainerId)
-        reader.Position += sizeof(uint) * 4; // sizeof(FGuid)
+        EncryptionKeyGuid = reader.Read<FGuid>();
 
         ContainerFlags = reader.Read<EIoContainerFlags>();
 
-        reader.Position += 1 + 3; // Padding
+        reader.Position += 1 + 2; // Padding
 
         TocChunkPerfectHashSeedsCount = reader.Read<uint>();
-        PartitionSize = reader.Read<uint>();
+        PartitionSize = reader.Read<ulong>();
         TocChunksWithoutPerfectHashCount = reader.Read<uint>();
 
-        reader.Position = 144; // End of header
+        reader.Position = 144; // Should be right always?
     }
 }

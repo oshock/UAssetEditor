@@ -143,49 +143,10 @@ public class IoStoreReader : Reader
         return hash;
     }
 
+    // TODO REMOVE
     public Reader Extract(VFileInfo info)
     {
-        var buffer = new byte[info.Length];
-        var bufferOffset = 0;
-        
-        for (int i = 0; i < info.BlockCount; i++)
-        {
-            Position = CompressionBlocksPosition + 12 * (info.FirstBlockIndex + i);
-
-            unsafe
-            {
-                var blockData = stackalloc byte[5 + 3 + 3 + 1];
-            }
-            
-            // TODO convert to file
-            var offset = 
-
-            var compressedSize = ReadUndersized<uint>(3);
-            var uncompressedSize = ReadUndersized<uint>(3);
-
-            var isCompressed = ReadByte() != 0;
-
-            var ucas = Path.GetDirectoryName(FilePath) + "\\" + Path.GetFileNameWithoutExtension(FilePath) +
-                       (partitionIndex > 0 ? $"_s{partitionIndex}.ucas" : ".ucas");
-            var reader = new BinaryReader(File.OpenRead(ucas));
-
-            reader.BaseStream.Position = offset;
-
-            var compressed = reader.ReadBytes((int)compressedSize);
-            var data = new byte[uncompressedSize];
-            if (isCompressed)
-            {
-                Oodle.Decompress(compressed, 0, (int)compressedSize, data, 0,
-                    (int)uncompressedSize);
-            }
-            else
-                data = compressed;
-            
-            Buffer.BlockCopy(data, 0, buffer, bufferOffset, data.Length);
-            bufferOffset += data.Length;
-        }
-
-        return new Reader(buffer);
+        return new([]);
     }
     
     public T ReadUndersized<T>(int size)

@@ -1,6 +1,6 @@
 ﻿using UnrealExtractor.Binary;
 
-namespace UnrealExtractor.Unreal.IoStore;
+namespace UnrealExtractor.Unreal.Readers.IoStore;
 
 public class FIoStoreTocCompressedBlockEntry
 {
@@ -25,8 +25,8 @@ public class FIoStoreTocCompressedBlockEntry
 
     public (int index, long offset) GetContainerIndexAndOffset(IoStoreReader reader)
     {
-        var index = (int) ((ulong) Offset / reader.PartitionSize);
-        var offset = (int) ((ulong) Offset % reader.PartitionSize);
+        var index = (int) ((ulong) Offset / reader.Resource.Header.PartitionSize);
+        var offset = (int) ((ulong) Offset % reader.Resource.Header.PartitionSize);
 
         return (index, offset);
     }

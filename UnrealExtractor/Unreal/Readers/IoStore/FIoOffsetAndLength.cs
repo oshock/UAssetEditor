@@ -1,6 +1,6 @@
 ﻿using UnrealExtractor.Binary;
 
-namespace UnrealExtractor.Unreal.IoStore;
+namespace UnrealExtractor.Unreal.Readers.IoStore;
 
 public class FIoOffsetAndLength
 {

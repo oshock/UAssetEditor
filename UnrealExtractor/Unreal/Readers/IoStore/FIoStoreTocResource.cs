@@ -1,12 +1,17 @@
 ﻿using System.Text;
 using UnrealExtractor.Binary;
+using UnrealExtractor.Encryption.Aes;
+using UnrealExtractor.Unreal.Misc;
+using UnrealExtractor.Unreal.Packages;
 
-namespace UnrealExtractor.Unreal.IoStore;
+namespace UnrealExtractor.Unreal.Readers.IoStore;
 
 // Might have taken a little from
 // https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/IO/Objects/FIoStoreTocResource.cs
 public class FIoStoreTocResource
 {
+    private readonly Reader Reader;
+    
     public readonly FIoStoreTocHeader Header;
 
     public readonly FIoChunkId[] ChunkIds;
@@ -14,15 +19,25 @@ public class FIoStoreTocResource
     public readonly FIoStoreTocCompressedBlockEntry[] CompressionBlocks;
     public readonly int[]? ChunkPerfectHashSeeds;
     public readonly int[]? ChunkIndicesWithoutPerfectHash;
-    public string[] CompressionMethods; 
+    public readonly string[] CompressionMethods;
+    public readonly long DirectoryIndexPosition = -1;
+    
+    // Encryption
+    private FAesKey? AesKey;
+    public bool IsEncrypted => Header.ContainerFlags.HasFlag(EIoContainerFlags.Encrypted);
+
+    public void SetAesKey(FAesKey key)
+    {
+        AesKey = key;
+    }
+    
     
     public FIoStoreTocResource(Reader reader)
     {
+        Reader = reader;
         Header = new FIoStoreTocHeader(reader);
         
-        ChunkIds = new FIoChunkId[Header.TocEntryCount];
-        for (int i = 0; i < ChunkIds.Length; i++)
-            ChunkIds[i] = reader.Read<FIoChunkId>();
+        ChunkIds = reader.ReadArray<FIoChunkId>((int)Header.TocEntryCount);
 
         OffsetAndLengths = new FIoOffsetAndLength[Header.TocEntryCount];
         for (int i = 0; i < OffsetAndLengths.Length; i++)
@@ -52,7 +67,6 @@ public class FIoStoreTocResource
         for (int i = 0; i < CompressionBlocks.Length; i++)
             CompressionBlocks[i] = new FIoStoreTocCompressedBlockEntry(reader);
 
-
         var length = (int)Header.CompressionMethodNameLength;
         
         CompressionMethods = new string[Header.CompressionMethodNameCount + 1];
@@ -70,6 +84,13 @@ public class FIoStoreTocResource
         {
             var hashSize = reader.Read<int>();
             reader.Position += hashSize + hashSize + 20 * Header.TocCompressedBlockEntryCount; // 20 = sizeof(FSHAHash)
+        }
+
+        if (Header.Version >= EIoStoreTocVersion.DirectoryIndex
+            && Header.ContainerFlags.HasFlag(EIoContainerFlags.Indexed)
+            && Header.DirectoryIndexSize > 0)
+        {
+            DirectoryIndexPosition = reader.Position;
         }
     }
 }

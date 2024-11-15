@@ -1,18 +1,23 @@
 ﻿using UnrealExtractor.Unreal.Packages;
+using UnrealExtractor.Unreal.Readers;
 
 namespace UnrealExtractor.Unreal.Containers;
 
 public abstract class ContainerFile
 {
+    public AbstractFileReader? Reader { get; protected set;  }
+    public abstract bool IsEncrypted { get; }
+    
     public string Path;
+    public UnrealFileSystem? System;
 
-    public ContainerFile(string path)
+    public ContainerFile(string path, UnrealFileSystem? system = null)
     {
         Path = path;
+        System = system;
     }
 
-    private Dictionary<string, Package> _packagesByPath { get; set; } = new();
-    public Dictionary<string, Package> PackagesByPath => _packagesByPath;
+    public IReadOnlyDictionary<string, Package> PackagesByPath => Reader!.PackagesByPath;
 
     public int FileCount => PackagesByPath.Count;
     

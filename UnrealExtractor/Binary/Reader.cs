@@ -7,6 +7,12 @@ public class Reader : BinaryReader
     public Reader(string path) : base(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
     { }
     
+    public Reader(byte[] buffer) : base(new MemoryStream(buffer))
+    { }
+
+    protected Reader() : this([])
+    { }
+
     public long Position
     {
         get => BaseStream.Position;
@@ -26,12 +32,18 @@ public class Reader : BinaryReader
             result[i] = Read<T>();
         return result;
     }
+    
+    public T[] ReadArray<T>()
+    {
+        var length = Read<int>();
+        return ReadArray<T>(length);
+    }
 
-    public T[] ReadArray<T>(Func<T> func, int length)
+    public T[] ReadArray<T>(Func<Reader, T> func, int length)
     {
         var result = new T[length];
         for (int i = 0; i < result.Length; i++)
-            result[i] = func();
+            result[i] = func(this);
         return result;
     }
 

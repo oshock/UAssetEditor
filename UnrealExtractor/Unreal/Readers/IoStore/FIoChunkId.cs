@@ -1,4 +1,6 @@
-﻿namespace UnrealExtractor.Unreal.IoStore;
+﻿using System.Runtime.InteropServices;
+
+namespace UnrealExtractor.Unreal.Readers.IoStore;
 
 public enum EIoChunkType5 : byte
 {
@@ -17,7 +19,8 @@ public enum EIoChunkType5 : byte
     EditorDerivedData = 12
 }
 
-public class FIoChunkId
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct FIoChunkId
 {
     public ulong ChunkId;
     public ushort ChunkIndex;
