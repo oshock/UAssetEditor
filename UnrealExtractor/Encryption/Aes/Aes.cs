@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using UnrealExtractor.Unreal.Misc;
 using AesProvider = System.Security.Cryptography.Aes;
 
 namespace UnrealExtractor.Encryption.Aes;

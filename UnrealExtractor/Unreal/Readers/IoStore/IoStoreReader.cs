@@ -5,19 +5,29 @@ using UnrealExtractor.Unreal.Packages;
 
 namespace UnrealExtractor.Unreal.Readers.IoStore;
 
-public class IoStoreReader : AbstractFileReader
+public class IoStoreReader : UnrealFileReader
 {
     public FIoStoreTocResource Resource;
 
     public string? MountPoint;
     
     public override bool IsEncrypted => Resource.IsEncrypted;
+    public override string[] CompressionMethods => Resource.CompressionMethods;
     public bool HasDirectoryIndex => Resource.DirectoryIndexPosition > 0;
+
+    private List<Reader> Archives = new();
+    public Reader GetArchive(int partitionIndex) => Archives.ElementAt(partitionIndex);
     
     public IoStoreReader(ContainerFile owner, string file) : base(owner, file)
     {
         var reader = new Reader(file);
         Resource = new FIoStoreTocResource(reader);
+
+        for (int i = 0; i < Resource.Header.PartitionCount; i++)
+        {
+            var path = Name.Replace(".utoc", i > 0 ? $"_s{i}.ucas" : ".ucas");
+            Archives.Add(new Reader(path));
+        }
     }
     
     public override void ProcessIndex()
@@ -29,7 +39,7 @@ public class IoStoreReader : AbstractFileReader
 
         var buffer = ReadBytes((int)Resource.Header.DirectoryIndexSize);
         var decrypted = DecryptIfEncrypted(buffer);
-        var indexReader = new Reader(decrypted);
+        var indexReader = new Reader(Name + " - Directory Index", decrypted);
 
         try
         {
@@ -46,7 +56,7 @@ public class IoStoreReader : AbstractFileReader
         var stringTableSize = indexReader.Read<int>();
         var stringTable = indexReader.ReadArray(FString.Read, stringTableSize);
 
-        _packagesByPath = new Dictionary<string, Package>();
+        _packagesByPath = new Dictionary<string, UnrealFileEntry>();
         ReadIndex(MountPoint, 0U);
         IsMounted = true;
         return;

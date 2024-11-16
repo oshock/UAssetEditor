@@ -5,7 +5,7 @@ namespace UnrealExtractor.Unreal.Containers;
 
 public abstract class ContainerFile
 {
-    public AbstractFileReader? Reader { get; protected set;  }
+    public UnrealFileReader Reader { get; protected set; }
     public abstract bool IsEncrypted { get; }
     
     public string Path;
@@ -17,7 +17,7 @@ public abstract class ContainerFile
         System = system;
     }
 
-    public IReadOnlyDictionary<string, Package> PackagesByPath => Reader!.PackagesByPath;
+    public IReadOnlyDictionary<string, UnrealFileEntry> PackagesByPath => Reader.PackagesByPath;
 
     public int FileCount => PackagesByPath.Count;
     
@@ -32,7 +32,7 @@ public abstract class ContainerFile
     /// <param name="path"></param>
     /// <param name="pkg"></param>
     /// <returns></returns>
-    public bool TryFindPackage(string path, out Package? pkg)
+    public bool TryFindPackage(string path, out UnrealFileEntry? pkg)
     {
         return PackagesByPath.TryGetValue(path, out pkg);
     }

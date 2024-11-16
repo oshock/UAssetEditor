@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Serilog;
 using UnrealExtractor;
 using UnrealExtractor.Encryption.Aes;
@@ -30,19 +31,19 @@ Console.ReadKey();*/
 
 Logger.StartLogger();
 
-var sw = Stopwatch.StartNew();
-var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks", new Dictionary<FGuid, FAesKey>
-{
-    { new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B2226600A001168B6CB062D7EA9D3121") }
-});
 
-sw.Stop();
+// Create system
+var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks");
 
-var fileCount = 0;
-foreach (var ctn in system.Containers)
-    fileCount += ctn.FileCount;
+// Add aes keys
+system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B2226600A001168B6CB062D7EA9D3121"));
 
-Log.Logger.Information($"\nMounted {system.Containers.Count} containers with {fileCount} files in {sw.ElapsedMilliseconds}ms");
+// Mount containers
+system.Initialize();
+
+// Read and output to file
+if (system.TryRead("FortniteGame/Content/Balance/DefaultDataCosmetics.uasset", out var data))
+    File.WriteAllBytes("DefaultDataCosmetics.uasset", data);
 
 Console.ReadKey();
 Console.ReadKey();

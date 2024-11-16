@@ -1,4 +1,6 @@
-﻿namespace UnrealExtractor.Encryption.Aes;
+﻿using UnrealExtractor.Unreal.Misc;
+
+namespace UnrealExtractor.Encryption.Aes;
 
 public class FAesKey
 {
@@ -23,7 +25,7 @@ public class FAesKey
 
 // Directly from 
 // https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/Utils/HexUtils.cs
-// Sorry, really didn't feel like rewriting this.. ;) - Owen
+// Sorry, really didn't feel like rewriting this... - Owen
 public static class HexUtils
 {
     public static byte[] ParseHexBinary(this string hex)

@@ -10,19 +10,24 @@ public class UnrealFileSystem
 {
     private List<ContainerFile> _containers;
     public IReadOnlyList<ContainerFile> Containers => _containers;
-
-    public readonly Dictionary<FGuid, FAesKey>? AesKeys;
+    public Dictionary<FGuid, FAesKey> AesKeys = new();
     
-    public UnrealFileSystem(string directory, Dictionary<FGuid, FAesKey>? aesKeys = null, bool loadInParallel = true, int maxDegreeOfParallelism = 6)
+    private string _directory;
+    
+    public UnrealFileSystem(string directory)
     {
-        AesKeys = aesKeys ?? new Dictionary<FGuid, FAesKey>();
+        _directory = directory;
+    }
+    
+    public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6)
+    {
         _containers = new List<ContainerFile>();
-        var files = Directory.EnumerateFiles(directory);
+        var files = Directory.EnumerateFiles(_directory);
 
         if (loadInParallel)
         {
             Parallel.ForEach(files, new ParallelOptions
-            { MaxDegreeOfParallelism = 8 }, HandleContainer);
+                { MaxDegreeOfParallelism = 8 }, HandleContainer);
         }
         else
         {
@@ -53,5 +58,20 @@ public class UnrealFileSystem
         }
         
         Log.Information($"Mounted '{file}' with {container?.FileCount ?? 0} files.");
+    }
+
+    public bool TryRead(string packagePath, out byte[] data)
+    {
+        foreach (var container in Containers)
+        {
+            if (!container.TryFindPackage(packagePath.ToLower(), out var pkg))
+                continue;
+
+            data = pkg!.Read();
+            return true;
+        }
+
+        data = [];
+        return false;
     }
 }

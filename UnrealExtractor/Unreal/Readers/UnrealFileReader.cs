@@ -6,20 +6,20 @@ using UnrealExtractor.Unreal.Packages;
 
 namespace UnrealExtractor.Unreal.Readers;
 
-// I'm naming it this because it's the most logical name to name it :) - Owen
-public abstract class AbstractFileReader : Reader
+public abstract class UnrealFileReader : Reader
 {
-    internal Dictionary<string, Package>? _packagesByPath { get; set; }
-    public IReadOnlyDictionary<string, Package> PackagesByPath => _packagesByPath ?? new();
+    internal Dictionary<string, UnrealFileEntry>? _packagesByPath { get; set; }
+    public IReadOnlyDictionary<string, UnrealFileEntry> PackagesByPath => _packagesByPath ?? new();
 
     public ContainerFile Owner { get; }
 
-    protected AbstractFileReader(ContainerFile owner, string file) : base(file)
+    protected UnrealFileReader(ContainerFile owner, string file) : base(file)
     {
         Owner = owner;
     }
     
     public abstract bool IsEncrypted { get; }
+    public abstract string[] CompressionMethods { get; }
     public bool IsMounted { get; protected set; }
     public string? MountPoint { get; protected set; }
 

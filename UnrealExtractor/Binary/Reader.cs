@@ -4,13 +4,19 @@ namespace UnrealExtractor.Binary;
 
 public class Reader : BinaryReader
 {
-    public Reader(string path) : base(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-    { }
-    
-    public Reader(byte[] buffer) : base(new MemoryStream(buffer))
-    { }
+    public readonly string Name;
 
-    protected Reader() : this([])
+    public Reader(string path) : base(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+    {
+        Name = path;
+    }
+
+    public Reader(string name, byte[] buffer) : base(new MemoryStream(buffer))
+    {
+        Name = name;
+    }
+
+    protected Reader() : this(string.Empty, [])
     { }
 
     public long Position
