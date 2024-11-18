@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using UnrealExtractor.Binary;
 
-namespace UnrealExtractor.Unreal.Misc;
+namespace UnrealExtractor.Unreal.Names;
 
 
 public class FString

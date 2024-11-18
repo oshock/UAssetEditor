@@ -14,5 +14,9 @@
       <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
       <PackageReference Include="Usmap.NET" Version="2.1.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\UnrealExtractor\UnrealExtractor.csproj" />
+    </ItemGroup>
     
 </Project>

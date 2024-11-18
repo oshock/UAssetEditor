@@ -1,6 +1,9 @@
-﻿using UnrealExtractor.Binary;
+﻿using System.Data;
+using UnrealExtractor.Binary;
+using UnrealExtractor.Compression;
 using UnrealExtractor.Unreal.Containers;
 using UnrealExtractor.Unreal.Misc;
+using UnrealExtractor.Unreal.Names;
 using UnrealExtractor.Unreal.Packages;
 
 namespace UnrealExtractor.Unreal.Readers.IoStore;
@@ -8,8 +11,6 @@ namespace UnrealExtractor.Unreal.Readers.IoStore;
 public class IoStoreReader : UnrealFileReader
 {
     public FIoStoreTocResource Resource;
-
-    public string? MountPoint;
     
     public override bool IsEncrypted => Resource.IsEncrypted;
     public override string[] CompressionMethods => Resource.CompressionMethods;
@@ -18,7 +19,7 @@ public class IoStoreReader : UnrealFileReader
     private List<Reader> Archives = new();
     public Reader GetArchive(int partitionIndex) => Archives.ElementAt(partitionIndex);
     
-    public IoStoreReader(ContainerFile owner, string file) : base(owner, file)
+    public IoStoreReader(ContainerFile? owner, string file) : base(owner, file)
     {
         var reader = new Reader(file);
         Resource = new FIoStoreTocResource(reader);
@@ -27,6 +28,55 @@ public class IoStoreReader : UnrealFileReader
         {
             var path = Name.Replace(".utoc", i > 0 ? $"_s{i}.ucas" : ".ucas");
             Archives.Add(new Reader(path));
+        }
+    }
+    
+    public byte[] ExtractChunk(ulong id, EIoChunkType5 type)
+    {
+        var index = (uint)(HashWithSeed(id, type, 0) % Resource.Header.TocChunkPerfectHashSeedsCount);
+        var seed = Resource.ChunkPerfectHashSeeds?[index] ?? throw new NoNullAllowedException("ChunkPerfectHashSeeds cannot be null to extract chunk from id.");
+
+        var slot = (uint)(HashWithSeed(id, type, seed) % Resource.Header.TocEntryCount);
+        var offsetLength = Resource.OffsetAndLengths[slot];
+        var blocks = FIoStoreEntry.GetCompressionBlocks(this, offsetLength);
+
+        var data = new byte[offsetLength.Length];
+        ReadBlocks(blocks, data);
+        
+        return data;
+    }
+
+    public ulong HashWithSeed(ulong id, EIoChunkType5 type, int seed)
+    {
+        var buffer = BitConverter.GetBytes(id);
+
+        var hash = seed != 0 ? (ulong)seed : 0xcbf29ce484222325;
+        for (var index = 0; index < sizeof(ulong); ++index)
+        {
+            hash = (hash * 0x00000100000001B3) ^ buffer[index];
+        }
+
+        return hash;
+    }
+
+    public void ReadBlocks(FIoStoreTocCompressedBlockEntry[] blocks, byte[] data)
+    {
+        var offset = 0;
+        
+        foreach (var block in blocks)
+        {
+            var indexAndOffset = block.GetContainerIndexAndOffset(this);
+            var archive = GetArchive(indexAndOffset.index);
+
+            archive.Position = indexAndOffset.offset;
+            var compressed = archive.ReadBytes((int)block.CompressedSize);
+            var decompressed = CompressionHandler.HandleDecompression(this, block.CompressionMethodIndex, compressed, (int)block.UncompressedSize);
+
+            if (offset + decompressed.Length > data.Length)
+                throw new OutOfMemoryException("The buffer given is too small to receive all of these blocks");
+            
+            Buffer.BlockCopy(decompressed, 0, data, offset, decompressed.Length);
+            offset += decompressed.Length;
         }
     }
     

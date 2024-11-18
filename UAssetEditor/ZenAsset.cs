@@ -1,10 +1,10 @@
-﻿using UAssetEditor.Binary;
-using UAssetEditor.IoStore;
-using UAssetEditor.Names;
+﻿using UAssetEditor.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
-using UAssetEditor.Utils;
+using UnrealExtractor.Binary;
+using UnrealExtractor.Classes.Containers;
+using UnrealExtractor.Unreal.Readers.IoStore;
 using UsmapDotNet;
 using Oodle = OodleDotNet.Oodle;
 
@@ -42,7 +42,16 @@ public class ZenAsset : Asset
     /// <param name="globalContainerPath"></param>
     public void Initialize(string globalContainerPath)
     {
-	    GlobalData = new IoGlobalReader(globalContainerPath);
+	    GlobalData = IoGlobalReader.InitializeGlobalData(globalContainerPath);
+    }
+    
+    /// <summary>
+    /// Initialize the global objects required to read this package.
+    /// </summary>
+    /// <param name="reader"></param>
+    public void Initialize(IoGlobalReader reader)
+    {
+	    GlobalData = reader;
     }
     
     /// <summary>
@@ -89,8 +98,12 @@ public class ZenAsset : Asset
         ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
 
         Position = summary.DependencyBundleHeadersOffset;
-        DependencyBundleHeaders = ReadArray(() => new FDependencyBundleHeader
-		        { FirstEntryIndex = Read<int>(), EntryCount = ReadArray(() => ReadArray<uint>(2), 2) },
+        DependencyBundleHeaders = ReadArray(() => 
+		        new FDependencyBundleHeader
+		        {
+			        FirstEntryIndex = Read<int>(), 
+			        EntryCount = ReadArray(() => ReadArray<uint>(2), 2)
+		        },
 	        (summary.DependencyBundleEntriesOffset - summary.DependencyBundleHeadersOffset) / 20);
 
         Position = summary.DependencyBundleEntriesOffset;

@@ -1,6 +1,6 @@
 using System.Data;
-using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Names;
+using UnrealExtractor.Binary;
 using UsmapDotNet;
 
 
@@ -14,7 +14,7 @@ public class EnumProperty : AbstractProperty<string>
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
         ArgumentNullException.ThrowIfNull(asset);
-        ArgumentNullException.ThrowIfNull(reader.Mappings);
+        ArgumentNullException.ThrowIfNull(asset.Mappings);
         
         object enumObj = 0;
 
@@ -35,7 +35,7 @@ public class EnumProperty : AbstractProperty<string>
         }
         
         var index = Convert.ToInt32(enumObj);
-        var enumData = reader.Mappings.Enums.FirstOrDefault(x => x.Name == data.EnumName);
+        var enumData = asset.Mappings.Enums.FirstOrDefault(x => x.Name == data.EnumName);
         
         if (enumData is null)
             throw new NullReferenceException($"Enum {data.EnumName} not found in mappings.");

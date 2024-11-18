@@ -1,6 +1,6 @@
 using System.Data;
-using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Names;
+using UnrealExtractor.Binary;
 using UsmapDotNet;
 
 

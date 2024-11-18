@@ -1,9 +1,9 @@
-using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Properties.Reflection;
+using UnrealExtractor.Binary;
 using UsmapDotNet;
 
 
-namespace UAssetEditor;
+namespace UAssetEditor.Unreal.Properties;
 
 public struct NameValuePair
 {

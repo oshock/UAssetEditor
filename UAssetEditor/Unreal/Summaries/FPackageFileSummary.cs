@@ -1,5 +1,7 @@
 using UAssetEditor.Misc;
 using UAssetEditor.Versioning;
+using UnrealExtractor.Binary;
+using UnrealExtractor.Unreal.Misc;
 
 namespace UAssetEditor.Summaries;
 

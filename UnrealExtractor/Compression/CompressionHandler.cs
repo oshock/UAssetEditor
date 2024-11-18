@@ -10,6 +10,7 @@ public static class CompressionHandler
 
         return compressionMethod switch
         {
+            "None" => data,
             "Oodle" => Oodle.Decompress(data, uncompressedSize),
             _ => throw new NotImplementedException($"'{compressionMethod}' is not implemented!")
         };

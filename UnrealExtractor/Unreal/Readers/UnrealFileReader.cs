@@ -11,9 +11,9 @@ public abstract class UnrealFileReader : Reader
     internal Dictionary<string, UnrealFileEntry>? _packagesByPath { get; set; }
     public IReadOnlyDictionary<string, UnrealFileEntry> PackagesByPath => _packagesByPath ?? new();
 
-    public ContainerFile Owner { get; }
+    public ContainerFile? Owner { get; }
 
-    protected UnrealFileReader(ContainerFile owner, string file) : base(file)
+    protected UnrealFileReader(ContainerFile? owner, string file) : base(file)
     {
         Owner = owner;
     }
@@ -45,7 +45,7 @@ public abstract class UnrealFileReader : Reader
         if (!IsAssignedAes)
             throw new NoNullAllowedException($"{nameof(AesKey)} cannot be null when attempting to decrypt.");
             
-        return buffer.Decrypt(AesKey);
+        return buffer.Decrypt(AesKey!);
 
     }
 }

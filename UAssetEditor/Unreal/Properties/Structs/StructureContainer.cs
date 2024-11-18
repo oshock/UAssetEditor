@@ -1,4 +1,5 @@
 ﻿using UAssetEditor.Utils;
+using UnrealExtractor.Classes.Containers;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Structs;

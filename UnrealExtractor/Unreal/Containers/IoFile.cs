@@ -1,4 +1,5 @@
-﻿using UnrealExtractor.Encryption.Aes;
+﻿using UnrealExtractor.Binary;
+using UnrealExtractor.Encryption.Aes;
 using UnrealExtractor.Unreal.Containers;
 using UnrealExtractor.Unreal.Readers;
 using UnrealExtractor.Unreal.Readers.IoStore;
@@ -8,8 +9,9 @@ namespace UnrealExtractor.Unreal.Containers;
 
 public class IoFile : ContainerFile
 {
+    public IoStoreReader ReaderAsIoReader => Reader.As<IoStoreReader>();
     public FIoStoreTocHeader Header => Resource.Header;
-    public FIoStoreTocResource Resource => Reader.As<IoStoreReader>().Resource;
+    public FIoStoreTocResource Resource => ReaderAsIoReader.Resource;
     public uint CompressionBlockSize => Header.CompressionBlockSize;
     
     public override bool IsEncrypted => Resource.IsEncrypted;
@@ -19,11 +21,19 @@ public class IoFile : ContainerFile
         Reader = new IoStoreReader(this, path);
         
         if (System?.AesKeys.TryGetValue(Header.EncryptionKeyGuid, out var key) ?? false)
-            Reader.SetAesKey(key);
+            ReaderAsIoReader.SetAesKey(key);
+    }
+    
+    public IoFile(Reader reader, UnrealFileSystem? system = null) : base("", system)
+    {
+        Reader = reader;
     }
 
     public override void Mount()
     {
-        Reader.ProcessIndex();
+        if (Reader is not IoStoreReader)
+            throw new ApplicationException("Cannot mount a non I/O store container");
+        
+        ReaderAsIoReader.ProcessIndex();
     }
 }

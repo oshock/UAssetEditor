@@ -3,6 +3,7 @@ using Serilog.Core;
 using UnrealExtractor.Encryption.Aes;
 using UnrealExtractor.Unreal.Containers;
 using UnrealExtractor.Unreal.Misc;
+using UnrealExtractor.Unreal.Readers.IoStore;
 
 namespace UnrealExtractor;
 
@@ -46,10 +47,17 @@ public class UnrealFileSystem
         {
             if (file.EndsWith(".o.utoc")) // Skip Fortnite's UEFN containers
                 return;
-            
-            container = new IoFile(file, this);
-            container.Mount();
-                
+
+            if (file.EndsWith("global.utoc"))
+            {
+                container = new IoFile(IoGlobalReader.InitializeGlobalData(file), this);
+            }
+            else
+            {
+                container = new IoFile(file, this);
+                container.Mount();
+            }
+
             _containers.Add(container);
         }
         else if (file.EndsWith(".pak"))

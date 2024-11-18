@@ -15,44 +15,43 @@ public static class UnversionedReader
     public static List<UProperty> ReadProperties(ZenAsset asset, UsmapSchema schema)
     {
 	    var props = new List<UProperty>();
-	    bool bHasNonZeroValues;
 
 	    var frags = new List<FFragment>();
-	    var zeroMaskNum = 0U;
+	    FFragment fragment; 
+	    var zeroMaskNum = 0;
 	    var unmaskedNum = 0U;
 	    
 	    do
 	    {
-		    var packed = asset.Read<ushort>();
-		    frags.Add(new FFragment(packed));
+		    fragment = new FFragment(asset.Read<ushort>());
+		    frags.Add(fragment);
 
-		    var valueNum = frags.Last().ValueNum;
-		    if (frags.Last().bHasAnyZeroes)
-			    zeroMaskNum += valueNum;
+		    if (fragment.bHasAnyZeroes)
+			    zeroMaskNum += fragment.ValueNum;
 		    else
-			    unmaskedNum += valueNum;
-	    } while (!frags.Last().bIsLast);
-
+			    unmaskedNum += fragment.ValueNum;
+	    } while (!fragment.bIsLast);
+	    
 	    BitArray? zeroMask = null;
 	    if (zeroMaskNum > 0)
 	    {
-		    if (zeroMaskNum <= 8)
+		    switch (zeroMaskNum)
 		    {
-			    var @int = asset.ReadByte();
-			    zeroMask = new BitArray(new[] { @int });
+			    case <= 8:
+				    zeroMask = new BitArray(asset.ReadBytes(1));
+				    break;
+			    case <= 16:
+				    zeroMask = new BitArray(asset.ReadBytes(2));
+				    break;
+			    default:
+			    {
+				    var num = (zeroMaskNum + 32 - 1) / 32;
+				    zeroMask = new BitArray(asset.ReadArray<int>(num));
+				    break;
+			    }
 		    }
-		    else if (zeroMaskNum <= 16)
-		    {
-			    var @int = asset.Read<ushort>();
-			    zeroMask = new BitArray(new[] { (int)@int });
-		    }
-		    else
-		    {
-			    var data = new int[(zeroMaskNum + 32 - 1) / 32];
-			    for (var idx = 0; idx < data.Length; idx++)
-				    data[idx] = asset.Read<int>();
-			    zeroMask = new BitArray(data);
-		    }
+		    
+		    zeroMask.Length = zeroMaskNum;
 	    }
 
 	    var falseFound = false;
@@ -62,7 +61,7 @@ public static class UnversionedReader
 			    falseFound &= !(bool)bit;
 	    }
 
-	    bHasNonZeroValues = unmaskedNum > 0 || falseFound;
+	    var bHasNonZeroValues = unmaskedNum > 0 || falseFound;
 
 	    if (asset.Mappings is null)
 		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
@@ -72,6 +71,13 @@ public static class UnversionedReader
 	    var totalSchemaIndex = 0;
 	    var schemaIndex = 0;
 	    var zeroMaskIndex = 0;
+	    var schemaProperties = new List<UsmapProperty>();
+
+	    foreach (var property in schema.Properties)
+	    {
+		    for (int i = 0; i < property.ArraySize; i++)
+			    schemaProperties.Add(property);
+	    }
 
 	    while (frags.Count > 0)
 	    {
@@ -88,19 +94,10 @@ public static class UnversionedReader
 
 			    while (true)
 			    {
-				    if (schema.Properties.Length > schemaIndex)
-					    prop = schema.Properties[schemaIndex];
+				    if (schemaProperties.Count > schemaIndex)
+					    prop = schemaProperties[schemaIndex];
 				    else
-				    {
-					    schemaIndex -= schema.Properties.Length;
-					    
-					    /*var super = schema.SuperType;
-					    if (string.IsNullOrEmpty(super))
-						    throw new NoNullAllowedException($"{nameof(super)} cannot be null.");
-					    
-					    schema = asset.Mappings.FindSchema(super) 
-					             ?? throw new KeyNotFoundException("Cannot find super type '{type}' in mappings. Unable to parse data!");*/
-				    }
+					    schemaIndex -= schemaProperties.Count;
 				    
 				    if (prop is not null)
 					    break;
@@ -109,12 +106,12 @@ public static class UnversionedReader
 			    if (prop is null)
 				    throw new KeyNotFoundException("Could not find property that matches current schema index.");
 
-			    while (string.IsNullOrEmpty(prop.Name))
+			    while (string.IsNullOrEmpty(prop!.Name))
 			    {
 				    totalSchemaIndex += schema.PropCount;
 				    
 				    schema = asset.Mappings.Schemas.First(x => x.Name == schema.SuperType);
-				    prop = schema.Properties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
+				    prop = schemaProperties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 			    }
 			    
 			    var propType = prop.Data.Type.ToString();

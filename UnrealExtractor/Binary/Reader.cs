@@ -15,6 +15,9 @@ public class Reader : BinaryReader
     {
         Name = name;
     }
+    
+    public Reader(byte[] data) : this("Buffer", data)
+    { }
 
     protected Reader() : this(string.Empty, [])
     { }
@@ -50,6 +53,14 @@ public class Reader : BinaryReader
         var result = new T[length];
         for (int i = 0; i < result.Length; i++)
             result[i] = func(this);
+        return result;
+    }
+    
+    public T[] ReadArray<T>(Func<T> func, int length)
+    {
+        var result = new T[length];
+        for (int i = 0; i < result.Length; i++)
+            result[i] = func();
         return result;
     }
 

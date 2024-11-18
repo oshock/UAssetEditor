@@ -1,8 +1,8 @@
 ﻿using System.Data;
-using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
+using UnrealExtractor.Binary;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;

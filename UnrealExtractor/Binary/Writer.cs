@@ -1,7 +1,7 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace UAssetEditor.Binary;
+namespace UnrealExtractor.Binary;
 
 public class Writer : BinaryWriter
 {

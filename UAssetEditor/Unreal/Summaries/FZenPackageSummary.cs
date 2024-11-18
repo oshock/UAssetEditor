@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
-using UAssetEditor.Binary;
 using UAssetEditor.Names;
+using UnrealExtractor.Binary;
 
 namespace UAssetEditor.Summaries;
 

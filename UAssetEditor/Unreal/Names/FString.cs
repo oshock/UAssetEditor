@@ -1,5 +1,5 @@
 using System.Text;
-using UAssetEditor.Binary;
+using UnrealExtractor.Binary;
 
 namespace UAssetEditor.Names;
 
