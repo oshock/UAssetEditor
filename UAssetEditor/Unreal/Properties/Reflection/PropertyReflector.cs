@@ -44,7 +44,7 @@ public static class PropertyReflector
     };
 
     public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data,
-        Asset? asset = null, EReadMode mode = EReadMode.Normal)
+        Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         foreach (var kvp in PropertiesByName)
         {
@@ -62,26 +62,26 @@ public static class PropertyReflector
         throw new NotImplementedException($"Property type '{type}' is not implemented!");
     }
     
-    public static void WriteProperty(Writer writer, UProperty prop, Asset? asset = null)
+    public static void WriteProperty(Writer writer, UProperty prop, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         if (prop.Value is not AbstractProperty property)
             throw new ApplicationException($"{prop.Name} is not a 'AbstractProperty'.");
         
-        property.Write(writer, prop, asset);
+        property.Write(writer, prop, asset, mode);
     }
     
-    public static void WriteProperty(Writer writer, AbstractProperty prop, Asset? asset = null)
+    public static void WriteProperty(Writer writer, AbstractProperty prop, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         var uProperty = new UProperty
         {
             Value = prop
         };
         
-        prop.Write(writer, uProperty, asset);
+        prop.Write(writer, uProperty, asset, mode);
     }
     
     public static object ReadStruct(Reader reader, UsmapPropertyData? data,
-        Asset? asset = null, EReadMode mode = EReadMode.Normal)
+        Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -109,20 +109,22 @@ public static class PropertyReflector
         return asset.ReadProperties(type);
     }
     
-    public static void WriteStruct(Writer writer, object property, string type, Asset? asset = null)
+    public static void WriteStruct(Writer writer, object property, UsmapPropertyData type, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
+
+        var structType = type.GetStructType();
         
         if (property is List<UProperty> properties)
         {
-            var propertyWriter = asset.WriteProperties(type, -1, properties);
+            var propertyWriter = asset.WriteProperties(structType, properties);
             propertyWriter.CopyTo(writer);
             return;
         }
         
         foreach (var kvp in DefinedStructsByName)
         {
-            if (type != kvp.Key)
+            if (structType != kvp.Key)
                 continue;
             
             if (property is not UStruct @struct)

@@ -4,6 +4,7 @@ using Serilog;
 using UAssetEditor;
 using UAssetEditor.Utils;
 using UnrealExtractor;
+using UnrealExtractor.Binary;
 using UnrealExtractor.Compression;
 using UnrealExtractor.Encryption.Aes;
 using UnrealExtractor.Unreal.Misc;
@@ -50,10 +51,17 @@ Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 // Serialize the asset into json
 File.WriteAllText("output.json", uasset.ToJsonString());
 
+if (File.Exists("DefaultGameDataCosmetics.uasset"))
+    File.Delete("DefaultGameDataCosmetics.uasset");
 
+var writer = new Writer("DefaultGameDataCosmetics.uasset");
+uasset.WriteAll(writer);
+writer.Close();
 
-
-
+var testAsset = new ZenAsset("DefaultGameDataCosmetics.uasset");
+testAsset.Initialize((IoGlobalReader)globalToc.Reader);
+testAsset.LoadMappings("++Fortnite+Release-32.10-CL-37958378-Windows_oo.usmap");
+testAsset.ReadAll();
 
 Console.ReadKey();
 Console.ReadKey();

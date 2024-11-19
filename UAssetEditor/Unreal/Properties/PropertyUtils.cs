@@ -1,3 +1,4 @@
+using System.Data;
 using UAssetEditor.Unreal.Properties.Reflection;
 using UnrealExtractor.Binary;
 using UsmapDotNet;
@@ -19,7 +20,7 @@ public struct NameValuePair
 
 public static class PropertyUtils
 {
-    public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         if (string.IsNullOrEmpty(type))
             throw new ArgumentNullException($"'{nameof(type)}' cannot be null or empty.");
@@ -27,8 +28,18 @@ public static class PropertyUtils
         return PropertyReflector.ReadProperty(type, reader, data, asset, mode);
     }
     
-    public static void WriteProperty(Writer writer, UProperty prop, Asset? asset = null)
+    public static void WriteProperty(Writer writer, UProperty prop, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        PropertyReflector.WriteProperty(writer, prop, asset);
+        PropertyReflector.WriteProperty(writer, prop, asset, mode);
+    }
+
+    public static string GetStructType(this UsmapPropertyData data)
+    {
+        return data.Type switch
+        {
+            EUsmapPropertyType.StructProperty => data.StructType,
+            EUsmapPropertyType.ArrayProperty => data.InnerType?.StructType,
+            _ => data.Type.ToString()
+        } ?? throw new DataException($"Could not find structure type for '{data}'");
     }
 }

@@ -11,14 +11,14 @@ public class ArrayProperty : AbstractProperty<List<object>>
         return $"[{Value?.Count}]";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
 
         Value = [];
         
-        if (mode == EReadMode.Zero)
+        if (mode == ESerializationMode.Zero)
             return;
         
         var count = reader.Read<int>();
@@ -30,7 +30,7 @@ public class ArrayProperty : AbstractProperty<List<object>>
         }
     }
 
-    public override void Write(Writer writer, UProperty property, Asset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         if (Value is null)
         {

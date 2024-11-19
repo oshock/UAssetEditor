@@ -95,7 +95,7 @@ public abstract class Asset : Reader
     
     // TODO eventually redo when I add pak assets (not unversioned)
     public abstract List<UProperty> ReadProperties(UsmapSchema structure);
-    public abstract Writer WriteProperties(string type, int exportIndex, List<UProperty> properties);
+    public abstract Writer WriteProperties(string type, List<UProperty> properties);
 
     /// <summary>
     /// Serializes the entire asset to a stream.

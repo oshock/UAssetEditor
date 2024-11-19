@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Properties.Unversioned;
 
 public class UnversionedWriter(ZenAsset asset)
 {
-	public Writer WriteProperties(string type, int exportIndex, List<UProperty> properties)
+	public Writer WriteProperties(string type, List<UProperty> properties)
     {
 	    if (asset.Mappings == null)
 		    throw new NoNullAllowedException("Mappings cannot be null!");
@@ -35,11 +35,12 @@ public class UnversionedWriter(ZenAsset asset)
 	    
 	    foreach (var prop in allProps)
 	    {
-		    var isZero = enumerator.Current.IsZero;
+		    //var isZero = enumerator.Current.IsZero;
+		    var isZero = false; // atm we just write everything
 
 		    if (prop.Name == enumerator.Current.Name)
 		    {
-			    IncludeProperty(isZero);
+			    IncludeProperty(prop, isZero);
 
 			    if (enumerator.MoveNext()) 
 				    continue;
@@ -48,7 +49,7 @@ public class UnversionedWriter(ZenAsset asset)
 			    break;
 		    }
 		    
-		    ExcludeProperty();
+		    ExcludeProperty(prop);
 	    }
 
 	    foreach (var frag in frags)
@@ -75,15 +76,11 @@ public class UnversionedWriter(ZenAsset asset)
 
 	    foreach (var prop in properties)
 	    {
-		    if (prop.IsZero)
-			    continue;
+		    // We write everything atm
+		    /*if (prop.IsZero)
+			    continue;*/
 		    
 		    PropertyUtils.WriteProperty(writer, prop, asset);
-	    }
-
-	    if (exportIndex >= 0)
-	    {
-		    asset.ExportMap[exportIndex].CookedSerialOffset = (ulong)writer.BaseStream.Length;
 	    }
 
 	    return writer;
@@ -98,7 +95,7 @@ public class UnversionedWriter(ZenAsset asset)
 		    }
 	    }
 	    
-	    void IncludeProperty(bool isZero)
+	    void IncludeProperty(UsmapProperty property, bool isZero)
 	    {
 		    if (GetLast().ValueNum == FFragment.ValueMax)
 		    {
@@ -109,12 +106,12 @@ public class UnversionedWriter(ZenAsset asset)
 		    zeroMask.Add(isZero);
 		    frags[^1] = frags[^1] with
 		    {
-			    ValueNum = (byte)(frags[^1].ValueNum + 1),
+			    ValueNum = (byte)(frags[^1].ValueNum + property.ArraySize),
 			    bHasAnyZeroes = frags[^1].bHasAnyZeroes | isZero
 		    };
 	    }
 
-	    void ExcludeProperty()
+	    void ExcludeProperty(UsmapProperty property)
 	    {
 		    if (GetLast().ValueNum != 0 || GetLast().SkipNum == FFragment.SkipMax)
 		    {
@@ -124,7 +121,7 @@ public class UnversionedWriter(ZenAsset asset)
 
 		    frags[^1] = frags[^1] with
 		    {
-			    SkipNum = (byte)(frags[^1].SkipNum + 1)
+			    SkipNum = (byte)(frags[^1].SkipNum + property.ArraySize)
 		    };
 	    }
 

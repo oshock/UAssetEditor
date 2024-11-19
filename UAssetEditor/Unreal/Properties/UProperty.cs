@@ -6,18 +6,27 @@ namespace UAssetEditor;
 
 public class UProperty
 {
-    public string Type;
-    public string? InnerType;
-    public string? EnumName;
-    public string? StructType;
+    public UsmapPropertyData Data;
+    
     public string Name;
     public object? Value;
     public bool IsZero;
+
+    public UProperty() 
+    { }
     
-    public override string ToString() => $"{Name}: {Value} ({Type})";
+    public UProperty(UsmapPropertyData data, string name, object? value, bool isZero = false)
+    {
+        Data = data;
+        Name = name;
+        Value = value;
+        IsZero = isZero;
+    }
+    
+    public override string ToString() => $"{Name}: {Value} ({Data.Type})";
 }
 
-public enum EReadMode
+public enum ESerializationMode
 {
     Zero,
     Normal,
@@ -29,10 +38,10 @@ public abstract class AbstractProperty : ICloneable
     public string? Name { get; set; }
     public abstract object? ValueAsObject { get; }
     
-    public virtual void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public virtual void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     { } 
 
-    public virtual void Write(Writer writer, UProperty property, Asset? asset = null)
+    public virtual void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     { }
 
     public object Clone()

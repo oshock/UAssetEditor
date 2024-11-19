@@ -9,9 +9,9 @@ public class FVector : UStruct
     public float B;
     public float C;
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        if (mode == EReadMode.Zero)
+        if (mode == ESerializationMode.Zero)
         {
             A = 0;
             B = 0;

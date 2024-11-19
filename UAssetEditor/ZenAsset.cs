@@ -130,11 +130,11 @@ public class ZenAsset : Asset
 	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
-		    var @class = GlobalData.GetScriptName(ExportMap[i].ClassIndex);
-
+		    var @class = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
+ 
 		    ExportMap[i].CookedSerialOffset = (ulong)properties.Position;
 		    
-		    var props = propWriter.WriteProperties(@class, i, Properties[name].Properties);
+		    var props = propWriter.WriteProperties(@class, Properties[name].Properties);
 		    props.CopyTo(properties);
 		    properties.Position += 4; // Padding;
 
@@ -219,8 +219,8 @@ public class ZenAsset : Asset
 	    writer.Position = end;
     }
 
-    public override Writer WriteProperties(string type, int exportIndex, List<UProperty> properties) =>
-	    new UnversionedWriter(this).WriteProperties(type, exportIndex, properties);
+    public override Writer WriteProperties(string type, List<UProperty> properties) =>
+	    new UnversionedWriter(this).WriteProperties(type, properties);
 }
 
 public class ExportContainer : Container<FExportMapEntry>

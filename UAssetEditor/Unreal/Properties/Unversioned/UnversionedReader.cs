@@ -120,22 +120,13 @@ public static class UnversionedReader
 			    if (zeroMask is not null)
 				    isNonZero |= !zeroMask.Get(zeroMaskIndex);
 
-			    var readMode = !isNonZero ? EReadMode.Zero : EReadMode.Normal;
+			    var readMode = !isNonZero ? ESerializationMode.Zero : ESerializationMode.Normal;
 			    var propertyType = prop.Data.Type.ToString();
 			    var propertyValue = 
 				    (AbstractProperty)PropertyUtils.ReadProperty(propertyType, asset, prop.Data, asset, readMode);
 			    propertyValue.Name = prop.Name;
 			    
-			    props.Add(new UProperty
-			    {
-				    Type = propType,
-				    Name = prop.Name,
-				    Value = propertyValue,
-				    StructType = prop.Data.StructType ?? prop.Data.InnerType?.StructType,
-				    EnumName = prop.Data.EnumName,
-				    InnerType = prop.Data.InnerType?.Type.ToString(),
-				    IsZero = !isNonZero
-			    });
+			    props.Add(new UProperty(prop.Data, prop.Name, propertyValue, !isNonZero));
 
 			    if (frag.bHasAnyZeroes)
 				    zeroMaskIndex++;

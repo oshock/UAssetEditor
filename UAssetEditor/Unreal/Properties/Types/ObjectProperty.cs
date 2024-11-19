@@ -14,9 +14,9 @@ public class ObjectProperty : AbstractProperty<int>
     public bool IsImport => (int)Value < 0;
     public bool IsNull => (int)Value == 0;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        Value = mode == EReadMode.Zero ? 0 : reader.Read<int>();
+        Value = mode == ESerializationMode.Zero ? 0 : reader.Read<int>();
 
         if (asset is not ZenAsset zen) return;
         
@@ -39,7 +39,7 @@ public class ObjectProperty : AbstractProperty<int>
         }
     }
     
-    public override void Write(Writer writer, UProperty property, Asset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         writer.Write(Value);
     }

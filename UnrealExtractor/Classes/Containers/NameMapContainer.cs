@@ -6,7 +6,7 @@ namespace UnrealExtractor.Classes.Containers;
 
 public class NameMapContainer : Container<string>
 {
-	public uint NumBytes => (uint)Items.Sum(str => str.Length);
+	public uint NumBytes => (uint)Items.Sum(str => string.IsNullOrEmpty(str) ? 0 : str.Length);
     public ulong HashVersion;
     public override int GetIndex(string str) => Items.FindIndex(x => x == str);
 

@@ -11,7 +11,11 @@ public abstract class Container<T> : IEnumerable<T>
         Items = items;
     }
 
-    public void Add(T item) => Items.Add(item);
+    public void Add(T? item)
+    {
+        if (item is not null)
+            Items.Add(item);
+    }
 
     public virtual int GetIndex(string str)
     {

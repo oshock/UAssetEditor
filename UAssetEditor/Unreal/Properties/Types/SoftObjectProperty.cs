@@ -28,11 +28,11 @@ public class SoftObjectProperty : AbstractProperty<string>
         };
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(asset);
 
-        if (mode == EReadMode.Zero)
+        if (mode == ESerializationMode.Zero)
         {
             AssetPathName = "None";
             PackageName = "None";
@@ -47,7 +47,7 @@ public class SoftObjectProperty : AbstractProperty<string>
         Value = $"{AssetPathName}.{PackageName}";
     }
 
-    public override void Write(Writer writer, UProperty property, Asset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(Value);

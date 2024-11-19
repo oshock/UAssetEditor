@@ -39,7 +39,7 @@ public class TextProperty : AbstractProperty<FTextHistory>
     public uint Flags;
     public ETextHistoryType Type;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         Flags = reader.Read<uint>();
         Type = reader.Read<ETextHistoryType>();
@@ -55,7 +55,7 @@ public class TextProperty : AbstractProperty<FTextHistory>
         };
     }
 
-    public override void Write(Writer writer, UProperty property, Asset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         writer.Write(Flags);
         writer.Write(Type);

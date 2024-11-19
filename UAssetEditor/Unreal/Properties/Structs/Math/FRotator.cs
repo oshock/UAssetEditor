@@ -9,9 +9,9 @@ public class FRotator : UStruct
     public float Yaw;
     public float Roll;
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        if (mode == EReadMode.Zero)
+        if (mode == ESerializationMode.Zero)
         {
             Pitch = 0;
             Yaw = 0;

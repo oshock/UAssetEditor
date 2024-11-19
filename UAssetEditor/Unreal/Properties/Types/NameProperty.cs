@@ -13,9 +13,9 @@ public class NameProperty : AbstractProperty<FName>
         return Value?.Name ?? "None";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, EReadMode mode = EReadMode.Normal)
+    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        if (mode == EReadMode.Zero)
+        if (mode == ESerializationMode.Zero)
         {
             Value = new FName("None");
             return;
@@ -27,7 +27,7 @@ public class NameProperty : AbstractProperty<FName>
         Value = value;
     }
 
-    public override void Write(Writer writer, UProperty property, Asset? asset = null)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         if (Value is null)
             throw new NoNullAllowedException("FName cannot be null. Remove from properties.");
