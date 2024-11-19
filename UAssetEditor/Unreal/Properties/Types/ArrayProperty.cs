@@ -6,6 +6,12 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class ArrayProperty : AbstractProperty<List<object>>
 {
+    public void AddItem(object obj)
+    {
+        Value ??= [];
+        Value.Add(obj);
+    }
+    
     public override string ToString()
     {
         return $"[{Value?.Count}]";

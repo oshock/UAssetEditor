@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Serilog;
 using UAssetEditor;
+using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Utils;
 using UnrealExtractor;
 using UnrealExtractor.Binary;
@@ -9,6 +10,7 @@ using UnrealExtractor.Compression;
 using UnrealExtractor.Encryption.Aes;
 using UnrealExtractor.Unreal.Misc;
 using UnrealExtractor.Unreal.Readers.IoStore;
+using UnrealExtractor.Utils;
 
 Logger.StartLogger();
 
@@ -53,6 +55,12 @@ File.WriteAllText("output.json", uasset.ToJsonString());
 
 if (File.Exists("DefaultGameDataCosmetics.uasset"))
     File.Delete("DefaultGameDataCosmetics.uasset");
+
+
+var softObject = SoftObjectProperty.Create("/Game/Owens_Cool_Path/Owens_Cool_Object.Owens_Cool_Object");
+
+var characterParts = uasset.Properties["DefaultGameDataCosmetics"]["DefaultCharacterParts"]!;
+characterParts.Value!.As<ArrayProperty>().AddItem(softObject);
 
 var writer = new Writer("DefaultGameDataCosmetics.uasset");
 uasset.WriteAll(writer);
