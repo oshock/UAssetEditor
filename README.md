@@ -5,6 +5,5 @@
 - FInstancedStruct
 - Optional I/O Container reading to populate imports
 - Property creation handler
-- Bunch of other properties
 - Desktop app
 - Documentation
