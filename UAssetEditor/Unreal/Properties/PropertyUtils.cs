@@ -33,13 +33,13 @@ public static class PropertyUtils
         PropertyReflector.WriteProperty(writer, prop, asset, mode);
     }
 
-    public static string GetStructType(this UsmapPropertyData data)
+    public static string GetStructType(this PropertyData data)
     {
         return data.Type switch
         {
-            EUsmapPropertyType.StructProperty => data.StructType,
-            EUsmapPropertyType.ArrayProperty => data.InnerType?.StructType,
-            _ => data.Type.ToString()
+            "StructProperty" => data.StructType,
+            "ArrayProperty" => data.InnerType?.StructType,
+            _ => data.Type
         } ?? throw new DataException($"Could not find structure type for '{data}'");
     }
 }

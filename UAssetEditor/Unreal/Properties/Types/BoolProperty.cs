@@ -1,4 +1,5 @@
 using UnrealExtractor.Binary;
+using UnrealExtractor.Utils;
 using UsmapDotNet;
 
 
@@ -24,7 +25,7 @@ public class BoolProperty : AbstractProperty<bool>
             writer.WriteByte(0);
             return;
         }
-        
-        writer.WriteByte((byte)property.Value);
+
+        writer.WriteByte((byte)(property.Value.As<BoolProperty>().Value ? 1 : 0));
     }
 }

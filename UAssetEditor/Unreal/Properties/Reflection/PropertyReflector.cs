@@ -106,10 +106,10 @@ public static class PropertyReflector
 
         ArgumentNullException.ThrowIfNull(asset);
         
-        return asset.ReadProperties(type);
+        return new CustomStructHolder(asset.ReadProperties(type));
     }
     
-    public static void WriteStruct(Writer writer, object property, UsmapPropertyData type, Asset? asset = null)
+    public static void WriteStruct(Writer writer, object property, PropertyData type, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
 

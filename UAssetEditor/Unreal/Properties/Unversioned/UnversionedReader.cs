@@ -114,10 +114,9 @@ public static class UnversionedReader
 				    prop = schemaProperties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 			    }
 			    
-			    var propType = prop.Data.Type.ToString();
 			    var isNonZero = !frag.bHasAnyZeroes;
 			    
-			    if (zeroMask is not null)
+			    if (zeroMask != null && !isNonZero)
 				    isNonZero |= !zeroMask.Get(zeroMaskIndex);
 
 			    var readMode = !isNonZero ? ESerializationMode.Zero : ESerializationMode.Normal;

@@ -12,6 +12,19 @@ public class ArrayProperty : AbstractProperty<List<object>>
         Value.Add(obj);
     }
     
+    public void RemoveItem(int index) => Value?.RemoveAt(index);
+    
+    public void RemoveItem(object item) => Value?.Remove(item);
+
+    public object? GetItemAt(int index) => Value?[index] ?? null;
+
+    public T? GetItemAt<T>(int index) where T : class
+    {
+        return Value?[index] as T ?? null;
+    }
+
+    public object? this[int index] => GetItemAt(index);
+    
     public override string ToString()
     {
         return $"[{Value?.Count}]";

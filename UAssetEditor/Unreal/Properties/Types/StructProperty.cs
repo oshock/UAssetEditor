@@ -1,5 +1,6 @@
 using System.Data;
 using UAssetEditor.Unreal.Properties.Reflection;
+using UAssetEditor.Unreal.Properties.Structs;
 using UnrealExtractor.Binary;
 using UnrealExtractor.Utils;
 using UsmapDotNet;
@@ -10,6 +11,16 @@ namespace UAssetEditor.Unreal.Properties.Types;
 public class StructProperty : AbstractProperty<object>
 {
     public string Type = "None";
+
+    /// <summary>
+    /// Only applicable if value is an undefined struct (unversioned assets)
+    /// </summary>
+    public CustomStructHolder? Holder => Value?.AsOrDefault<CustomStructHolder>();
+    
+    public T? GetProperties<T>() where T : class
+    {
+        return Value as T;
+    }
     
     public override string ToString()
     {
@@ -29,7 +40,11 @@ public class StructProperty : AbstractProperty<object>
     {
         if (Value is null)
             throw new NoNullAllowedException("Cannot write struct property without a non-null value.");
+
+        var value = Value;
+        if (value is CustomStructHolder holder)
+            value = holder.Properties;
         
-        PropertyReflector.WriteStruct(writer, Value, property.Data, asset);
+        PropertyReflector.WriteStruct(writer, value, property.Data, asset);
     }
 }

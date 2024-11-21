@@ -4,18 +4,87 @@ using UsmapDotNet;
 
 namespace UAssetEditor;
 
+public enum EPropertyDataType
+{
+    Class,
+    Enum,
+    Struct,
+    Array,
+    Map
+}
+
+public class PropertyData
+{
+    public string? Type;
+    public string? EnumName;
+    public string? StructType;
+    public PropertyData? InnerType;
+    public PropertyData? ValueType;
+
+    public void SetClassData(string type)
+    {
+        Type = type;
+        EnumName = null;
+        StructType = null;
+        InnerType = null;
+        ValueType = null;
+    }
+    
+    public void SetEnumData(string name)
+    {
+        Type = "EnumProperty";
+        EnumName = name;
+        StructType = null;
+        InnerType = null;
+        ValueType = null;
+    }
+    
+    public void SetStructData(string structType)
+    {
+        Type = "StructProperty";
+        EnumName = null;
+        StructType = structType;
+        InnerType = null;
+        ValueType = null;
+    }
+    
+    public PropertyData()
+    { }
+    
+    public PropertyData(UsmapPropertyData data)
+    {
+        Type = data.Type.ToString();
+        EnumName = data.EnumName;
+        StructType = data.StructType;
+        
+        if (data.InnerType != null)
+            InnerType = new PropertyData(data.InnerType);
+        
+        if (data.ValueType != null)
+            ValueType = new PropertyData(data.ValueType);
+    }
+}
+
 public class UProperty
 {
-    public UsmapPropertyData Data;
+    public PropertyData? Data;
     
     public string Name;
     public object? Value;
     public bool IsZero;
-
+    
     public UProperty() 
     { }
     
     public UProperty(UsmapPropertyData data, string name, object? value, bool isZero = false)
+    {
+        Data = new PropertyData(data);
+        Name = name;
+        Value = value;
+        IsZero = isZero;
+    } 
+    
+    public UProperty(PropertyData data, string name, object? value, bool isZero = false)
     {
         Data = data;
         Name = name;
