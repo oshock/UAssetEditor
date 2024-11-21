@@ -135,8 +135,8 @@ public class ZenAsset : Asset
 		    ExportMap[i].CookedSerialOffset = (ulong)properties.Position;
 		    
 		    var props = propWriter.WriteProperties(@class, Properties[name].Properties);
+		    props.Write(0);
 		    props.CopyTo(properties);
-		    properties.Position += 4; // Padding;
 
 		    ExportMap[i].CookedSerialSize = (ulong)props.Length;
 	    }

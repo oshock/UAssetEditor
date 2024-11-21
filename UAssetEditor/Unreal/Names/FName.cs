@@ -36,7 +36,7 @@ public class FName
     public void Serialize(Writer writer, NameMapContainer nameMapContainer)
     {
         writer.Write(nameMapContainer.GetIndexOrAdd(Name));
-        writer.Write(ExtraIndex);
+        writer.Write(0); // TODO Extra Index
     }
 
     public void Serialize(Writer writer)
