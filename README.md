@@ -1,5 +1,5 @@
 # UAssetEditor
- An I/O Unreal Asset Editor
+ An Unreal I/O Asset Editor
 
 ## TODOs
 - FInstancedStruct
