@@ -14,6 +14,8 @@ public class UnrealFileSystem
     public Dictionary<FGuid, FAesKey> AesKeys = new();
     
     private string _directory;
+
+    public IoGlobalReader? GetGlobalReader() => Containers.FirstOrDefault(x => x.Reader is IoGlobalReader)?.Reader as IoGlobalReader;
     
     public UnrealFileSystem(string directory)
     {

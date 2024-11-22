@@ -35,8 +35,8 @@ if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athen
 var uasset = new ZenAsset(data);
 
 // Global .utoc path (required for class identification)
-var globalToc = system.Containers.First(x => x.Reader is IoGlobalReader);
-uasset.Initialize((IoGlobalReader)globalToc.Reader);
+var globalToc = system.GetGlobalReader();
+uasset.Initialize(globalToc!);
 
 // Loading mappings (required for unversioned assets)
 uasset.LoadMappings("++Fortnite+Release-32.10-CL-37958378-Windows_oo.usmap");
@@ -66,7 +66,7 @@ uasset.WriteAll(writer);
 writer.Close();
 
 var testAsset = new ZenAsset("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
-testAsset.Initialize((IoGlobalReader)globalToc.Reader);
+testAsset.Initialize(globalToc!);
 testAsset.LoadMappings("++Fortnite+Release-32.10-CL-37958378-Windows_oo.usmap");
 testAsset.ReadAll();
 
