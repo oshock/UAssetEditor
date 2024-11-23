@@ -39,7 +39,8 @@ public class TextProperty : AbstractProperty<FTextHistory>
     public uint Flags;
     public ETextHistoryType Type;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         Flags = reader.Read<uint>();
         Type = reader.Read<ETextHistoryType>();

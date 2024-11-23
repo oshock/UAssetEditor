@@ -2,6 +2,7 @@
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
+using UAssetEditor.Unreal.Objects;
 using UnrealExtractor.Binary;
 using UnrealExtractor.Classes.Containers;
 using UnrealExtractor.Unreal.Readers.IoStore;
@@ -67,10 +68,18 @@ public class ZenAsset : Asset
 		    
 		    var export = ExportMap[entry.LocalExportIndex];
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    var @class = export.Class;
+		    var className = export.Class;
 
-		    Position = headerSize + (long)export.CookedSerialOffset;
-		    Properties.Add(name, new PropertyContainer(@class, ReadProperties(@class)));
+		    
+		    var obj = new UObject(this);
+		    obj.Name = name;
+		    obj.Class = new UStruct(Mappings?.Schemas.FirstOrDefault(x => x.Name == className) 
+		                            ?? throw new KeyNotFoundException($"Could not find schema named '{className}'"));
+		    
+		    var position = headerSize + (long)export.CookedSerialOffset;
+		    obj.Deserialize(position);
+		    
+		    Exports.Add(obj);
 	    }
     }
 
@@ -113,9 +122,9 @@ public class ZenAsset : Asset
         return summary.HeaderSize;
     }
 
-    public override List<UProperty> ReadProperties(UsmapSchema schema)
+    public override List<UProperty> ReadProperties(UStruct structure)
     {
-	    return UnversionedReader.ReadProperties(this, schema);
+	    return UnversionedReader.ReadProperties(this, structure);
     }
 
     /// <summary>
@@ -124,7 +133,7 @@ public class ZenAsset : Asset
     /// <param name="writer"></param>
     public override void WriteAll(Writer writer)
     {
-	    var properties = new Writer();
+	    var uexp = new Writer();
 	    var propWriter = new UnversionedWriter(this);
 	    
 	    for (int i = 0; i < ExportMap.Length; i++)
@@ -132,18 +141,21 @@ public class ZenAsset : Asset
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
 		    var @class = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
  
-		    ExportMap[i].CookedSerialOffset = (ulong)properties.Position;
-		    
-		    var props = propWriter.WriteProperties(@class, Properties[name].Properties);
-		    props.Write(0);
-		    props.CopyTo(properties);
+		    ExportMap[i].CookedSerialOffset = (ulong)uexp.Position;
+
+		    var properties = Exports[name]?.Properties
+		                     ?? throw new KeyNotFoundException(
+			                     "Object exists in the export map, but not in the loaded exports.");
+		    var props = propWriter.WriteProperties(@class, properties);
+		    props.Write(0); // Padding
+		    props.CopyTo(uexp);
 
 		    ExportMap[i].CookedSerialSize = (ulong)props.Length;
 	    }
 	    
 	    WriteHeader(writer);
-	    properties.CopyTo(writer);
-	    properties.Close();
+	    uexp.CopyTo(writer);
+	    uexp.Close();
     }
 
     // TODO
@@ -217,6 +229,11 @@ public class ZenAsset : Asset
 	    summary.Serialize(writer);
 
 	    writer.Position = end;
+    }
+
+    public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
+    {
+	    throw new NotImplementedException();
     }
 
     public override Writer WriteProperties(string type, List<UProperty> properties) =>

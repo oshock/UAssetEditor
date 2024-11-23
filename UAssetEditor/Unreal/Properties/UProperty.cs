@@ -68,27 +68,32 @@ public class PropertyData
 public class UProperty
 {
     public PropertyData? Data;
-    
     public string Name;
     public object? Value;
+    public byte ArraySize;
+    public int SchemaIdx;
     public bool IsZero;
     
     public UProperty() 
     { }
     
-    public UProperty(UsmapPropertyData data, string name, object? value, bool isZero = false)
+    public UProperty(UsmapPropertyData data, string name, object? value, byte arraySize = 1, int schemaIdx = -1, bool isZero = false)
     {
         Data = new PropertyData(data);
         Name = name;
         Value = value;
+        ArraySize = arraySize;
+        SchemaIdx = schemaIdx;
         IsZero = isZero;
     } 
     
-    public UProperty(PropertyData data, string name, object? value, bool isZero = false)
+    public UProperty(PropertyData data, string name, object? value, byte arraySize = 1, int schemaIdx = -1, bool isZero = false)
     {
         Data = data;
         Name = name;
         Value = value;
+        ArraySize = arraySize;
+        SchemaIdx = schemaIdx;
         IsZero = isZero;
     }
     
@@ -107,7 +112,8 @@ public abstract class AbstractProperty : ICloneable
     public string? Name { get; set; }
     public abstract object? ValueAsObject { get; }
     
-    public virtual void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public virtual void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     { } 
 
     public virtual void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)

@@ -7,7 +7,8 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class BoolProperty : AbstractProperty<bool>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         if (mode == ESerializationMode.Zero) // TODO determine what the default value is
         {

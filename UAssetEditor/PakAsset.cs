@@ -1,3 +1,6 @@
+using UAssetEditor.Unreal.Exports;
+using UAssetEditor.Unreal.Objects;
+using UAssetEditor.Unreal.Properties.Types;
 using UnrealExtractor.Binary;
 using UsmapDotNet;
 
@@ -23,8 +26,7 @@ public class PakAsset : Asset
         throw new NotImplementedException();
     }
 
-    // TODO when I actually implement pak assets
-    public override List<UProperty> ReadProperties(UsmapSchema structure)
+    public override List<UProperty> ReadProperties(UStruct structure)
     {
         throw new NotImplementedException();
     }
@@ -45,6 +47,11 @@ public class PakAsset : Asset
     }
 
     public override void WriteHeader(Writer writer)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
     {
         throw new NotImplementedException();
     }

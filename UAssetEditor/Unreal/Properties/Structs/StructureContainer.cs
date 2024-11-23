@@ -1,14 +1,16 @@
-﻿using UAssetEditor.Utils;
+﻿using UAssetEditor.Unreal.Exports;
+using UAssetEditor.Utils;
 using UnrealExtractor.Classes.Containers;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Structs;
 
-public class LoadedStructure(StructureContainer container, UsmapSchema schema)
+public class LoadedStructure(StructureContainer container, UStruct struc)
 {
-    public readonly UsmapSchema Schema = schema;
-    public string Name => Schema.Name;
-    public UsmapProperty[] Properties => Schema.Properties;
+    public UStruct Structure => struc;
+
+    public string Name => struc.Name;
+    public UProperty[] Properties => struc.Properties.ToArray();
     
     public void Release()
     {
@@ -18,7 +20,7 @@ public class LoadedStructure(StructureContainer container, UsmapSchema schema)
 
 public class StructureContainer() : Container<LoadedStructure>(new List<LoadedStructure>())
 {
-    public UsmapSchema? this[string name]
+    public UStruct? this[string name]
     {
         get
         {
@@ -27,7 +29,7 @@ public class StructureContainer() : Container<LoadedStructure>(new List<LoadedSt
                 if (structure.Name != name)
                     continue;
 
-                return structure.Schema;
+                return structure.Structure;
             }
 
             return null;
@@ -40,9 +42,9 @@ public class StructureContainer() : Container<LoadedStructure>(new List<LoadedSt
         return Items.Any(structure => structure.Name == name);
     }
 
-    public void Add(UsmapSchema schema)
+    public void Add(UStruct struc)
     {
-        if (!Contains(schema.Name))
-            Items.Add(new LoadedStructure(this, schema));
+        if (!Contains(struc.Name))
+            Items.Add(new LoadedStructure(this, struc));
     }
 }

@@ -30,7 +30,8 @@ public class StructProperty : AbstractProperty<object>
         return $"({Type})";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         Type = data?.StructType ?? "None";
         Value = PropertyReflector.ReadStruct(reader, data, asset, mode);

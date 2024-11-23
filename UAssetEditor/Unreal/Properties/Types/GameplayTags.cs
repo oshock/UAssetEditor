@@ -7,7 +7,8 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class GameplayTagArrayProperty : AbstractProperty<List<FName>>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         Value = [];
 

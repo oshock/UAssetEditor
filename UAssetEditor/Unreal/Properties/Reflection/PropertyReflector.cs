@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
@@ -43,7 +44,7 @@ public static class PropertyReflector
         { "Rotator", typeof(FRotator) }
     };
 
-    public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data,
+    public static object ReadProperty(string type, Reader reader, PropertyData? data,
         Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         foreach (var kvp in PropertiesByName)
@@ -80,7 +81,7 @@ public static class PropertyReflector
         prop.Write(writer, uProperty, asset, mode);
     }
     
-    public static object ReadStruct(Reader reader, UsmapPropertyData? data,
+    public static object ReadStruct(Reader reader, PropertyData? data,
         Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);

@@ -1,4 +1,5 @@
 using System.Data;
+using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Names;
 using UnrealExtractor.Binary;
 using UsmapDotNet;
@@ -34,7 +35,8 @@ public class FGameplayTagContainer : UStruct
             name.Serialize(writer, asset.NameMap);
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         Tags = ReadGameplayTagArray(asset, reader);
     }

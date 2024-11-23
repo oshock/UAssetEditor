@@ -1,3 +1,5 @@
+using UAssetEditor.Unreal.Exports;
+
 namespace UAssetEditor.Unreal.Properties.Structs;
 
 // TODO

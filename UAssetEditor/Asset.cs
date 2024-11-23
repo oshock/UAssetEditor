@@ -1,6 +1,9 @@
 ﻿using System.Data;
 using UAssetEditor.Summaries;
+using UAssetEditor.Unreal.Exports;
+using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Unreal.Properties.Structs;
+using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UnrealExtractor.Binary;
 using UnrealExtractor.Classes.Containers;
@@ -8,17 +11,16 @@ using UsmapDotNet;
 
 namespace UAssetEditor;
 
-public class PropertyContainer : Container<UProperty>
+public class ObjectContainer : Container<UObject>
 {
-    public string Type;
-    public List<UProperty> Properties => Items;
+    public List<UObject> Objects => Items;
 
     public override int GetIndex(string str)
     {
         return Items.FindIndex(x => x.Name == str);
     }
     
-    public UProperty? this[string name]
+    public UObject? this[string name]
     {
         get
         {
@@ -48,10 +50,11 @@ public class PropertyContainer : Container<UProperty>
         }
     }
 
-    public PropertyContainer(string type, List<UProperty> items) : base(items)
-    {
-        Type = type;
-    }
+    public ObjectContainer(List<UObject> objects) : base(objects)
+    { }
+    
+    public ObjectContainer() : base(new List<UObject>())
+    { }
 }
 
 public abstract class Asset : Reader
@@ -61,12 +64,16 @@ public abstract class Asset : Reader
     public NameMapContainer NameMap;
     public EPackageFlags Flags;
 
+    public bool HasUnversionedProperties => Flags.HasFlag(EPackageFlags.PKG_UnversionedProperties);
+
     public StructureContainer DefinedStructures = new();
-    
-    public readonly Dictionary<string, PropertyContainer> Properties = new();
+
+    public ObjectContainer Exports = new();
     
     public Asset(byte[] data) : base(data)
     { }
+
+    public UObject? this[string name] => Exports[name];
     
     public Asset(string path) : this(File.ReadAllBytes(path))
     { }
@@ -87,14 +94,14 @@ public abstract class Asset : Reader
             if (schema is null)
                 throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
 		    
-            DefinedStructures.Add(schema);
+            DefinedStructures.Add(new UStruct(schema));
         }
 
         return ReadProperties(DefinedStructures[type] ?? throw new KeyNotFoundException("How'd we get here?"));
     }
     
     // TODO eventually redo when I add pak assets (not unversioned)
-    public abstract List<UProperty> ReadProperties(UsmapSchema structure);
+    public abstract List<UProperty> ReadProperties(UStruct structure);
     public abstract Writer WriteProperties(string type, List<UProperty> properties);
 
     /// <summary>
@@ -114,12 +121,7 @@ public abstract class Asset : Reader
         return asset.NameMap.GetIndex(str);
     }
 
-    public void SetPropertyContainerKey(string current, string newName)
-    {
-        var properties = Properties[current];
-        Properties.Remove(current);
-        Properties.Add(newName, properties);
-    }
+    public abstract ResolvedObject? ResolvePackageIndex(FPackageIndex? index);
 
     // TODO
     /*public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
@@ -191,10 +193,12 @@ public abstract class Asset : Reader
 
                         p.Value = new ObjectProperty { Value = nameIndex + 1 };
                     }
-                    
+
                     break;
                 }
             }
         }
     }*/
+
+
 }

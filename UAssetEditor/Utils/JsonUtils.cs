@@ -76,16 +76,17 @@ public static class JsonUtils
         obj.Value = expando;
         return obj;
     }
-
-    public static string ToJsonString(this Asset asset)
+    
+    // TODO fix
+    /*public static string ToJsonString(this Asset asset)
     {
         var objs = new List<object>();
         
-        foreach (var kvp in asset.Properties)
+        foreach (var export in asset.Exports)
         {
             var properties = new List<object>();
 
-            foreach (var prop in kvp.Value)
+            foreach (var prop in export.Properties)
             {
                 var propObj = PropertyToObject((AbstractProperty?)prop.Value);
                 properties.Add(propObj);
@@ -93,8 +94,8 @@ public static class JsonUtils
             
             var obj = new
             {
-                Type = kvp.Value.Type,
-                Name = kvp.Key,
+                Type = export.Class?.Name,
+                Name = export.Name,
                 Properties = properties
             };
             
@@ -102,5 +103,5 @@ public static class JsonUtils
         }
         
         return JsonConvert.SerializeObject(objs, Formatting.Indented);
-    }
+    }*/
 }

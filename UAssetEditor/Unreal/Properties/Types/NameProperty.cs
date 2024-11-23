@@ -13,7 +13,8 @@ public class NameProperty : AbstractProperty<FName>
         return Value?.Name ?? "None";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         if (mode == ESerializationMode.Zero)
         {

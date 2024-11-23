@@ -42,18 +42,6 @@ public class FExportMapEntry
         Class = Ar.GlobalData?.GetScriptName(ClassIndex) ?? "None";
     }
 
-    public bool TryGetProperties(out PropertyContainer? container)
-    {
-        if (!Asset.Properties.TryGetValue(Name, out var ctn))
-        {
-            container = null;
-            return false;
-        }
-
-        container = ctn;
-        return true;
-    }
-
     public void Serialize(Writer writer)
     {
         writer.Write(CookedSerialOffset);

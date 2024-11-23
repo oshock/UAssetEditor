@@ -52,12 +52,13 @@ sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
 // Serialize the asset into json
-File.WriteAllText("output.json", uasset.ToJsonString());
+// Broken ATM
+// File.WriteAllText("output.json", uasset.ToJsonString()); 
 
 if (File.Exists("CP_Athena_Body_F_RenegadeRaiderFire.uasset"))
     File.Delete("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
 
-var materialArray = (ArrayProperty)uasset.Properties["CP_Athena_Body_F_RenegadeRaiderFire"]["MaterialOverrides"].Value;
+var materialArray = (ArrayProperty)uasset["CP_Athena_Body_F_RenegadeRaiderFire"]["MaterialOverrides"].Value;
 var overrideMaterial = materialArray.GetItemAt<StructProperty>(0).Holder.GetPropertyValue<SoftObjectProperty>("OverrideMaterial");
 overrideMaterial.Value = "/Game/Characters/Player/Female/Medium/Bodies/F_Med_Soldier_01/Skins/TV_21/Materials/F_MED_Commando_Body_TV21.F_MED_Commando_Body_TV21";
 

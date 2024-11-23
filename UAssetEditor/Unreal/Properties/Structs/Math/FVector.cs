@@ -1,4 +1,5 @@
-﻿using UnrealExtractor.Binary;
+﻿using UAssetEditor.Unreal.Exports;
+using UnrealExtractor.Binary;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
@@ -9,7 +10,8 @@ public class FVector : UStruct
     public float B;
     public float C;
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         if (mode == ESerializationMode.Zero)
         {

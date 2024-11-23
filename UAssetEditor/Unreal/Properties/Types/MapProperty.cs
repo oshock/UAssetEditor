@@ -6,10 +6,11 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class MapProperty : AbstractProperty<Dictionary<object, object>>
 {
-    public UsmapPropertyData? KeyType;
-    public UsmapPropertyData? ValueType;
+    public PropertyData? KeyType;
+    public PropertyData? ValueType;
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
@@ -28,8 +29,8 @@ public class MapProperty : AbstractProperty<Dictionary<object, object>>
         var num = reader.Read<int>();
         Value = new Dictionary<object, object>();
 
-        var keyType = data.InnerType.Type.ToString();
-        var valueType = data.ValueType.Type.ToString();
+        var keyType = data.InnerType?.Type;
+        var valueType = data.ValueType?.Type;
 
         for (int i = 0; i < num; i++)
         {
@@ -39,7 +40,6 @@ public class MapProperty : AbstractProperty<Dictionary<object, object>>
         }
     }
 
-    // TODO
     public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(KeyType);
