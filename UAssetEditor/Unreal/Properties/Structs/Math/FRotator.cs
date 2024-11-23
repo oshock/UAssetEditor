@@ -1,6 +1,5 @@
 ﻿using UAssetEditor.Unreal.Exports;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 

@@ -1,22 +1,15 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using Serilog;
 using UAssetEditor;
-using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Types;
-using UAssetEditor.Utils;
-using UnrealExtractor;
-using UnrealExtractor.Binary;
-using UnrealExtractor.Compression;
-using UnrealExtractor.Encryption.Aes;
-using UnrealExtractor.Unreal.Misc;
-using UnrealExtractor.Unreal.Readers.IoStore;
-using UnrealExtractor.Utils;
+using UAssetEditor.Binary;
+using UAssetEditor.Compression;
+using UAssetEditor.Encryption.Aes;
+using UAssetEditor.Unreal.Misc;
 
 Logger.StartLogger();
 
 // Create system
-var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks");
+var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
 system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B2226600A001168B6CB062D7EA9D3121"));
@@ -39,7 +32,7 @@ var globalToc = system.GetGlobalReader();
 uasset.Initialize(globalToc!);
 
 // Loading mappings (required for unversioned assets)
-uasset.LoadMappings("++Fortnite+Release-32.10-CL-37958378-Windows_oo.usmap");
+uasset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
 
 // Start a stopwatch
 var sw = Stopwatch.StartNew();
@@ -68,7 +61,7 @@ writer.Close();
 
 var testAsset = new ZenAsset("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
 testAsset.Initialize(globalToc!);
-testAsset.LoadMappings("++Fortnite+Release-32.10-CL-37958378-Windows_oo.usmap");
+testAsset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
 testAsset.ReadAll();
 
 Console.ReadKey();

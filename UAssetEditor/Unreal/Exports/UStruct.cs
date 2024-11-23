@@ -1,4 +1,4 @@
-﻿using UnrealExtractor.Binary;
+﻿using UAssetEditor.Binary;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Exports;

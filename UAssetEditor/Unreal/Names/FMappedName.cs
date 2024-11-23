@@ -1,4 +1,4 @@
-﻿namespace UAssetEditor.Names;
+﻿namespace UAssetEditor.Unreal.Names;
 
 public struct FMappedName
 {

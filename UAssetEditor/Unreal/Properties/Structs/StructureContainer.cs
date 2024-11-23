@@ -1,7 +1,5 @@
 ﻿using UAssetEditor.Unreal.Exports;
-using UAssetEditor.Utils;
-using UnrealExtractor.Classes.Containers;
-using UsmapDotNet;
+using UAssetEditor.Classes.Containers;
 
 namespace UAssetEditor.Unreal.Properties.Structs;
 

@@ -1,9 +1,6 @@
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
-using UAssetEditor.Unreal.Properties.Reflection;
-using UAssetEditor.Unreal.Properties.Structs;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 namespace UAssetEditor.Unreal.Properties.Types;
 

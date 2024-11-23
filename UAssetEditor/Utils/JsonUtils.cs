@@ -1,5 +1,4 @@
 ﻿using System.Dynamic;
-using Newtonsoft.Json;
 using UAssetEditor.Unreal.Properties.Types;
 
 namespace UAssetEditor.Utils;

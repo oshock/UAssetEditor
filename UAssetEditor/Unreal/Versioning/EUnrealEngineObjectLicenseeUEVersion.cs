@@ -1,4 +1,4 @@
-namespace UAssetEditor.Versioning;
+namespace UAssetEditor.Unreal.Versioning;
 
 public enum EUnrealEngineObjectLicenseeUEVersion
 {

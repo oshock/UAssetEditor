@@ -9,7 +9,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\UAssetEditor\UAssetEditor.csproj" />
-      <ProjectReference Include="..\UnrealExtractor\UnrealExtractor.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,9 +1,8 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace UAssetEditor.Misc;
+namespace UAssetEditor.Unreal.Misc;
 
-// https://github.com/google/cityhash
 public static unsafe class CityHash
 {
     private const ulong K0 = 0xc3a5c85c97cb3127;

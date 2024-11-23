@@ -1,4 +1,4 @@
-namespace UAssetEditor.Versioning;
+namespace UAssetEditor.Unreal.Versioning;
 
 // https://github.com/FabianFG/CUE4Parse/blob/7ea91d5617ceb9979f06c80a6e9a18764398a229/CUE4Parse/UE4/Versions/EGame.cs
 public static class GameUtils

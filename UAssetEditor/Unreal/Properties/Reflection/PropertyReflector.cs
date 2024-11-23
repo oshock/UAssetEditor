@@ -3,8 +3,7 @@ using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
 
