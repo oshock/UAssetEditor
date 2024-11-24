@@ -20,7 +20,7 @@ public static class UnversionedReader
 	    var frags = new List<FFragment>();
 	    FFragment fragment; 
 	    var zeroMaskNum = 0;
-	    var unmaskedNum = 0U;
+	    var unmaskedNum = 0;
 	    
 	    do
 	    {
@@ -73,12 +73,7 @@ public static class UnversionedReader
 	    var schemaIndex = 0;
 	    var zeroMaskIndex = 0;
 	    var schemaProperties = new List<UProperty>();
-
-	    foreach (var property in struc.Properties)
-	    {
-		    for (int i = 0; i < property.ArraySize; i++)
-			    schemaProperties.Add(property);
-	    }
+	    gatherProperties();
 
 	    while (frags.Count > 0)
 	    {
@@ -89,7 +84,7 @@ public static class UnversionedReader
 
 		    var currentRemainingValues = frag.ValueNum;
 
-		    do
+		    while (currentRemainingValues > 0)
 		    {
 			    UProperty? prop = null;
 
@@ -98,22 +93,18 @@ public static class UnversionedReader
 				    if (schemaProperties.Count > schemaIndex)
 					    prop = schemaProperties[schemaIndex];
 				    else
+				    {
 					    schemaIndex -= schemaProperties.Count;
-				    
+					    struc = new UStruct(asset.Mappings.Schemas.First(x => x.Name == struc.SuperType));
+					    gatherProperties();
+				    }
+
 				    if (prop is not null)
 					    break;
 			    }
 			    
 			    if (prop is null)
 				    throw new KeyNotFoundException("Could not find property that matches current schema index.");
-
-			    while (string.IsNullOrEmpty(prop!.Name))
-			    {
-				    totalSchemaIndex += struc.Properties.Count;
-
-				    struc = new UStruct(asset.Mappings.Schemas.First(x => x.Name == struc.SuperType));
-				    prop = schemaProperties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
-			    }
 			    
 			    var isNonZero = !frag.bHasAnyZeroes;
 			    
@@ -133,9 +124,19 @@ public static class UnversionedReader
 			    
 			    schemaIndex++;
 			    currentRemainingValues--;
-		    } while (currentRemainingValues > 0);
+		    }
 
 		    frags.RemoveAt(0);
+	    }
+
+	    void gatherProperties()
+	    {
+		    schemaProperties.Clear();
+		    foreach (var property in struc.Properties)
+		    {
+			    for (int i = 0; i < property.ArraySize; i++)
+				    schemaProperties.Add(property);
+		    }
 	    }
 
 	    return props;

@@ -21,9 +21,9 @@ system.Initialize();
 Oodle.Initialize("oo2core_9_win64.dll");
 
 // Read the package
-if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Heroes/Meshes/Bodies/CP_Athena_Body_F_RenegadeRaiderFire.uasset", out var data))
+if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/CID_028_Athena_Commando_F.uasset", out var data))
     throw new KeyNotFoundException("Unable to read package");
-    
+
 // Read the asset from file path 
 var uasset = new ZenAsset(data);
 
@@ -51,9 +51,9 @@ Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 if (File.Exists("CP_Athena_Body_F_RenegadeRaiderFire.uasset"))
     File.Delete("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
 
-var materialArray = (ArrayProperty)uasset["CP_Athena_Body_F_RenegadeRaiderFire"]["MaterialOverrides"].Value;
+/*var materialArray = (ArrayProperty)uasset["CP_Athena_Body_F_RenegadeRaiderFire"]["MaterialOverrides"].Value;
 var overrideMaterial = materialArray.GetItemAt<StructProperty>(0).Holder.GetPropertyValue<SoftObjectProperty>("OverrideMaterial");
-overrideMaterial.Value = "/Game/Characters/Player/Female/Medium/Bodies/F_Med_Soldier_01/Skins/TV_21/Materials/F_MED_Commando_Body_TV21.F_MED_Commando_Body_TV21";
+overrideMaterial.Value = "/Game/Characters/Player/Female/Medium/Bodies/F_Med_Soldier_01/Skins/TV_21/Materials/F_MED_Commando_Body_TV21.F_MED_Commando_Body_TV21";*/
 
 var writer = new Writer("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
 uasset.WriteAll(writer);

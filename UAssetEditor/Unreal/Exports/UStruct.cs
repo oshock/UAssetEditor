@@ -18,6 +18,7 @@ public class UStruct : UObject
     public UStruct(UsmapSchema schema) : base()
     {
         Name = schema.Name;
+        SuperType = schema.SuperType ?? "None";
         
         foreach (var prop in schema.Properties)
         {

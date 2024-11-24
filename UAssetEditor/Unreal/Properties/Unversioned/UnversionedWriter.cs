@@ -106,7 +106,7 @@ public class UnversionedWriter(ZenAsset asset)
 		    zeroMask.Add(isZero);
 		    frags[^1] = frags[^1] with
 		    {
-			    ValueNum = (byte)(frags[^1].ValueNum + property.ArraySize),
+			    ValueNum = (sbyte)(frags[^1].ValueNum + property.ArraySize),
 			    bHasAnyZeroes = frags[^1].bHasAnyZeroes | isZero
 		    };
 	    }
@@ -121,7 +121,7 @@ public class UnversionedWriter(ZenAsset asset)
 
 		    frags[^1] = frags[^1] with
 		    {
-			    SkipNum = (byte)(frags[^1].SkipNum + property.ArraySize)
+			    SkipNum = (sbyte)(frags[^1].SkipNum + property.ArraySize)
 		    };
 	    }
 
