@@ -1,19 +1,19 @@
-using System.Text;
-using UnrealExtractor.Binary;
+﻿using System.Text;
+using UAssetEditor.Binary;
 
-namespace UAssetEditor.Names;
+namespace UAssetEditor.Unreal.Names;
+
 
 public class FString
 {
     public string Text;
-    public long Hash => GetHashCode(); // CityHash it
-    public override string ToString() => Text;
 
     public FString(string str)
     {
         Text = str;
     }
 
+    // TODO unicode
     public FString(Reader reader)
     {
         var length = reader.Read<int>();
@@ -22,7 +22,7 @@ public class FString
             Text = string.Empty;
             return;
         }
-        
+
         Text = Encoding.ASCII.GetString(reader.ReadBytes(length)).TrimEnd('\0');
     }
 
@@ -37,5 +37,10 @@ public class FString
         writer.Write(text.Length);
         if (text.Length > 0)
             writer.WriteString(text);
+    }
+
+    public override string ToString()
+    {
+        return Text;
     }
 }

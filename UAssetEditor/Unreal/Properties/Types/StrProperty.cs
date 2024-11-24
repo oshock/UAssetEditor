@@ -1,13 +1,13 @@
-using UAssetEditor.Names;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Unreal.Names;
+using UAssetEditor.Binary;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
 
 public class StrProperty : AbstractProperty<string>
 {
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         Value = FString.Read(reader);
     }

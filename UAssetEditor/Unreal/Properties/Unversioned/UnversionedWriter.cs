@@ -1,5 +1,5 @@
 using System.Data;
-using UnrealExtractor.Binary;
+using UAssetEditor.Binary;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Unversioned;

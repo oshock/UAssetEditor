@@ -1,3 +1,1 @@
-﻿using System.Collections;
-
-namespace UAssetEditor.Utils;
+﻿namespace UAssetEditor.Utils;

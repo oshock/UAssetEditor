@@ -1,46 +1,20 @@
 
 
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Unreal.Objects;
+using UAssetEditor.Binary;
 
 namespace UAssetEditor.Unreal.Properties.Types;
 
-public class ObjectProperty : AbstractProperty<int>
+public class ObjectProperty : AbstractProperty<FPackageIndex>
 {
-    // TODO find asset reference (import)
-    public string Text = "None";
-
-    public bool IsExport => (int)Value > 0;
-    public bool IsImport => (int)Value < 0;
-    public bool IsNull => (int)Value == 0;
-    
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
-        Value = mode == ESerializationMode.Zero ? 0 : reader.Read<int>();
-
-        if (asset is not ZenAsset zen) return;
-        
-        if (IsNull)
-            return;
-
-        if (IsExport)
-        {
-            var index = (int)Value - 1;
-            if (index < zen.ExportMap.Length)
-            {
-                var nameIndex = (int)zen.ExportMap[index].ObjectName.NameIndex;
-                if (nameIndex < zen.NameMap.Length)
-                    Text = zen.NameMap[nameIndex];
-            }
-        }
-        else if (IsImport)
-        {
-            // not implemented
-        }
+        Value = new FPackageIndex(asset, mode == ESerializationMode.Zero ? 0 : reader.Read<int>());
     }
     
     public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        writer.Write(Value);
+        writer.Write(Value?.Index ?? 0);
     }
 }

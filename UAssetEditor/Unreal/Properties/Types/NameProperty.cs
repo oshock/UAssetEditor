@@ -1,7 +1,6 @@
 using System.Data;
 using UAssetEditor.Unreal.Names;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -13,7 +12,8 @@ public class NameProperty : AbstractProperty<FName>
         return Value?.Name ?? "None";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         if (mode == ESerializationMode.Zero)
         {
