@@ -15,6 +15,6 @@ public class ObjectProperty : AbstractProperty<FPackageIndex>
     
     public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        writer.Write(Value?.Index);
+        writer.Write(Value?.Index ?? 0);
     }
 }

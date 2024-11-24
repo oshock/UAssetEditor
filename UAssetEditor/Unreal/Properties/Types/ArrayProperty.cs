@@ -34,6 +34,7 @@ public class ArrayProperty : AbstractProperty<List<object>>
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
+        ArgumentNullException.ThrowIfNull(data.InnerType.Type);
 
         Value = [];
         
@@ -44,7 +45,7 @@ public class ArrayProperty : AbstractProperty<List<object>>
 
         for (int i = 0; i < count; i++)
         {
-            var item = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
+            var item = PropertyUtils.ReadProperty(data.InnerType.Type, reader, data.InnerType, asset);
             Value.Add(item);
         }
     }
