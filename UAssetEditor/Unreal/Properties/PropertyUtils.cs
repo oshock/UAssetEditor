@@ -1,7 +1,6 @@
 using System.Data;
 using UAssetEditor.Unreal.Properties.Reflection;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 
 namespace UAssetEditor.Unreal.Properties;
@@ -20,7 +19,7 @@ public struct NameValuePair
 
 public static class PropertyUtils
 {
-    public static object ReadProperty(string type, Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public static object ReadProperty(string type, Reader reader, PropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         if (string.IsNullOrEmpty(type))
             throw new ArgumentNullException($"'{nameof(type)}' cannot be null or empty.");

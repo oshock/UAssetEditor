@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace UAssetEditor.Utils;
+﻿namespace UAssetEditor.Utils;
 
 public static class ArrayUtils
 {

@@ -1,7 +1,5 @@
-using UAssetEditor.Names;
 using UAssetEditor.Unreal.Names;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -28,7 +26,8 @@ public class SoftObjectProperty : AbstractProperty<string>
         };
     }
     
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(asset);
 

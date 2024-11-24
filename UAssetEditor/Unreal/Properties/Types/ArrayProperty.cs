@@ -1,5 +1,4 @@
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Binary;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -30,10 +29,12 @@ public class ArrayProperty : AbstractProperty<List<object>>
         return $"[{Value?.Count}]";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(data.InnerType);
+        ArgumentNullException.ThrowIfNull(data.InnerType.Type);
 
         Value = [];
         
@@ -44,7 +45,7 @@ public class ArrayProperty : AbstractProperty<List<object>>
 
         for (int i = 0; i < count; i++)
         {
-            var item = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
+            var item = PropertyUtils.ReadProperty(data.InnerType.Type, reader, data.InnerType, asset);
             Value.Add(item);
         }
     }

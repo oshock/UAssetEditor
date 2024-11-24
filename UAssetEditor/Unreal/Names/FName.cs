@@ -1,6 +1,6 @@
 
-using UnrealExtractor.Binary;
-using UnrealExtractor.Classes.Containers;
+using UAssetEditor.Binary;
+using UAssetEditor.Classes.Containers;
 
 namespace UAssetEditor.Unreal.Names;
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Data;
+using UAssetEditor.Unreal.Exports;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Unversioned;
@@ -12,7 +13,7 @@ public static class UnversionedReader
 	}
 	
 	// https://github.com/EpicGames/UnrealEngine/blob/a3cb3d8fdec1fc32f071ae7d22250f33f80b21c4/Engine/Source/Runtime/CoreUObject/Private/Serialization/UnversionedPropertySerialization.cpp#L528
-    public static List<UProperty> ReadProperties(ZenAsset asset, UsmapSchema schema)
+    public static List<UProperty> ReadProperties(Asset asset, UStruct struc)
     {
 	    var props = new List<UProperty>();
 
@@ -66,14 +67,14 @@ public static class UnversionedReader
 	    if (asset.Mappings is null)
 		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
 
-	    asset.DefinedStructures.Add(schema);
+	    asset.DefinedStructures.Add(struc);
 	    
 	    var totalSchemaIndex = 0;
 	    var schemaIndex = 0;
 	    var zeroMaskIndex = 0;
-	    var schemaProperties = new List<UsmapProperty>();
+	    var schemaProperties = new List<UProperty>();
 
-	    foreach (var property in schema.Properties)
+	    foreach (var property in struc.Properties)
 	    {
 		    for (int i = 0; i < property.ArraySize; i++)
 			    schemaProperties.Add(property);
@@ -90,7 +91,7 @@ public static class UnversionedReader
 
 		    do
 		    {
-			    UsmapProperty? prop = null;
+			    UProperty? prop = null;
 
 			    while (true)
 			    {
@@ -108,9 +109,9 @@ public static class UnversionedReader
 
 			    while (string.IsNullOrEmpty(prop!.Name))
 			    {
-				    totalSchemaIndex += schema.PropCount;
-				    
-				    schema = asset.Mappings.Schemas.First(x => x.Name == schema.SuperType);
+				    totalSchemaIndex += struc.Properties.Count;
+
+				    struc = new UStruct(asset.Mappings.Schemas.First(x => x.Name == struc.SuperType));
 				    prop = schemaProperties.ToList().Find(x => totalSchemaIndex + x.SchemaIdx == schemaIndex);
 			    }
 			    
@@ -120,12 +121,12 @@ public static class UnversionedReader
 				    isNonZero |= !zeroMask.Get(zeroMaskIndex);
 
 			    var readMode = !isNonZero ? ESerializationMode.Zero : ESerializationMode.Normal;
-			    var propertyType = prop.Data.Type.ToString();
+			    var propertyType = prop.Data?.Type;
 			    var propertyValue = 
 				    (AbstractProperty)PropertyUtils.ReadProperty(propertyType, asset, prop.Data, asset, readMode);
 			    propertyValue.Name = prop.Name;
 			    
-			    props.Add(new UProperty(prop.Data, prop.Name, propertyValue, !isNonZero));
+			    props.Add(new UProperty(prop.Data, prop.Name, propertyValue, prop.ArraySize, prop.SchemaIdx, !isNonZero));
 
 			    if (frag.bHasAnyZeroes)
 				    zeroMaskIndex++;

@@ -1,9 +1,8 @@
 using System.Data;
 using UAssetEditor.Unreal.Properties.Reflection;
 using UAssetEditor.Unreal.Properties.Structs;
-using UnrealExtractor.Binary;
-using UnrealExtractor.Utils;
-using UsmapDotNet;
+using UAssetEditor.Binary;
+using UAssetEditor.Utils;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -30,7 +29,8 @@ public class StructProperty : AbstractProperty<object>
         return $"({Type})";
     }
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         Type = data?.StructType ?? "None";
         Value = PropertyReflector.ReadStruct(reader, data, asset, mode);

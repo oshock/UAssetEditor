@@ -1,12 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor", "UAssetEditor\UAssetEditor.csproj", "{D3F02FF3-6A5A-4059-B48C-505A64BF284C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor.Testing", "UAssetEditor.Testing\UAssetEditor.Testing.csproj", "{69BFAC6D-9F9A-4577-8225-BB75B92CA8A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor.App", "UAssetEditor.App\UAssetEditor.App.csproj", "{5D18CFFE-E321-4A07-A62A-724F88C7B123}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealExtractor", "UnrealExtractor\UnrealExtractor.csproj", "{D10D2D14-A824-4977-A44A-C7ACA3DB123E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor", "UAssetEditor\UAssetEditor.csproj", "{D10D2D14-A824-4977-A44A-C7ACA3DB123E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,18 +10,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D3F02FF3-6A5A-4059-B48C-505A64BF284C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3F02FF3-6A5A-4059-B48C-505A64BF284C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3F02FF3-6A5A-4059-B48C-505A64BF284C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3F02FF3-6A5A-4059-B48C-505A64BF284C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{69BFAC6D-9F9A-4577-8225-BB75B92CA8A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{69BFAC6D-9F9A-4577-8225-BB75B92CA8A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69BFAC6D-9F9A-4577-8225-BB75B92CA8A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69BFAC6D-9F9A-4577-8225-BB75B92CA8A8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D18CFFE-E321-4A07-A62A-724F88C7B123}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D10D2D14-A824-4977-A44A-C7ACA3DB123E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D10D2D14-A824-4977-A44A-C7ACA3DB123E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D10D2D14-A824-4977-A44A-C7ACA3DB123E}.Release|Any CPU.ActiveCfg = Release|Any CPU

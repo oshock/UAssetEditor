@@ -1,19 +1,19 @@
-using UAssetEditor.Unreal.Properties.Reflection;
-using UAssetEditor.Unreal.Properties.Structs;
-using UnrealExtractor.Binary;
-using UsmapDotNet;
+using UAssetEditor.Unreal.Exports;
+using UAssetEditor.Unreal.Objects;
+using UAssetEditor.Binary;
 
 namespace UAssetEditor.Unreal.Properties.Types;
 
 // TODO
 public class FInstancedStruct : UStruct
 {
-    public ObjectProperty Index;
+    public FPackageIndex Index;
     public byte[] Buffer;
 
-    public override void Read(Reader reader, UsmapPropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
-        Index = (ObjectProperty)PropertyReflector.ReadProperty("ObjectProperty", reader, null);
+        Index = new FPackageIndex(asset, reader.Read<int>());
         var serialSize = reader.Read<int>();
 
         /*if (TryGetStructByIndexOrWhatever(index, out var @struct))
@@ -28,8 +28,7 @@ public class FInstancedStruct : UStruct
 
     public override void Write(Writer writer, Asset? asset = null)
     {
-        PropertyReflector.WriteProperty(writer, Index, asset);
-        
+        writer.Write(Index.Index);
         writer.Write(Buffer.Length);
         writer.WriteBytes(Buffer);
     }
