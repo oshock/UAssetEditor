@@ -1,4 +1,5 @@
 ﻿using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Properties.Unversioned;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Exports;
@@ -15,14 +16,28 @@ public class UStruct : UObject
         SuperType = superType;
     }
     
-    public UStruct(UsmapSchema schema) : base()
+    public UStruct(UsmapSchema schema, Usmap mappings) : base()
     {
         Name = schema.Name;
         SuperType = schema.SuperType ?? "None";
-        
-        foreach (var prop in schema.Properties)
+
+        while (true)
         {
-            Properties.Add(new UProperty(prop.Data, prop.Name, null, prop.ArraySize, prop.SchemaIdx));
+            foreach (var prop in schema.Properties)
+            {
+                var property = new UProperty(prop.Data, prop.Name, null, prop.ArraySize, prop.SchemaIdx);
+
+                for (int j = 0; j < property.ArraySize; j++)
+                {
+                    Properties.Add(property);
+                }
+            }
+
+            if (schema.SuperType == null)
+                return;
+
+            var super = mappings.FindSchema(schema.SuperType);
+            schema = super ?? throw new KeyNotFoundException($"Cannot find schema named '{schema.SuperType}'");
         }
     }
     

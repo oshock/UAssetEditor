@@ -16,7 +16,7 @@ public class ZenAsset : Asset
     public IoGlobalReader? GlobalData;
 
     public ulong[] ImportedPublicExportHashes;
-    public ulong[] ImportMap;
+    public FPackageObjectIndex[] ImportMap;
     public ExportContainer ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
@@ -74,7 +74,7 @@ public class ZenAsset : Asset
 		    var obj = new UObject(this);
 		    obj.Name = name;
 		    obj.Class = new UStruct(Mappings?.Schemas.FirstOrDefault(x => x.Name == className) 
-		                            ?? throw new KeyNotFoundException($"Could not find schema named '{className}'"));
+		                            ?? throw new KeyNotFoundException($"Could not find schema named '{className}'"), Mappings);
 		    
 		    var position = headerSize + (long)export.CookedSerialOffset;
 		    obj.Deserialize(position);
@@ -100,7 +100,7 @@ public class ZenAsset : Asset
             ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
 
         Position = summary.ImportMapOffset;
-        ImportMap = ReadArray<ulong>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
+        ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
 
         Position = summary.ExportMapOffset;
         ExportMap = ExportContainer.Read(this, summary);
@@ -231,9 +231,36 @@ public class ZenAsset : Asset
 	    writer.Position = end;
     }
 
+    // https://github.com/FabianFG/CUE4Parse/blob/87020fa42ab70bb44a08bcd9f5d742ad70c97373/CUE4Parse/UE4/Assets/IoPackage.cs#L331
     public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
     {
-	    throw new NotImplementedException();
+	    if (index == null || index.IsNull)
+			return null;
+	    
+	    if (index.IsImport && -index.Index - 1 < ImportMap.Length)
+		    return ResolveObjectIndex(ImportMap[-index.Index - 1]);
+	    
+	    if (index.IsExport && -index.Index - 1 < ExportMap.Length)
+		    return new ResolvedExportObject(this, index.Index - 1);
+
+	    return null;
+    }
+
+    public ResolvedObject? ResolveObjectIndex(FPackageObjectIndex index)
+    {
+	    if (index.IsNull)
+		    return null;
+
+	    if (index.IsExport)
+		    return new ResolvedExportObject(this, (int)index.AsExport);
+
+	    if (index.IsScriptImport)
+	    {
+		    /*if (GlobalData.ScriptObjectEntriesMap.TryGetValue(index, out var entry))
+			    return new Resol*/
+	    }
+
+	    return null;
     }
 
     public override Writer WriteProperties(string type, List<UProperty> properties) =>

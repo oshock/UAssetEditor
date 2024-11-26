@@ -93,7 +93,7 @@ public abstract class Asset : Reader
             if (schema is null)
                 throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
 		    
-            DefinedStructures.Add(new UStruct(schema));
+            DefinedStructures.Add(new UStruct(schema, Mappings!));
         }
 
         return ReadProperties(DefinedStructures[type] ?? throw new KeyNotFoundException("How'd we get here?"));

@@ -9,7 +9,7 @@ using UAssetEditor.Unreal.Misc;
 Logger.StartLogger();
 
 // Create system
-var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
+var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
 system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B2226600A001168B6CB062D7EA9D3121"));
