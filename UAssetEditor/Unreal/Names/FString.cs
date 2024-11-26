@@ -13,31 +13,23 @@ public class FString
         Text = str;
     }
 
-    public FString(Reader reader)
+    public static string Read(Reader reader)
     {
         var length = reader.Read<int>();
         
-        if (length == 0)
+        switch (length)
         {
-            Text = string.Empty;
-            return;
+            case 0:
+                return string.Empty;
+            case < 0:
+            {
+                length = -length;
+                var bytes = reader.ReadBytes(length * 2);
+                return Encoding.Unicode.GetString(bytes).TrimEnd('\0');
+            }
+            default:
+                return Encoding.ASCII.GetString(reader.ReadBytes(length)).TrimEnd('\0');
         }
-
-        // TODO unicode
-        /*if (length < 0)
-        {
-            length = -length;
-            var bytes = reader.ReadBytes(length * 2);
-            
-        }*/
-
-        Text = Encoding.ASCII.GetString(reader.ReadBytes(length)).TrimEnd('\0');
-    }
-
-    public static string Read(Reader reader)
-    {
-        var text = new FString(reader).Text;
-        return text;
     }
 
     public static void Write(Writer writer, string text)

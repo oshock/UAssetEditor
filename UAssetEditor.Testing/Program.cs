@@ -21,7 +21,7 @@ system.Initialize();
 Oodle.Initialize("oo2core_9_win64.dll");
 
 // Read the package
-if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/CID_028_Athena_Commando_F.uasset", out var data))
+if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/Character_BadBear.uasset", out var data))
     throw new KeyNotFoundException("Unable to read package");
 
 // Read the asset from file path 
