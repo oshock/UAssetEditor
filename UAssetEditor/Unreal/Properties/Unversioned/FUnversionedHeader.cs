@@ -77,14 +77,14 @@ public class FUnversionedHeader
         var frags = new List<FFragment>();
         var zeroMask = new List<bool>();
         
-        var enumerator = struc.Properties.GetEnumerator();
+        var enumerator = properties.GetEnumerator();
         enumerator.MoveNext();
         
         // Add first frag
         AddFrag();
         
         // Make fragments
-        foreach (var property in properties)
+        foreach (var property in struc.Properties)
         {
             // TODO calculate when it should be zero
             // var isZero = property.IsZero;
@@ -126,7 +126,9 @@ public class FUnversionedHeader
             
             writer.WriteBytes(result);
         }
-        
+
+        return;
+
         void AddFrag() => frags.Add(new FFragment());
 
         void TrimZeroMask(FFragment frag)

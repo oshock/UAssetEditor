@@ -129,8 +129,8 @@ public class UnrealFileSystem
                 asset.As<ZenAsset>().Initialize(globalToc!);
 
                 asset.Mappings = Mappings;
-                
-                break;
+
+                return true;
             }
             case FPakEntry pakEntry:
                 throw new NotImplementedException();
