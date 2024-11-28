@@ -59,8 +59,7 @@ public class EnumProperty : AbstractProperty<string>
             return;
         }
         
-        if (asset.Mappings is null)
-            throw new NoNullAllowedException($"'{nameof(asset.Mappings)}' cannot be null");
+        asset.CheckMappings();
         
         var enumData = asset.Mappings.Enums.FirstOrDefault(x => x.Name == property.Data.EnumName);
         

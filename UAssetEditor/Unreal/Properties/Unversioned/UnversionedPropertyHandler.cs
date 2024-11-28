@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Data;
+using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Exports;
 using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Unversioned;
 
-public static class UnversionedReader
+public static class UnversionedPropertyHandler
 {
 	public static UsmapSchema? FindSchema(this Usmap mappings, string type)
 	{
@@ -13,10 +14,9 @@ public static class UnversionedReader
 	}
 	
 	// https://github.com/EpicGames/UnrealEngine/blob/a3cb3d8fdec1fc32f071ae7d22250f33f80b21c4/Engine/Source/Runtime/CoreUObject/Private/Serialization/UnversionedPropertySerialization.cpp#L528
-    public static List<UProperty> ReadProperties(Asset asset, UStruct struc)
+    public static List<UProperty> DeserializeProperties(Asset asset, UStruct struc)
     {
-	    if (asset.Mappings is null)
-		    throw new NoNullAllowedException("Mappings cannot be null if properties are to be read!");
+	    asset.CheckMappings();
 	    
 	    // Get fragments
 	    var header = new FUnversionedHeader(asset);
@@ -66,5 +66,21 @@ public static class UnversionedReader
 	    } while (header.Fragments.MoveNext());
 
 	    return properties;
+    }
+    
+    public static void SerializeProperties(ZenAsset asset, Writer writer, UStruct struc, List<UProperty> properties)
+    {
+	    // Serialize header
+	    FUnversionedHeader.Serialize(writer, struc, properties);
+	    
+	    // Serialize properties
+	    foreach (var prop in properties)
+	    {
+		    // We write everything atm
+		    /*if (prop.IsZero)
+			    continue;*/
+		    
+		    PropertyUtils.WriteProperty(writer, prop, asset);
+	    }
     }
 }

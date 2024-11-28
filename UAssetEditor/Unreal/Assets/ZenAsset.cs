@@ -1,4 +1,5 @@
-﻿using UAssetEditor.Unreal.Names;
+﻿using System.Data;
+using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
@@ -124,7 +125,7 @@ public class ZenAsset : Asset
 
     public override List<UProperty> ReadProperties(UStruct structure)
     {
-	    return UnversionedReader.ReadProperties(this, structure);
+	    return UnversionedPropertyHandler.DeserializeProperties(this, structure);
     }
 
     /// <summary>
@@ -133,24 +134,30 @@ public class ZenAsset : Asset
     /// <param name="writer"></param>
     public override void WriteAll(Writer writer)
     {
+	    CheckMappings();
+	    
 	    var uexp = new Writer();
-	    var propWriter = new UnversionedWriter(this);
 	    
 	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
-		    var @class = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
+		    var className = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
  
+		    
 		    ExportMap[i].CookedSerialOffset = (ulong)uexp.Position;
 
 		    var properties = Exports[name]?.Properties
 		                     ?? throw new KeyNotFoundException(
 			                     "Object exists in the export map, but not in the loaded exports.");
-		    var props = propWriter.WriteProperties(@class, properties);
-		    props.Write(0); // Padding
-		    props.CopyTo(uexp);
+		    
+		    var schema = Mappings.FindSchema(className) ?? throw new KeyNotFoundException($"Cannot find schema named '{className}'.");
+		    var struc = new UStruct(schema, Mappings);
 
-		    ExportMap[i].CookedSerialSize = (ulong)props.Length;
+		    var start = uexp.Position;
+		    UnversionedPropertyHandler.SerializeProperties(this, uexp, struc, properties);
+		    uexp.Write(0); // Padding
+
+		    ExportMap[i].CookedSerialSize = (ulong)(uexp.Position - start);
 	    }
 	    
 	    WriteHeader(writer);
@@ -263,8 +270,15 @@ public class ZenAsset : Asset
 	    return null;
     }
 
-    public override Writer WriteProperties(string type, List<UProperty> properties) =>
-	    new UnversionedWriter(this).WriteProperties(type, properties);
+    public override void WriteProperties(Writer writer, string type, List<UProperty> properties)
+    {
+	    CheckMappings();
+	    
+	    var schema = Mappings.FindSchema(type) ?? throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
+	    var struc = new UStruct(schema, Mappings);
+	    
+	    UnversionedPropertyHandler.SerializeProperties(this, writer, struc, properties);
+    }
 }
 
 public class ExportContainer : Container<FExportMapEntry>

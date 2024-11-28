@@ -59,6 +59,10 @@ public class TextProperty : AbstractProperty<FTextHistory>
     {
         writer.Write(Flags);
         writer.Write(Type);
+
+        if (Type == ETextHistoryType.None)
+            return;
+        
         var text = Value;
         
         switch (Type)
@@ -68,6 +72,19 @@ public class TextProperty : AbstractProperty<FTextHistory>
                 FString.Write(writer, text.Key);
                 FString.Write(writer, text.SourceString);
                 break;
+            case ETextHistoryType.None:
+            case ETextHistoryType.NamedFormat:
+            case ETextHistoryType.OrderedFormat:
+            case ETextHistoryType.ArgumentFormat:
+            case ETextHistoryType.AsNumber:
+            case ETextHistoryType.AsPercent:
+            case ETextHistoryType.AsCurrency:
+            case ETextHistoryType.AsDate:
+            case ETextHistoryType.AsTime:
+            case ETextHistoryType.AsDateTime:
+            case ETextHistoryType.Transform:
+            case ETextHistoryType.StringTableEntry:
+            case ETextHistoryType.TextGenerator:
             default:
                 throw new NotImplementedException($"Type '{Type}' is not implemented.");
         }

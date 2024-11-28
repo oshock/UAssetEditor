@@ -39,7 +39,7 @@ public class UObject
         
         if (Owner.HasUnversionedProperties)
         {
-            Properties = UnversionedReader.ReadProperties(Owner, Class);
+            Properties = UnversionedPropertyHandler.DeserializeProperties(Owner, Class);
         }
         else
         {

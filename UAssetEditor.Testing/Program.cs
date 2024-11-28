@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Newtonsoft.Json;
 using UAssetEditor;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
@@ -44,9 +45,7 @@ uasset.ReadAll();
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
-// Serialize the asset into json
-// Broken ATM
-// File.WriteAllText("output.json", uasset.ToJsonString()); 
+File.WriteAllText("output.json", JsonConvert.SerializeObject(uasset.ToObject())); 
 
 if (File.Exists("CP_Athena_Body_F_RenegadeRaiderFire.uasset"))
     File.Delete("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
