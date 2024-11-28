@@ -21,12 +21,11 @@ system.Initialize();
 // Initialize Oodle
 Oodle.Initialize("oo2core_9_win64.dll");
 
-// Read the package
-if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/Character_BadBear.uasset", out var data))
-    throw new KeyNotFoundException("Unable to read package");
+// Extract the asset
+if (!system.TryExtractAsset("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/Character_BadBear.uasset", out var asset))
+    throw new KeyNotFoundException("Unable to find asset.");
 
-// Read the asset from file path 
-var uasset = new ZenAsset(data);
+var uasset = (ZenAsset)asset!;
 
 // Global .utoc path (required for class identification)
 var globalToc = system.GetGlobalReader();
@@ -45,22 +44,18 @@ uasset.ReadAll();
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
-var obj = uasset.ToObject();
-var json = JsonConvert.SerializeObject(obj, Formatting.Indented);
-File.WriteAllText("output.json", json); 
-
-if (File.Exists("CP_Athena_Body_F_RenegadeRaiderFire.uasset"))
-    File.Delete("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
+if (File.Exists("Character_BadBear.uasset"))
+    File.Delete("Character_BadBear.uasset");
 
 /*var materialArray = (ArrayProperty)uasset["CP_Athena_Body_F_RenegadeRaiderFire"]["MaterialOverrides"].Value;
 var overrideMaterial = materialArray.GetItemAt<StructProperty>(0).Holder.GetPropertyValue<SoftObjectProperty>("OverrideMaterial");
 overrideMaterial.Value = "/Game/Characters/Player/Female/Medium/Bodies/F_Med_Soldier_01/Skins/TV_21/Materials/F_MED_Commando_Body_TV21.F_MED_Commando_Body_TV21";*/
 
-var writer = new Writer("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
+var writer = new Writer("Character_BadBear.uasset");
 uasset.WriteAll(writer);
 writer.Close();
 
-var testAsset = new ZenAsset("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
+var testAsset = new ZenAsset("Character_BadBear.uasset");
 testAsset.Initialize(globalToc!);
 testAsset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
 testAsset.ReadAll();

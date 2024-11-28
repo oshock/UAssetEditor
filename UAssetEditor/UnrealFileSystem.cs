@@ -2,6 +2,7 @@
 using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Misc;
+using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Readers.IoStore;
 
 namespace UAssetEditor;
@@ -69,18 +70,53 @@ public class UnrealFileSystem
         Log.Information($"Mounted '{file}' with {container?.FileCount ?? 0} files.");
     }
 
-    public bool TryRead(string packagePath, out byte[] data)
+    public bool TryGetPackage(string packagePath, out UnrealFileEntry? pkg)
     {
         foreach (var container in Containers)
         {
-            if (!container.TryFindPackage(packagePath.ToLower(), out var pkg))
+            if (!container.TryFindPackage(packagePath.ToLower(), out pkg))
                 continue;
 
-            data = pkg!.Read();
             return true;
         }
 
-        data = [];
+        pkg = null;
+        return false;
+    }
+    
+    public bool TryRead(string packagePath, out byte[] data)
+    {
+        if (!TryGetPackage(packagePath, out var pkg))
+        {
+            data = [];
+            return false;
+        }
+
+        data = pkg!.Read();
+        return true;
+    }
+
+    public bool TryExtractAsset(string packagePath, out Asset? asset)
+    {
+        if (!TryGetPackage(packagePath, out var pkg))
+        {
+            asset = null;
+            return false;
+        }
+
+        switch (pkg)
+        {
+            case FIoStoreEntry ioEntry:
+            {
+                var data = ioEntry.Read();
+                asset = new ZenAsset(data);
+                break;
+            }
+            case FPakEntry pakEntry:
+                throw new NotImplementedException();
+        }
+
+        asset = null;
         return false;
     }
 }
