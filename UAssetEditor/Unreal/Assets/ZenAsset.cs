@@ -23,15 +23,6 @@ public class ZenAsset : Asset
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
     
-    public void LoadMappings(string path)
-    {
-	    Mappings = new Usmap(path, new UsmapOptions
-	    {
-		    Oodle = new Oodle("oo2core_9_win64.dll"),
-		    SaveNames = false
-	    });
-    }
-    
     public ZenAsset(byte[] data) : base(data)
     { }
     

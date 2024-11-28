@@ -1,9 +1,12 @@
-﻿using Serilog;
+﻿using OodleDotNet;
+using Serilog;
 using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Readers.IoStore;
+using UAssetEditor.Utils;
+using UsmapDotNet;
 
 namespace UAssetEditor;
 
@@ -15,11 +18,22 @@ public class UnrealFileSystem
     
     private string _directory;
 
+    public Usmap? Mappings { get; private set; }
+
     public IoGlobalReader? GetGlobalReader() => Containers.FirstOrDefault(x => x.Reader is IoGlobalReader)?.Reader as IoGlobalReader;
     
     public UnrealFileSystem(string directory)
     {
         _directory = directory;
+    }
+
+    public void LoadMappings(string path)
+    {
+        Mappings = new Usmap(path, new UsmapOptions
+        {
+            Oodle = new Oodle("oo2core_9_win64.dll"),
+            SaveNames = false
+        });
     }
     
     public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6)
@@ -110,6 +124,12 @@ public class UnrealFileSystem
             {
                 var data = ioEntry.Read();
                 asset = new ZenAsset(data);
+
+                var globalToc = GetGlobalReader();
+                asset.As<ZenAsset>().Initialize(globalToc!);
+
+                asset.Mappings = Mappings;
+                
                 break;
             }
             case FPakEntry pakEntry:

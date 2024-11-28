@@ -18,6 +18,9 @@ system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B
 // Mount containers
 system.Initialize();
 
+// Load mappings
+system.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
+
 // Initialize Oodle
 Oodle.Initialize("oo2core_9_win64.dll");
 
@@ -30,9 +33,6 @@ var uasset = (ZenAsset)asset!;
 // Global .utoc path (required for class identification)
 var globalToc = system.GetGlobalReader();
 uasset.Initialize(globalToc!);
-
-// Loading mappings (required for unversioned assets)
-uasset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
 
 // Start a stopwatch
 var sw = Stopwatch.StartNew();
@@ -57,7 +57,7 @@ writer.Close();
 
 var testAsset = new ZenAsset("Character_BadBear.uasset");
 testAsset.Initialize(globalToc!);
-testAsset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
+testAsset.Mappings = system.Mappings;
 testAsset.ReadAll();
 
 Console.ReadKey();
