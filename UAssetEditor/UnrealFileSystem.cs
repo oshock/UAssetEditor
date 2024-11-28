@@ -29,7 +29,7 @@ public class UnrealFileSystem
         if (loadInParallel)
         {
             Parallel.ForEach(files, new ParallelOptions
-                { MaxDegreeOfParallelism = 8 }, HandleContainer);
+                { MaxDegreeOfParallelism = maxDegreeOfParallelism }, HandleContainer);
         }
         else
         {

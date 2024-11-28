@@ -10,7 +10,7 @@ using UAssetEditor.Unreal.Misc;
 Logger.StartLogger();
 
 // Create system
-var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks");
+var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
 system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B2226600A001168B6CB062D7EA9D3121"));
@@ -45,7 +45,9 @@ uasset.ReadAll();
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
-File.WriteAllText("output.json", JsonConvert.SerializeObject(uasset.ToObject())); 
+var obj = uasset.ToObject();
+var json = JsonConvert.SerializeObject(obj, Formatting.Indented);
+File.WriteAllText("output.json", json); 
 
 if (File.Exists("CP_Athena_Body_F_RenegadeRaiderFire.uasset"))
     File.Delete("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
