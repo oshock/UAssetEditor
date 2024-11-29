@@ -11,16 +11,16 @@ public struct FFragment
     private const int ValueNumShift = 9;
     private const uint IsLastMask  = 0x0100u;
         
-    public sbyte SkipNum; // Number of properties to skip before values
+    public byte SkipNum; // Number of properties to skip before values
     public bool bHasAnyZeroes;
-    public sbyte ValueNum;  // Number of subsequent property values stored
+    public byte ValueNum;  // Number of subsequent property values stored
     public bool bIsLast; // Is this the last fragment of the header?
 
     public FFragment(ushort packed)
     {
-        SkipNum = (sbyte) (packed & SkipNumMask);
+        SkipNum = (byte) (packed & SkipNumMask);
         bHasAnyZeroes = (packed & HasZeroMask) != 0;
-        ValueNum = (sbyte) (packed >> ValueNumShift);
+        ValueNum = (byte) (packed >> ValueNumShift);
         bIsLast = (packed & IsLastMask) != 0;
     }
 

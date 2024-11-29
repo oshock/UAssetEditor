@@ -92,7 +92,7 @@ public class FUnversionedHeader
 
             if (property.Name == enumerator.Current.Name)
             {
-                IncludeProperty(property, isZero);
+                IncludeProperty(isZero);
                 
                 if (enumerator.MoveNext())
                     continue;
@@ -101,7 +101,7 @@ public class FUnversionedHeader
                 break;
             }
             
-            ExcludeProperty(property);
+            ExcludeProperty();
         }
 
         // Write fragments
@@ -139,7 +139,7 @@ public class FUnversionedHeader
             }
         }
 	    
-        void IncludeProperty(UProperty property, bool isZero)
+        void IncludeProperty(bool isZero)
         {
             if (GetLast().ValueNum == FFragment.ValueMax)
             {
@@ -150,12 +150,12 @@ public class FUnversionedHeader
             zeroMask.Add(isZero);
             frags[^1] = frags[^1] with
             {
-                ValueNum = (sbyte)(frags[^1].ValueNum + property.ArraySize),
+                ValueNum = (byte)(frags[^1].ValueNum + 1),
                 bHasAnyZeroes = frags[^1].bHasAnyZeroes | isZero
             };
         }
 
-        void ExcludeProperty(UProperty property)
+        void ExcludeProperty()
         {
             if (GetLast().ValueNum != 0 || GetLast().SkipNum == FFragment.SkipMax)
             {
@@ -165,7 +165,7 @@ public class FUnversionedHeader
 
             frags[^1] = frags[^1] with
             {
-                SkipNum = (sbyte)(frags[^1].SkipNum + property.ArraySize)
+                SkipNum = (byte)(frags[^1].SkipNum + 1)
             };
         }
 
