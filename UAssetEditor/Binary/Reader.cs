@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Data;
+using System.Runtime.CompilerServices;
 
 namespace UAssetEditor.Binary;
 
@@ -79,5 +80,16 @@ public class Reader : BinaryReader
         Buffer.BlockCopy(block, 0, buffer, 0, block.Length);
         
         return Unsafe.ReadUnaligned<T>(ref buffer[0]);
+    }
+
+    public bool ReadBool()
+    {
+        var i = Read<int>();
+        return i switch
+        {
+            0 => false,
+            1 => true,
+            _ => throw new DataException("Invalid boolean value.")
+        };
     }
 }
