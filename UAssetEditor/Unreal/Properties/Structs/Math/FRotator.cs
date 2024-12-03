@@ -19,16 +19,22 @@ public class FRotator : UStruct
             Roll = 0;
             return;
         }
-        
-        Pitch = reader.Read<float>();
-        Yaw = reader.Read<float>();
-        Roll = reader.Read<float>();
+
+        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
+        {
+            Pitch = (float)reader.Read<double>();
+            Yaw = (float)reader.Read<double>();
+            Roll = (float)reader.Read<double>();
+        }
     }
 
     public override void Write(Writer writer, Asset? asset = null)
     {
-        writer.Write(Pitch);
-        writer.Write(Yaw);
-        writer.Write(Roll);
+        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
+        {
+            writer.Write((double)Pitch);
+            writer.Write((double)Yaw);
+            writer.Write((double)Roll);
+        }
     }
 }
