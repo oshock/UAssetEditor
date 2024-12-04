@@ -29,10 +29,11 @@ public class PakAsset : Asset
         throw new NotImplementedException();
     }
 
-    public override Writer WriteProperties(string type, List<UProperty> properties)
+    public override void WriteProperties(Writer writer, string type, List<UProperty> properties)
     {
         throw new NotImplementedException();
     }
+
 
     public override void WriteAll(Writer writer)
     {

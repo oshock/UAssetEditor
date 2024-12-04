@@ -20,15 +20,21 @@ public class FVector : UStruct
             return;
         }
         
-        A = reader.Read<float>();
-        B = reader.Read<float>();
-        C = reader.Read<float>();
+        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
+        {
+            A = (float)reader.Read<double>();
+            B = (float)reader.Read<double>();
+            C = (float)reader.Read<double>();
+        }
     }
 
     public override void Write(Writer writer, Asset? asset = null)
     {
-        writer.Write(A);
-        writer.Write(B);
-        writer.Write(C);
+        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
+        {
+            writer.Write((double)A);
+            writer.Write((double)B);
+            writer.Write((double)C);
+        }
     }
 }

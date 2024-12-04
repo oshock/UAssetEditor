@@ -23,7 +23,7 @@ public class EnumProperty : AbstractProperty<string>
             case ESerializationMode.Zero:
                 break;
             case ESerializationMode.Normal:
-                var value = PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, data.InnerType, asset);
+                var value = PropertyUtils.ReadProperty(data.InnerType.Type, reader, data.InnerType, asset);
                 if (value is not AbstractProperty prop)
                     throw new InvalidCastException("Property is not a AbstractProperty?");
 
@@ -55,12 +55,11 @@ public class EnumProperty : AbstractProperty<string>
             if (property.Value is not EnumProperty name)
                 throw new InvalidCastException("Value of enum must be EnumProperty.");
             
-            new FName(name.Name!).Serialize(writer, asset.NameMap);
+            new FName(name.Value!).Serialize(writer, asset.NameMap);
             return;
         }
         
-        if (asset.Mappings is null)
-            throw new NoNullAllowedException($"'{nameof(asset.Mappings)}' cannot be null");
+        asset.CheckMappings();
         
         var enumData = asset.Mappings.Enums.FirstOrDefault(x => x.Name == property.Data.EnumName);
         

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Newtonsoft.Json;
 using UAssetEditor;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
@@ -17,22 +18,21 @@ system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B
 // Mount containers
 system.Initialize();
 
+// Load mappings
+system.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
+
 // Initialize Oodle
 Oodle.Initialize("oo2core_9_win64.dll");
 
-// Read the package
-if (!system.TryRead("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Heroes/Meshes/Bodies/CP_Athena_Body_F_RenegadeRaiderFire.uasset", out var data))
-    throw new KeyNotFoundException("Unable to read package");
-    
-// Read the asset from file path 
-var uasset = new ZenAsset(data);
+// Extract the asset
+if (!system.TryExtractAsset("FortniteGame/Content/Balance/DefaultGameDataCosmetics.uasset", out var asset))
+    throw new KeyNotFoundException("Unable to find asset.");
+
+var uasset = (ZenAsset)asset!;
 
 // Global .utoc path (required for class identification)
 var globalToc = system.GetGlobalReader();
 uasset.Initialize(globalToc!);
-
-// Loading mappings (required for unversioned assets)
-uasset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
 
 // Start a stopwatch
 var sw = Stopwatch.StartNew();
@@ -44,24 +44,19 @@ uasset.ReadAll();
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
-// Serialize the asset into json
-// Broken ATM
-// File.WriteAllText("output.json", uasset.ToJsonString()); 
+if (File.Exists("Character_BadBear.uasset"))
+    File.Delete("Character_BadBear.uasset");
 
-if (File.Exists("CP_Athena_Body_F_RenegadeRaiderFire.uasset"))
-    File.Delete("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
+var materialArray = (ArrayProperty)uasset["DefaultGameDataCosmetics"]["DefaultCharacterParts"].Value;
+materialArray.AddItem(SoftObjectProperty.Create("/Game/Owen.Owen"));
 
-var materialArray = (ArrayProperty)uasset["CP_Athena_Body_F_RenegadeRaiderFire"]["MaterialOverrides"].Value;
-var overrideMaterial = materialArray.GetItemAt<StructProperty>(0).Holder.GetPropertyValue<SoftObjectProperty>("OverrideMaterial");
-overrideMaterial.Value = "/Game/Characters/Player/Female/Medium/Bodies/F_Med_Soldier_01/Skins/TV_21/Materials/F_MED_Commando_Body_TV21.F_MED_Commando_Body_TV21";
-
-var writer = new Writer("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
+var writer = new Writer("Character_BadBear.uasset");
 uasset.WriteAll(writer);
 writer.Close();
 
-var testAsset = new ZenAsset("CP_Athena_Body_F_RenegadeRaiderFire.uasset");
+var testAsset = new ZenAsset("Character_BadBear.uasset");
 testAsset.Initialize(globalToc!);
-testAsset.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
+testAsset.Mappings = system.Mappings;
 testAsset.ReadAll();
 
 Console.ReadKey();

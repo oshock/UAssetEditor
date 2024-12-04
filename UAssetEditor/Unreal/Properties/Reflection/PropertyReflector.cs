@@ -4,6 +4,7 @@ using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Properties.Unversioned;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
 
@@ -117,8 +118,7 @@ public static class PropertyReflector
         
         if (property is List<UProperty> properties)
         {
-            var propertyWriter = asset.WriteProperties(structType, properties);
-            propertyWriter.CopyTo(writer);
+            asset.WriteProperties(writer, structType, properties);
             return;
         }
         

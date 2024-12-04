@@ -1,4 +1,6 @@
 ﻿using System.Data;
+using System.Reflection;
+using Newtonsoft.Json.Linq;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
@@ -6,6 +8,7 @@ using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
+using UAssetEditor.Unreal.Properties.Types;
 using UsmapDotNet;
 
 namespace UAssetEditor;
@@ -77,6 +80,11 @@ public abstract class Asset : Reader
     public Asset(string path) : this(File.ReadAllBytes(path))
     { }
 
+    public void CheckMappings()
+    {
+        if (Mappings is null)
+            throw new NoNullAllowedException("Mappings cannot be null");
+    }
 
     /// <summary>
     /// Read the entirety of this asset
@@ -93,7 +101,7 @@ public abstract class Asset : Reader
             if (schema is null)
                 throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
 		    
-            DefinedStructures.Add(new UStruct(schema));
+            DefinedStructures.Add(new UStruct(schema, Mappings!));
         }
 
         return ReadProperties(DefinedStructures[type] ?? throw new KeyNotFoundException("How'd we get here?"));
@@ -101,7 +109,7 @@ public abstract class Asset : Reader
     
     // TODO eventually redo when I add pak assets (not unversioned)
     public abstract List<UProperty> ReadProperties(UStruct structure);
-    public abstract Writer WriteProperties(string type, List<UProperty> properties);
+    public abstract void WriteProperties(Writer writer, string type, List<UProperty> properties);
 
     /// <summary>
     /// Serializes the entire asset to a stream.
@@ -121,7 +129,7 @@ public abstract class Asset : Reader
     }
 
     public abstract ResolvedObject? ResolvePackageIndex(FPackageIndex? index);
-
+    
     // TODO
     /*public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
     {

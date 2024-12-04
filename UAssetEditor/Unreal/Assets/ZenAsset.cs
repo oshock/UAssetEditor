@@ -1,4 +1,5 @@
-﻿using UAssetEditor.Unreal.Names;
+﻿using System.Data;
+using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
@@ -16,20 +17,11 @@ public class ZenAsset : Asset
     public IoGlobalReader? GlobalData;
 
     public ulong[] ImportedPublicExportHashes;
-    public ulong[] ImportMap;
+    public FPackageObjectIndex[] ImportMap;
     public ExportContainer ExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
-    
-    public void LoadMappings(string path)
-    {
-	    Mappings = new Usmap(path, new UsmapOptions
-	    {
-		    Oodle = new Oodle("oo2core_9_win64.dll"),
-		    SaveNames = false
-	    });
-    }
     
     public ZenAsset(byte[] data) : base(data)
     { }
@@ -74,7 +66,7 @@ public class ZenAsset : Asset
 		    var obj = new UObject(this);
 		    obj.Name = name;
 		    obj.Class = new UStruct(Mappings?.Schemas.FirstOrDefault(x => x.Name == className) 
-		                            ?? throw new KeyNotFoundException($"Could not find schema named '{className}'"));
+		                            ?? throw new KeyNotFoundException($"Could not find schema named '{className}'"), Mappings);
 		    
 		    var position = headerSize + (long)export.CookedSerialOffset;
 		    obj.Deserialize(position);
@@ -100,7 +92,7 @@ public class ZenAsset : Asset
             ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
 
         Position = summary.ImportMapOffset;
-        ImportMap = ReadArray<ulong>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
+        ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
 
         Position = summary.ExportMapOffset;
         ExportMap = ExportContainer.Read(this, summary);
@@ -124,7 +116,7 @@ public class ZenAsset : Asset
 
     public override List<UProperty> ReadProperties(UStruct structure)
     {
-	    return UnversionedReader.ReadProperties(this, structure);
+	    return UnversionedPropertyHandler.DeserializeProperties(this, structure);
     }
 
     /// <summary>
@@ -133,24 +125,30 @@ public class ZenAsset : Asset
     /// <param name="writer"></param>
     public override void WriteAll(Writer writer)
     {
+	    CheckMappings();
+	    
 	    var uexp = new Writer();
-	    var propWriter = new UnversionedWriter(this);
 	    
 	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
-		    var @class = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
+		    var className = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
  
+		    
 		    ExportMap[i].CookedSerialOffset = (ulong)uexp.Position;
 
 		    var properties = Exports[name]?.Properties
 		                     ?? throw new KeyNotFoundException(
 			                     "Object exists in the export map, but not in the loaded exports.");
-		    var props = propWriter.WriteProperties(@class, properties);
-		    props.Write(0); // Padding
-		    props.CopyTo(uexp);
+		    
+		    var schema = Mappings.FindSchema(className) ?? throw new KeyNotFoundException($"Cannot find schema named '{className}'.");
+		    var struc = new UStruct(schema, Mappings);
 
-		    ExportMap[i].CookedSerialSize = (ulong)props.Length;
+		    var start = uexp.Position;
+		    UnversionedPropertyHandler.SerializeProperties(this, uexp, struc, properties);
+		    uexp.Write(0); // Padding
+
+		    ExportMap[i].CookedSerialSize = (ulong)(uexp.Position - start);
 	    }
 	    
 	    WriteHeader(writer);
@@ -231,13 +229,47 @@ public class ZenAsset : Asset
 	    writer.Position = end;
     }
 
+    // https://github.com/FabianFG/CUE4Parse/blob/87020fa42ab70bb44a08bcd9f5d742ad70c97373/CUE4Parse/UE4/Assets/IoPackage.cs#L331
     public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
     {
-	    throw new NotImplementedException();
+	    if (index == null || index.IsNull)
+			return null;
+	    
+	    if (index.IsImport && -index.Index - 1 < ImportMap.Length)
+		    return ResolveObjectIndex(ImportMap[-index.Index - 1]);
+	    
+	    if (index.IsExport && -index.Index - 1 < ExportMap.Length)
+		    return new ResolvedExportObject(this, index.Index - 1);
+
+	    return null;
     }
 
-    public override Writer WriteProperties(string type, List<UProperty> properties) =>
-	    new UnversionedWriter(this).WriteProperties(type, properties);
+    public ResolvedObject? ResolveObjectIndex(FPackageObjectIndex index)
+    {
+	    if (index.IsNull)
+		    return null;
+
+	    if (index.IsExport)
+		    return new ResolvedExportObject(this, (int)index.AsExport);
+
+	    if (index.IsScriptImport)
+	    {
+		    /*if (GlobalData.ScriptObjectEntriesMap.TryGetValue(index, out var entry))
+			    return new Resol*/
+	    }
+
+	    return null;
+    }
+
+    public override void WriteProperties(Writer writer, string type, List<UProperty> properties)
+    {
+	    CheckMappings();
+	    
+	    var schema = Mappings.FindSchema(type) ?? throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
+	    var struc = new UStruct(schema, Mappings);
+	    
+	    UnversionedPropertyHandler.SerializeProperties(this, writer, struc, properties);
+    }
 }
 
 public class ExportContainer : Container<FExportMapEntry>
