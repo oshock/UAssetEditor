@@ -22,6 +22,7 @@ public class ZenAsset : Asset
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
+    public FZenPackageImportedPackageNamesContainer ImportedPackageNamesContainer;
     
     public ZenAsset(byte[] data) : base(data)
     { }
@@ -96,6 +97,8 @@ public class ZenAsset : Asset
 
         Position = summary.ExportMapOffset;
         ExportMap = ExportContainer.Read(this, summary);
+
+        Position = summary.ExportBundleEntriesOffset;
         ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
 
         Position = summary.DependencyBundleHeadersOffset;
@@ -110,6 +113,9 @@ public class ZenAsset : Asset
         Position = summary.DependencyBundleEntriesOffset;
         DependencyBundleEntries =
 	        ReadArray<int>((summary.ImportedPackageNamesOffset - summary.DependencyBundleEntriesOffset) / sizeof(int));
+
+        Position = summary.ImportedPackageNamesOffset;
+        ImportedPackageNamesContainer = new FZenPackageImportedPackageNamesContainer(this);
         
         return summary.HeaderSize;
     }
@@ -217,10 +223,12 @@ public class ZenAsset : Asset
 	    summary.DependencyBundleEntriesOffset = (int)writer.Position;
 	    writer.WriteArray(DependencyBundleEntries);
 
-	    var end = writer.Position;
-	    summary.ImportedPackageNamesOffset = (int)end;
+	    summary.ImportedPackageNamesOffset = (int)writer.Position;
+	    ImportedPackageNamesContainer.Serialize(writer);
 
-	    summary.HeaderSize = (uint)writer.Position;
+	    var end = writer.Position;
+
+	    summary.HeaderSize = (uint)end;
 	    summary.PackageFlags = Flags;
 
 	    writer.Position = 0;
