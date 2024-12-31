@@ -19,7 +19,7 @@ system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B
 system.Initialize();
 
 // Load mappings
-system.LoadMappings("++Fortnite+Release-32.11-CL-38202817-Windows_oo.usmap");
+system.LoadMappings("++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap");
 
 // Initialize Oodle
 Oodle.Initialize("oo2core_9_win64.dll");
@@ -44,17 +44,17 @@ uasset.ReadAll();
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
-if (File.Exists("Character_BadBear.uasset"))
-    File.Delete("Character_BadBear.uasset");
+if (File.Exists("DefaultGameDataCosmetics.uasset"))
+    File.Delete("DefaultGameDataCosmetics.uasset");
 
-var materialArray = (ArrayProperty)uasset["DefaultGameDataCosmetics"]["DefaultCharacterParts"].Value;
-materialArray.AddItem(SoftObjectProperty.Create("/Game/Owen.Owen"));
+var partArray = (ArrayProperty)uasset["DefaultGameDataCosmetics"]["DefaultCharacterParts"].Value;
+partArray.AddItem(SoftObjectProperty.Create("/Game/Owen.Owen"));
 
-var writer = new Writer("Character_BadBear.uasset");
+var writer = new Writer("DefaultGameDataCosmetics.uasset");
 uasset.WriteAll(writer);
 writer.Close();
 
-var testAsset = new ZenAsset("Character_BadBear.uasset");
+var testAsset = new ZenAsset("DefaultGameDataCosmetics.uasset");
 testAsset.Initialize(globalToc!);
 testAsset.Mappings = system.Mappings;
 testAsset.ReadAll();
