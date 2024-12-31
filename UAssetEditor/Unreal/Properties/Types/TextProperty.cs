@@ -101,6 +101,11 @@ public class FText : UStruct
     public FText()
     { }
 
+    public override string ToString()
+    {
+        return History.ToString();
+    }
+
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         Flags = reader.Read<uint>();
@@ -214,6 +219,14 @@ public class FText : UStruct
 
 public class TextProperty : AbstractProperty<FText>
 {
+    public TextProperty()
+    { }
+    
+    public TextProperty(FText value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

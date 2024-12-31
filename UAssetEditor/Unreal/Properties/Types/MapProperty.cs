@@ -5,6 +5,19 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class MapProperty : AbstractProperty<Dictionary<object, object>>
 {
+    public MapProperty()
+    { }
+    
+    public MapProperty(Dictionary<object, object> value)
+    {
+        Value = value;
+    }
+
+    public override string ToString()
+    {
+        return $"(KeyType '{KeyType?.Type ?? "None"}'):(ValueType '{ValueType?.Type ?? "None"}') [{Value?.Count}]";
+    }
+
     public PropertyData? KeyType;
     public PropertyData? ValueType;
     

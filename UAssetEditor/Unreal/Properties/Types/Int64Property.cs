@@ -5,6 +5,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class Int64Property : AbstractProperty<long>
 {
+    public Int64Property()
+    { }
+    
+    public Int64Property(long value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

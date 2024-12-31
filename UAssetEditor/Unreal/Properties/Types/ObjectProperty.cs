@@ -7,6 +7,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class ObjectProperty : AbstractProperty<FPackageIndex>
 {
+    public ObjectProperty()
+    { }
+    
+    public ObjectProperty(FPackageIndex value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

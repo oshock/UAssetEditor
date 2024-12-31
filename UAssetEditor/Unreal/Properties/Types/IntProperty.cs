@@ -5,6 +5,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class IntProperty : AbstractProperty<int>
 {
+    public IntProperty()
+    { }
+    
+    public IntProperty(int value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

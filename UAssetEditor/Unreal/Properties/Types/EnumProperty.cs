@@ -7,6 +7,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class EnumProperty : AbstractProperty<string>
 {
+    public EnumProperty()
+    { }
+
+    public EnumProperty(string value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

@@ -5,6 +5,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class ArrayProperty : AbstractProperty<List<object>>
 {
+    public ArrayProperty()
+    { }
+
+    public ArrayProperty(List<object> value)
+    {
+        Value = value;
+    }
+    
     public void AddItem(object obj)
     {
         Value ??= [];

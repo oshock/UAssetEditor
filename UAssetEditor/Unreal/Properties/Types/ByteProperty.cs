@@ -5,6 +5,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class ByteProperty : AbstractProperty<byte>
 {
+    public ByteProperty()
+    { }
+
+    public ByteProperty(byte value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

@@ -9,6 +9,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class StructProperty : AbstractProperty<object>
 {
+    public StructProperty()
+    { }
+    
+    public StructProperty(object value)
+    {
+        Value = value;
+    }
+    
     public string Type = "None";
 
     /// <summary>

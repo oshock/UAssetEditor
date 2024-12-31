@@ -6,10 +6,21 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class SoftObjectProperty : AbstractProperty<string>
 {
-    public string AssetPathName;
-    public string PackageName;
+    public FName AssetPathName;
+    public FName PackageName;
     public string SubPathName = "";
 
+    public SoftObjectProperty()
+    {
+        AssetPathName = new FName();
+        PackageName = new FName();
+    }
+    
+    public SoftObjectProperty(string value) : this()
+    {
+        Value = value;
+    }
+    
     public override string ToString()
     {
         return Value ?? "None";
@@ -20,8 +31,8 @@ public class SoftObjectProperty : AbstractProperty<string>
         var split = path.Split('.');
         return new SoftObjectProperty
         {
-            AssetPathName = split[0],
-            PackageName = split[1],
+            AssetPathName = new FName(split[0]),
+            PackageName = new FName(split[1]),
             Value = $"{split[0]}.{split[1]}"
         };
     }
@@ -33,15 +44,15 @@ public class SoftObjectProperty : AbstractProperty<string>
 
         if (mode == ESerializationMode.Zero)
         {
-            AssetPathName = "None";
-            PackageName = "None";
+            AssetPathName = new FName();
+            PackageName = new FName();
             SubPathName = "";
             return;
         }
         
-        AssetPathName = new FName(reader, asset.NameMap).Name;
-        PackageName = new FName(reader, asset.NameMap).Name;
-        SubPathName = FString.Read(reader); // idk
+        AssetPathName = new FName(reader, asset.NameMap);
+        PackageName = new FName(reader, asset.NameMap);
+        SubPathName = FString.Read(reader);
         
         Value = $"{AssetPathName}.{PackageName}";
     }
@@ -50,13 +61,17 @@ public class SoftObjectProperty : AbstractProperty<string>
     {
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(Value);
-
-        var split = Value.Split('.');
-        AssetPathName = split[0];
-        PackageName = split[1];
         
-        new FName(AssetPathName).Serialize(writer, asset.NameMap);
-        new FName(PackageName).Serialize(writer, asset.NameMap);
+        // If value was changed
+        if (Value != AssetPathName.Name + PackageName.Name)
+        {
+            var split = Value.Split('.');
+            AssetPathName = new FName(split[0]);
+            PackageName = new FName(split[1]);
+        }
+        
+        AssetPathName.Serialize(writer, asset.NameMap);
+        PackageName.Serialize(writer, asset.NameMap);
         FString.Write(writer, SubPathName);
     }
 }

@@ -6,6 +6,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class BoolProperty : AbstractProperty<bool>
 {
+    public BoolProperty()
+    { }
+
+    public BoolProperty(bool value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

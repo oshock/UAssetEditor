@@ -7,6 +7,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class NameProperty : AbstractProperty<FName>
 {
+    public NameProperty()
+    { }
+    
+    public NameProperty(FName value)
+    {
+        Value = value;
+    }
+    
     public override string ToString()
     {
         return Value?.Name ?? "None";

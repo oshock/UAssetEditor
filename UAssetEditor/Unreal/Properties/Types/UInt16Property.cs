@@ -5,6 +5,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class UInt16Property : AbstractProperty<ushort>
 {
+    public UInt16Property()
+    { }
+    
+    public UInt16Property(ushort value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

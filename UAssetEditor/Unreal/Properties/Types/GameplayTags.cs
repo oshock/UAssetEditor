@@ -6,6 +6,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class GameplayTagArrayProperty : AbstractProperty<List<FName>>
 {
+    public GameplayTagArrayProperty()
+    { }
+    
+    public GameplayTagArrayProperty(List<FName> value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

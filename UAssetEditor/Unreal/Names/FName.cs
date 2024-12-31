@@ -15,8 +15,11 @@ public class FName
     {
         Name = name;
         NameIndex = -1;
-        ExtraIndex = -1;
+        ExtraIndex = 0;
     }
+    
+    public FName() : this("None")
+    { }
     
     public FName(Reader reader, NameMapContainer nameMap)
     {
@@ -36,7 +39,7 @@ public class FName
     public void Serialize(Writer writer, NameMapContainer nameMapContainer)
     {
         writer.Write(nameMapContainer.GetIndexOrAdd(Name));
-        writer.Write(0); // TODO Extra Index
+        writer.Write(ExtraIndex);
     }
 
     public void Serialize(Writer writer)

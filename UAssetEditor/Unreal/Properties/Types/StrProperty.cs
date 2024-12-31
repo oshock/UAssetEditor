@@ -6,6 +6,14 @@ namespace UAssetEditor.Unreal.Properties.Types;
 
 public class StrProperty : AbstractProperty<string>
 {
+    public StrProperty()
+    { }
+    
+    public StrProperty(string value)
+    {
+        Value = value;
+    }
+    
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {
