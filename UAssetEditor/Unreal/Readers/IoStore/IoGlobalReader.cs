@@ -1,23 +1,24 @@
 ﻿using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Objects;
 
 namespace UAssetEditor.Unreal.Readers.IoStore;
 
 public readonly struct FScriptObjectEntry
 {
     public readonly FMappedName ObjectName;
-    public readonly ulong GlobalIndex;
-    public readonly ulong OuterIndex;
-    public readonly ulong CDOClassIndex;
+    public readonly FPackageObjectIndex GlobalIndex;
+    public readonly FPackageObjectIndex OuterIndex;
+    public readonly FPackageObjectIndex CDOClassIndex;
 }
 
 public class IoGlobalReader : Reader
 {
     public NameMapContainer GlobalNameMap;
-    public Dictionary<ulong, FScriptObjectEntry> ScriptObjectEntriesMap = new();
+    public Dictionary<FPackageObjectIndex, FScriptObjectEntry> ScriptObjectEntriesMap = new();
  
-    public string GetScriptName(ulong index) => GlobalNameMap[ScriptObjectEntriesMap[index].ObjectName.NameIndex];
+    public string GetScriptName(FPackageObjectIndex index) => GlobalNameMap[ScriptObjectEntriesMap[index].ObjectName.NameIndex];
     
     public IoGlobalReader(byte[] data) : base(data)
     { }

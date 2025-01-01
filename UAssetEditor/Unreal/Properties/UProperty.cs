@@ -111,6 +111,8 @@ public abstract class AbstractProperty : ICloneable
 {
     public string? Name { get; set; }
     public abstract object? ValueAsObject { get; }
+
+    public string GetPropertyType() => GetType().Name;
     
     public virtual void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)

@@ -44,12 +44,6 @@ public class Writer : BinaryWriter
             Write(value);
     }
 
-    public void WriteArray<T>(Action<T> func, IEnumerable<T> values)
-    {
-        foreach (var value in values)
-            func(value);
-    }
-
     public void CopyTo(Writer dest)
     {
         Position = 0;

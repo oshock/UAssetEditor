@@ -2,6 +2,7 @@
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Readers;
+using UAssetEditor.Unreal.Readers.IoStore;
 using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Containers;
@@ -41,7 +42,8 @@ public abstract class ContainerFile
         var reader = Reader.AsOrDefault<UnrealFileReader>();
         if (reader is null)
         {
-            Log.Logger.Warning($"'{path}' was unable to be found in '{Reader.Name}' because the reader is not an unreal file reader.");
+            if (Reader is not IoGlobalReader)
+                Log.Logger.Warning($"'{path}' was unable to be found in '{Reader.Name}' because the reader is not an unreal file reader.");
             
             pkg = null;
             return false;

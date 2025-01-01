@@ -21,20 +21,20 @@ public struct FZenPackageSummary
     public int DependencyBundleEntriesOffset = 0;
     public int ImportedPackageNamesOffset = 0;
 
-    public FZenPackageSummary(ZenAsset Ar)
+    public FZenPackageSummary(ZenAsset reader)
     {
-        bHasVersioningInfo = Ar.Read<uint>();
-        HeaderSize = Ar.Read<uint>();
-        Name = Ar.Read<FMappedName>();
-        PackageFlags = Ar.Read<EPackageFlags>();
-        CookedHeaderSize = Ar.Read<uint>();
-        ImportedPublicExportHashesOffset = Ar.Read<int>();
-        ImportMapOffset = Ar.Read<int>();
-        ExportMapOffset = Ar.Read<int>();
-        ExportBundleEntriesOffset = Ar.Read<int>();
-        DependencyBundleHeadersOffset = Ar.Read<int>();
-        DependencyBundleEntriesOffset = Ar.Read<int>();
-        ImportedPackageNamesOffset = Ar.Read<int>();
+        bHasVersioningInfo = reader.Read<uint>();
+        HeaderSize = reader.Read<uint>();
+        Name = reader.Read<FMappedName>();
+        PackageFlags = reader.Read<EPackageFlags>();
+        CookedHeaderSize = reader.Read<uint>();
+        ImportedPublicExportHashesOffset = reader.Read<int>();
+        ImportMapOffset = reader.Read<int>();
+        ExportMapOffset = reader.Read<int>();
+        ExportBundleEntriesOffset = reader.Read<int>();
+        DependencyBundleHeadersOffset = reader.Read<int>();
+        DependencyBundleEntriesOffset = reader.Read<int>();
+        ImportedPackageNamesOffset = reader.Read<int>();
     }
 
     public void Serialize(Writer writer)

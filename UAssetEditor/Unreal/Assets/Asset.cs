@@ -1,6 +1,9 @@
 ﻿using System.Data;
 using System.Reflection;
+using System.Threading.Channels;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
@@ -9,6 +12,7 @@ using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Properties.Types;
+using UAssetEditor.Utils;
 using UsmapDotNet;
 
 namespace UAssetEditor;
@@ -129,7 +133,193 @@ public abstract class Asset : Reader
     }
 
     public abstract ResolvedObject? ResolvePackageIndex(FPackageIndex? index);
+
+    public struct Export
+    {
+        public string Class;
+        public string Name;
+        public List<Property> Properties;
+    }
+
+    public struct Property
+    {
+        public string Type;
+        public string Name;
+        public object? Value;
+    }
+
+    public struct DictionaryPropertyEntry
+    {
+        public object Key;
+        public object Value;
+    }
     
+    public override string ToString()
+    {
+        var exportArr = new List<Export>();
+        foreach (var export in Exports)
+        {
+            var obj = new Export
+            {
+                Class = export.Class?.Name ?? "None",
+                Name = export.Name,
+                Properties = []
+            };
+
+            foreach (var prop in export.Properties)
+            {
+                var serialized = SerializeProperty(prop);
+                obj.Properties.Add(serialized);
+            }
+            
+            exportArr.Add(obj);
+        }
+
+        return JsonConvert.SerializeObject(exportArr, Formatting.Indented);
+
+        Property SerializeProperty(UProperty property)
+        {
+            var type = property.Data?.Type;
+            
+            var result = new Property
+            {
+                Type = property.Data?.Type ?? "None",
+                Name = property.Name,
+                Value = new object()
+            };
+
+            if (property.Value is null)
+            {
+                Log.Warning($"Value for '{property.Name}' was null, skipping serialization.");
+                return result;
+            }
+
+            switch (type)
+            {
+                case null:
+                    Log.Error($"'{property.Name}' had a null type. Unable to serialize.");
+                    return result;
+                case "ArrayProperty":
+                {
+                    var values = property.Value?.As<ArrayProperty>();
+                    var objects = new List<object>();
+
+                    for (var i = 0; i < values!.Value!.Count; i++)
+                    {
+                        var value = values.Value![i];
+                        var prop = (AbstractProperty)value;
+                        var serialized = SerializeProperty(new UProperty
+                        {
+                            Name = prop.Name ?? i.ToString(),
+                            Data = new PropertyData { Type = prop.GetPropertyType() },
+                            Value = prop
+                        });
+                        
+                        objects.Add(serialized);
+                    }
+
+                    result.Value = objects;
+                    break;
+                }
+                case "MapProperty":
+                {
+                    var values = property.Value?.As<MapProperty>();
+                    var objects = new List<DictionaryPropertyEntry>();
+
+                    foreach (var kvp in values!.Value!)
+                    {
+                        var kvpKey = (AbstractProperty)kvp.Key;
+                        var key = SerializeProperty(new UProperty
+                        {
+                            Name = kvpKey.Name ?? "MapEntry",
+                            Data = new PropertyData { Type = kvpKey.GetPropertyType() },
+                            Value = kvpKey
+                        });
+                        
+                        var kvpValue = (AbstractProperty)kvp.Value;
+                        var value = SerializeProperty(new UProperty
+                        {
+                            Name = kvpValue.Name ?? "MapEntry",
+                            Data = new PropertyData { Type = kvpValue.GetPropertyType() },
+                            Value = kvpValue
+                        });
+
+                        objects.Add(new DictionaryPropertyEntry
+                        {
+                            Key = key,
+                            Value = value
+                        });
+                    }
+
+                    result.Value = objects;
+                    break;
+                }
+                case "StructProperty":
+                {
+                    var value = property.Value?.As<StructProperty>();
+                    var objects = new List<Property>();
+                    var holder = value?.Holder;
+
+                    if (holder is null)
+                    {
+                        var obj = value!.Value;
+                        var structType = obj.GetType();
+                        var fields = structType.GetFields();
+
+                        foreach (var field in fields)
+                        {
+                            if (field.DeclaringType != structType) // I don't know why I can't figure out how to exclude derived fields
+                                continue;
+                                
+                            var prop = new Property
+                            {
+                                Type = field.FieldType.Name,
+                                Name = field.Name,
+                                Value = field.GetValue(obj)
+                            };
+                            
+                            objects.Add(prop);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var uProp in holder.Properties)
+                        {
+                            var prop = new Property
+                            {
+                                Type = uProp.Data.Type,
+                                Name = uProp.Name,
+                                Value = SerializeProperty(uProp).Value
+                            };
+                            
+                            objects.Add(prop);
+                        }
+                    }
+
+                    result.Value = objects;
+                    break;
+                }
+                default:
+                {
+                    var value = property.Value.As<AbstractProperty>().ValueAsObject;
+
+                    if (value is FPackageIndex index)
+                    {
+                        result.Value = index.Index;
+                    }
+                    else
+                    {
+                        result.Value = value;
+                    }
+
+                    break;
+                }
+            }
+
+            return result;
+        }
+    }
+
     // TODO
     /*public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
     {
@@ -206,6 +396,4 @@ public abstract class Asset : Reader
             }
         }
     }*/
-
-
 }

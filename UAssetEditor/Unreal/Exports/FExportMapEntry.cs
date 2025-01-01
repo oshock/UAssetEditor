@@ -1,6 +1,7 @@
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Summaries;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Objects;
 
 namespace UAssetEditor.Unreal.Exports;
 
@@ -11,10 +12,10 @@ public class FExportMapEntry
     public ulong CookedSerialOffset;
     public ulong CookedSerialSize;
     public FMappedName ObjectName;
-    public ulong OuterIndex;
-    public ulong ClassIndex;
-    public ulong SuperIndex;
-    public ulong TemplateIndex;
+    public FPackageObjectIndex OuterIndex;
+    public FPackageObjectIndex ClassIndex;
+    public FPackageObjectIndex SuperIndex;
+    public FPackageObjectIndex TemplateIndex;
     public ulong PublicExportHash;
     public EObjectFlags ObjectFlags;
     public byte FilterFlags; // EExportFilterFlags: client/server flags
@@ -23,23 +24,23 @@ public class FExportMapEntry
     public string Name;
     public string Class;
     
-    public FExportMapEntry(ZenAsset Ar)
+    public FExportMapEntry(ZenAsset reader)
     {
-        Asset = Ar;
-        CookedSerialOffset = Ar.Read<ulong>();
-        CookedSerialSize = Ar.Read<ulong>();
-        ObjectName = Ar.Read<FMappedName>();
-        OuterIndex = Ar.Read<ulong>();
-        ClassIndex = Ar.Read<ulong>();
-        SuperIndex = Ar.Read<ulong>();
-        TemplateIndex = Ar.Read<ulong>();
-        PublicExportHash = Ar.Read<ulong>();
-        ObjectFlags = Ar.Read<EObjectFlags>();
-        FilterFlags = Ar.Read<byte>();
-        Ar.Position += 3;
+        Asset = reader;
+        CookedSerialOffset = reader.Read<ulong>();
+        CookedSerialSize = reader.Read<ulong>();
+        ObjectName = reader.Read<FMappedName>();
+        OuterIndex = reader.Read<FPackageObjectIndex>();
+        ClassIndex = reader.Read<FPackageObjectIndex>();
+        SuperIndex = reader.Read<FPackageObjectIndex>();
+        TemplateIndex = reader.Read<FPackageObjectIndex>();
+        PublicExportHash = reader.Read<ulong>();
+        ObjectFlags = reader.Read<EObjectFlags>();
+        FilterFlags = reader.Read<byte>();
+        reader.Position += 3;
         
-        Name = Ar.NameMap[(int)ObjectName.NameIndex];
-        Class = Ar.GlobalData?.GetScriptName(ClassIndex) ?? "None";
+        Name = reader.NameMap[(int)ObjectName.NameIndex];
+        Class = reader.GlobalData?.GetScriptName(ClassIndex) ?? "None";
     }
 
     public void Serialize(Writer writer)
