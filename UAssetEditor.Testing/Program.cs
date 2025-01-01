@@ -61,14 +61,14 @@ uasset.ToString();
 if (File.Exists("DefaultGameDataCosmetics.uasset"))
     File.Delete("DefaultGameDataCosmetics.uasset");
 
-var partArray = (ArrayProperty)uasset["DefaultGameDataCosmetics"]["DefaultCharacterParts"].Value;
-partArray.AddItem(SoftObjectProperty.Create("/Game/Owen.Owen"));
+var text = (TextProperty)uasset["CID_028_Athena_Commando_F"]["ItemName"].Value;
+text.Value.Text = "Very cool item!";
 
-var writer = new Writer("DefaultGameDataCosmetics.uasset");
+var writer = new Writer("CID_028_Athena_Commando_F.uasset");
 uasset.WriteAll(writer);
 writer.Close();
 
-var testAsset = new ZenAsset("DefaultGameDataCosmetics.uasset");
+var testAsset = new ZenAsset("CID_028_Athena_Commando_F.uasset");
 testAsset.Initialize(globalToc!);
 testAsset.Mappings = system.Mappings;
 testAsset.ReadAll();

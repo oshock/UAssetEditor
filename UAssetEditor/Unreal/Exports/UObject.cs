@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Properties.Unversioned;
 
 namespace UAssetEditor.Unreal.Exports;

@@ -1,10 +1,12 @@
 ﻿using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
-public class FVector : UStruct
+public class FVector : UStruct, IUnrealType
 {
+    
     public float A;
     public float B;
     public float C;

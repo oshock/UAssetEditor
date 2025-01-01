@@ -1,9 +1,11 @@
-﻿using UAssetEditor.Unreal.Exports;
+﻿using UAssetEditor.Classes;
+using UAssetEditor.Unreal.Exports;
 
 namespace UAssetEditor.Unreal.Objects;
 
-public class FPackageIndex
+public class FPackageIndex : IUnrealType
 {
+    [UnrealField]
     public int Index;
 
     public Asset? Owner;

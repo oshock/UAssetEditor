@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Reflection;
+using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Utils;
@@ -263,23 +265,7 @@ public abstract class Asset : Reader
                     if (holder is null)
                     {
                         var obj = value!.Value;
-                        var structType = obj.GetType();
-                        var fields = structType.GetFields();
-
-                        foreach (var field in fields)
-                        {
-                            if (field.DeclaringType != structType) // I don't know why I can't figure out how to exclude derived fields
-                                continue;
-                                
-                            var prop = new Property
-                            {
-                                Type = field.FieldType.Name,
-                                Name = field.Name,
-                                Value = field.GetValue(obj)
-                            };
-                            
-                            objects.Add(prop);
-                        }
+                        GatherFields(obj, objects);
                     }
                     else
                     {
@@ -303,9 +289,12 @@ public abstract class Asset : Reader
                 {
                     var value = property.Value.As<AbstractProperty>().ValueAsObject;
 
-                    if (value is FPackageIndex index)
+                    if (value is IUnrealType)
                     {
-                        result.Value = index.Index;
+                        var properties = new List<Property>();
+                        GatherFields(value, properties);
+
+                        result.Value = properties;
                     }
                     else
                     {
@@ -313,6 +302,51 @@ public abstract class Asset : Reader
                     }
 
                     break;
+                }
+            }
+
+            void GatherFields(object? obj, List<Property> properties)
+            {
+                if (obj is null)
+                    return;
+                
+                var structType = obj.GetType();
+                var fields = structType.GetFields();
+
+                foreach (var field in fields)
+                {
+                    if (field.DeclaringType != structType) // I don't know why I can't figure out how to exclude derived fields
+                        continue;
+                    
+                    if (field.GetCustomAttribute<UnrealField>() == null)
+                        continue;
+                                
+                    var prop = new Property
+                    {
+                        Type = field.FieldType.Name,
+                        Name = field.Name,
+                        Value = field.GetValue(obj)
+                    };
+                            
+                    properties.Add(prop);
+                }
+
+                var methods = structType.GetMethods();
+
+                foreach (var method in methods)
+                {
+                    if (method.GetCustomAttribute<UnrealValueGetter>() == null)
+                        continue;
+
+                    var value = method.Invoke(obj, []);
+                    var valueType = value!.GetType();
+                    
+                    properties.Add(new Property
+                    {
+                        Type = valueType.Name,
+                        Name = "Value",
+                        Value = value
+                    });
                 }
             }
 

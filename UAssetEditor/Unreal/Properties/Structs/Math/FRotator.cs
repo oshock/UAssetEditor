@@ -1,12 +1,18 @@
 ﻿using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
-public class FRotator : UStruct
+public class FRotator : UStruct, IUnrealType
 {
+    [UnrealField]
     public float Pitch;
+    
+    [UnrealField]
     public float Yaw;
+    
+    [UnrealField]
     public float Roll;
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,

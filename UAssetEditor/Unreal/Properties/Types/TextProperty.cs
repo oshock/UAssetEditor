@@ -2,6 +2,7 @@ using System.Data;
 using Serilog;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Properties.Structs.Misc;
@@ -97,18 +98,30 @@ public enum ETextHistoryType : sbyte
 
 // Basically this entire class was taken from CUE4Parse, I cba to rewrite all of this - owen
 // https://github.com/FabianFG/CUE4Parse/blob/eb88d2ec617337324755745954eb29b09077868f/CUE4Parse/UE4/Objects/Core/i18N/FText.cs
-public class FText : UStruct
+public class FText : UStruct, IUnrealType
 {
+    [UnrealField]
     public uint Flags;
+    
+    [UnrealField]
     public ETextHistoryType Type;
+    
+    [UnrealField]
     public FTextHistory History;
 
     public FText()
     { }
 
+    [UnrealValueGetter]
     public override string ToString()
     {
         return History.ToString();
+    }
+
+    public string Text
+    {
+        get => ToString();
+        set => History.Text = value;
     }
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
@@ -143,9 +156,9 @@ public class FText : UStruct
         History.Serialize(writer);
     }
 
-    public abstract class FTextHistory
+    public abstract class FTextHistory : IUnrealType
     {
-        public abstract string Text { get; }
+        public abstract string Text { get; set; }
 
         public override string ToString()
         {
@@ -157,8 +170,13 @@ public class FText : UStruct
         public class None : FTextHistory
         {
             public string? CultureInvariantString;
-            public override string Text => CultureInvariantString ?? "";
-        
+
+            public override string Text
+            {
+                get => CultureInvariantString ?? "";
+                set => CultureInvariantString = value;
+            }
+
             public None(Reader reader)
             {
                 var bHasCultureInvariantString = reader.ReadBool();
@@ -186,8 +204,12 @@ public class FText : UStruct
             public string Key;
             public string SourceString;
             // public string LocalizedString;
-
-            public override string Text => SourceString;
+            
+            public override string Text
+            {
+                get => SourceString ?? "";
+                set => SourceString = value;
+            }
         
             public Base(Reader reader)
             {
@@ -210,8 +232,12 @@ public class FText : UStruct
 
             public Dictionary<string, FFormatArgumentValue> Arguments;
 
-            public override string Text => SourceFmt.ToString();
-
+            public override string Text
+            {
+                get => SourceFmt.ToString();
+                set => SourceFmt.Text = value;
+            }
+            
             public NamedFormat(Reader reader)
             {
                 SourceFmt = new FText();
@@ -245,7 +271,12 @@ public class FText : UStruct
         {
             public FText SourceFmt;
             public FFormatArgumentValue[] Arguments; /* called FFormatOrderedArguments in UE4 #1# */
-            public override string Text => SourceFmt.ToString();
+            
+            public override string Text
+            {
+                get => SourceFmt.ToString();
+                set => SourceFmt.Text = value;
+            }
 
             public OrderedFormat(Reader reader)
             {
@@ -274,7 +305,13 @@ public class FText : UStruct
         {
             public FText SourceFmt;
             public FFormatArgumentData[] Arguments;
-            public override string Text => SourceFmt.ToString();
+            
+            
+            public override string Text
+            {
+                get => SourceFmt.ToString();
+                set => SourceFmt.Text = value;
+            }
 
             public ArgumentFormat(Reader reader)
             {
@@ -302,8 +339,14 @@ public class FText : UStruct
             public bool bHasFormatOptions;
             public FNumberFormattingOptions? FormatOptions;
             public string TargetCulture;
-            public override string Text => SourceValue.Value.ToString() ?? "None";
 
+            public override string Text
+            {
+                get => SourceValue.Value.ToString() ?? "None";
+                set => throw new NotSupportedException(
+                    "Editing the text value of FormatNumber is not supported. Please modify SourceValue directly.");
+            }
+            
             public FormatNumber(Reader reader, ETextHistoryType historyType)
             {
                 HistoryType = historyType;
@@ -356,8 +399,14 @@ public class FText : UStruct
             public EDateTimeStyle DateStyle;
             public string? TimeZone;
             public string TargetCulture;
-            public override string Text => SourceDateTime.ToString();
 
+            public override string Text
+            {
+                get => SourceDateTime.ToString();
+                set => throw new NotSupportedException(
+                    "Editing the text value of AsDate is not supported. Please modify SourceDateTime directly.");
+            }
+            
             public AsDate(Reader reader)
             {
                 SourceDateTime = new FDateTime();
@@ -383,7 +432,13 @@ public class FText : UStruct
             public EDateTimeStyle TimeStyle;
             public string TimeZone;
             public string TargetCulture;
-            public override string Text => SourceDateTime.ToString();
+            
+            public override string Text
+            {
+                get => SourceDateTime.ToString();
+                set => throw new NotSupportedException(
+                    "Editing the text value of AsDate is not supported. Please modify SourceDateTime directly.");
+            }
 
             public AsTime(Reader reader)
             {
@@ -410,7 +465,13 @@ public class FText : UStruct
             public EDateTimeStyle TimeStyle;
             public string TimeZone;
             public string TargetCulture;
-            public override string Text => SourceDateTime.ToString();
+            
+            public override string Text
+            {
+                get => SourceDateTime.ToString();
+                set => throw new NotSupportedException(
+                    "Editing the text value of AsDate is not supported. Please modify SourceDateTime directly.");
+            }
 
             public AsDateTime(Reader reader)
             {
@@ -436,7 +497,12 @@ public class FText : UStruct
         {
             public FText SourceText;
             public ETransformType TransformType;
-            public override string Text => SourceText.ToString();
+            
+            public override string Text
+            {
+                get => SourceText.ToString();
+                set => SourceText.Text = value;
+            }
 
             public Transform(Reader reader)
             {
@@ -458,7 +524,12 @@ public class FText : UStruct
             public string Key;
             public string SourceString;
             public string LocalizedString;
-            public override string Text => LocalizedString;
+            
+            public override string Text
+            {
+                get => SourceString;
+                set => SourceString = value;
+            }
             
             public NameMapContainer NameMap; // For serialization
 
@@ -480,7 +551,12 @@ public class FText : UStruct
         {
             public FName GeneratorTypeID;
             public byte[]? GeneratorContents;
-            public override string Text => GeneratorTypeID.Name;
+            
+            public override string Text
+            {
+                get => GeneratorTypeID.Name;
+                set => GeneratorTypeID.Name = value;
+            }
 
             public NameMapContainer NameMap; // For serialization
 

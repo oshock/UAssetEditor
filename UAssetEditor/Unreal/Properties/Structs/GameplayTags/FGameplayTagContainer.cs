@@ -2,11 +2,13 @@ using System.Data;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 
 namespace UAssetEditor.Unreal.Properties.Structs;
 
-public class FGameplayTagContainer : UStruct
+public class FGameplayTagContainer : UStruct, IUnrealType
 {
+    [UnrealField]
     public List<FName> Tags;
 
     public static List<FName> ReadGameplayTagArray(Asset? asset, Reader reader)
