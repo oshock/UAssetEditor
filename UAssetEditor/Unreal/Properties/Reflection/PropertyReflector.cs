@@ -4,6 +4,8 @@ using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
+using UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
 

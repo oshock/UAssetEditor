@@ -4,6 +4,7 @@ using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
 using UAssetEditor.Compression;
 using UAssetEditor.Encryption.Aes;
+using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Misc;
 
 Logger.StartLogger();

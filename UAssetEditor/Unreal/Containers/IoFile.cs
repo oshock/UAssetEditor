@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Containers;
 
 public class IoFile : ContainerFile
 {
-    public IoStoreReader ReaderAsIoReader => Reader.As<IoStoreReader>();
+    public IoStoreReader ReaderAsIoReader => Reader!.As<IoStoreReader>();
     public FIoStoreTocHeader Header => Resource.Header;
     public FIoStoreTocResource Resource => ReaderAsIoReader.Resource;
     public uint CompressionBlockSize => Header.CompressionBlockSize;

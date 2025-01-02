@@ -5,9 +5,10 @@ using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
+using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Readers.IoStore;
 
-namespace UAssetEditor;
+namespace UAssetEditor.Unreal.Assets;
 
 public class ZenAsset : Asset
 {
@@ -144,7 +145,7 @@ public class ZenAsset : Asset
 		                     ?? throw new KeyNotFoundException(
 			                     "Object exists in the export map, but not in the loaded exports.");
 		    
-		    var schema = Mappings.FindSchema(className) ?? throw new KeyNotFoundException($"Cannot find schema named '{className}'.");
+		    var schema = Mappings?.FindSchema(className) ?? throw new KeyNotFoundException($"Cannot find schema named '{className}'.");
 		    var struc = new UStruct(schema, Mappings);
 
 		    var start = uexp.Position;

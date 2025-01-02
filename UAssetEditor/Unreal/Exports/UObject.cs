@@ -1,4 +1,6 @@
 ﻿using System.Data;
+using UAssetEditor.Unreal.Assets;
+using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Unversioned;
 
 namespace UAssetEditor.Unreal.Exports;
@@ -17,6 +19,7 @@ public class UObject
 
     public UObject()
     {
+        Name = "None";
         Properties = new();
     }
     

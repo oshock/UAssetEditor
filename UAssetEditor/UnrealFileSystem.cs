@@ -1,6 +1,7 @@
 ﻿using OodleDotNet;
 using Serilog;
 using UAssetEditor.Encryption.Aes;
+using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Packages;
@@ -25,6 +26,7 @@ public class UnrealFileSystem
     public UnrealFileSystem(string directory)
     {
         _directory = directory;
+        _containers = new List<ContainerFile>();
     }
 
     public void LoadMappings(string path)
@@ -38,7 +40,6 @@ public class UnrealFileSystem
     
     public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6)
     {
-        _containers = new List<ContainerFile>();
         var files = Directory.EnumerateFiles(_directory);
 
         if (loadInParallel)

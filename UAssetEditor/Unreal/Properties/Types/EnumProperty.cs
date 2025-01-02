@@ -1,6 +1,7 @@
 using System.Data;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -20,7 +21,7 @@ public class EnumProperty : AbstractProperty<string>
     {
         
         ArgumentNullException.ThrowIfNull(data);
-        ArgumentNullException.ThrowIfNull(data.InnerType);
+        ArgumentNullException.ThrowIfNull(data.InnerType?.Type);
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(asset.Mappings);
         
@@ -69,10 +70,10 @@ public class EnumProperty : AbstractProperty<string>
         
         asset.CheckMappings();
         
-        var enumData = asset.Mappings.Enums.FirstOrDefault(x => x.Name == property.Data.EnumName);
+        var enumData = asset.Mappings?.Enums.FirstOrDefault(x => x.Name == property.Data?.EnumName);
         
         if (enumData is null)
-            throw new NullReferenceException($"Enum {property.Data.EnumName} not found in mappings.");
+            throw new NullReferenceException($"Enum {property.Data?.EnumName} not found in mappings.");
 
         if (property.Value is not EnumProperty enumProperty)
             throw new InvalidCastException($"Property must be a enum property to serialize as a enum.");

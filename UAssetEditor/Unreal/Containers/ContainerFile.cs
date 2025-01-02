@@ -9,7 +9,7 @@ namespace UAssetEditor.Unreal.Containers;
 
 public abstract class ContainerFile
 {
-    public Reader Reader { get; protected set; }
+    public Reader? Reader { get; protected set; }
     public abstract bool IsEncrypted { get; }
     
     public string Path;
@@ -22,7 +22,7 @@ public abstract class ContainerFile
     }
 
     public IReadOnlyDictionary<string, UnrealFileEntry> PackagesByPath => 
-        Reader.AsOrDefault<UnrealFileReader>()?.PackagesByPath ?? new Dictionary<string, UnrealFileEntry>();
+        Reader?.AsOrDefault<UnrealFileReader>()?.PackagesByPath ?? new Dictionary<string, UnrealFileEntry>();
 
     public int FileCount => PackagesByPath.Count;
     
@@ -39,11 +39,11 @@ public abstract class ContainerFile
     /// <returns></returns>
     public bool TryFindPackage(string path, out UnrealFileEntry? pkg)
     {
-        var reader = Reader.AsOrDefault<UnrealFileReader>();
+        var reader = Reader?.AsOrDefault<UnrealFileReader>();
         if (reader is null)
         {
             if (Reader is not IoGlobalReader)
-                Log.Logger.Warning($"'{path}' was unable to be found in '{Reader.Name}' because the reader is not an unreal file reader.");
+                Log.Logger.Warning($"'{path}' was unable to be found in '{Reader?.Name}' because the reader is not an unreal file reader.");
             
             pkg = null;
             return false;

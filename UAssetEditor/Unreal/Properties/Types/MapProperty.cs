@@ -1,4 +1,6 @@
+using System.Data;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -31,18 +33,21 @@ public class MapProperty : AbstractProperty<Dictionary<object, object>>
 
         KeyType = data.InnerType;
         ValueType = data.ValueType;
+
+        if (data.InnerType.Type == null)
+            throw new NoNullAllowedException("InnerType cannot be null.");
         
         var numKeysToRemove = reader.Read<int>();
         for (int i = 0; i < numKeysToRemove; i++)
         {
-            PropertyUtils.ReadProperty(data.InnerType.Type.ToString(), reader, null, asset);
+            PropertyUtils.ReadProperty(data.InnerType.Type, reader, null, asset);
         }
 
         var num = reader.Read<int>();
         Value = new Dictionary<object, object>();
 
-        var keyType = data.InnerType?.Type;
-        var valueType = data.ValueType?.Type;
+        var keyType = data.InnerType!.Type!;
+        var valueType = data.ValueType?.Type ?? throw new NoNullAllowedException("ValueType cannot be null.");
 
         for (int i = 0; i < num; i++)
         {

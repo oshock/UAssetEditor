@@ -2,6 +2,7 @@ using System.Data;
 using UAssetEditor.Unreal.Properties.Reflection;
 using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Utils;
 
 
@@ -53,6 +54,6 @@ public class StructProperty : AbstractProperty<object>
         if (value is CustomStructHolder holder)
             value = holder.Properties;
         
-        PropertyReflector.WriteStruct(writer, value, property.Data, asset);
+        PropertyReflector.WriteStruct(writer, value, property.Data ?? throw new NoNullAllowedException($"{nameof(property.Data)} cannot be null."), asset);
     }
 }

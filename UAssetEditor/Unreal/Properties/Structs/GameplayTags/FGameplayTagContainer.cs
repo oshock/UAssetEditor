@@ -3,13 +3,14 @@ using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
+using UAssetEditor.Unreal.Assets;
 
-namespace UAssetEditor.Unreal.Properties.Structs;
+namespace UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 
 public class FGameplayTagContainer : UStruct, IUnrealType
 {
     [UnrealField]
-    public List<FName> Tags;
+    public List<FName>? Tags;
 
     public static List<FName> ReadGameplayTagArray(Asset? asset, Reader reader)
     {
@@ -45,6 +46,6 @@ public class FGameplayTagContainer : UStruct, IUnrealType
     public override void Write(Writer writer, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
-        WriteGameplayTagArray(writer, Tags, asset);
+        WriteGameplayTagArray(writer, Tags ?? throw new NoNullAllowedException($"{nameof(Tags)} cannot be null."), asset);
     }
 }

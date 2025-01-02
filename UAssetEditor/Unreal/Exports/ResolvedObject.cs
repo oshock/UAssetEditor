@@ -1,4 +1,5 @@
-﻿using UAssetEditor.Unreal.Names;
+﻿using UAssetEditor.Unreal.Assets;
+using UAssetEditor.Unreal.Names;
 
 namespace UAssetEditor.Unreal.Exports;
 

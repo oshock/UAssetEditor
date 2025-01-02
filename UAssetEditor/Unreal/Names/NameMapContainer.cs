@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Serilog;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Misc;
@@ -73,7 +74,14 @@ public class NameMapContainer : Container<string>
             headers[i] = reader.ReadByte();
         }
 
+        var start = reader.Position;
+
         var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
+
+        var read = reader.Position - start;
+        if (count != numBytes)
+            Log.Warning($"Actual read bytes ({read}) did not equal 'numBytes': {numBytes}");
+        
         return new NameMapContainer(hashVersion, strings);
     }
 }

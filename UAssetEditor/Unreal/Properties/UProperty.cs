@@ -1,8 +1,9 @@
 ﻿using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 using UsmapDotNet;
 
 
-namespace UAssetEditor;
+namespace UAssetEditor.Unreal.Properties;
 
 public enum EPropertyDataType
 {
@@ -73,9 +74,11 @@ public class UProperty
     public byte ArraySize;
     public int SchemaIdx;
     public bool IsZero;
-    
-    public UProperty() 
-    { }
+
+    public UProperty()
+    {
+        Name = "None";
+    }
     
     public UProperty(UsmapPropertyData data, string name, object? value, byte arraySize = 1, int schemaIdx = -1, bool isZero = false)
     {

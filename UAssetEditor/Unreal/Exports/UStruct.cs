@@ -1,4 +1,6 @@
 ﻿using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
+using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UsmapDotNet;
 
@@ -7,9 +9,11 @@ namespace UAssetEditor.Unreal.Exports;
 public class UStruct : UObject
 {
     public string SuperType;
-    
+
     public UStruct()
-    { }
+    {
+        SuperType = "None";
+    }
 
     public UStruct(string superType)
     {

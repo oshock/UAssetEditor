@@ -1,4 +1,5 @@
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;

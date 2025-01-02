@@ -1,8 +1,9 @@
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Properties;
 
-namespace UAssetEditor;
+namespace UAssetEditor.Unreal.Assets;
 
 public class PakAsset : Asset
 {

@@ -1,5 +1,6 @@
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
+using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Exports;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Misc;

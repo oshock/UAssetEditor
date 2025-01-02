@@ -15,7 +15,18 @@ public class FIoStoreEntry : UnrealFileEntry
     public IoFile GetIoFile() => (IoFile)Owner!;
 
     public override bool IsEncrypted { get; }
-    public override string CompressionMethod { get; }
+
+    public override string CompressionMethod
+    {
+        get
+        {
+            var file = GetIoFile();
+            var methods = file.Resource.CompressionMethods;
+            var firstBlock = GetCompressionBlocks(file.ReaderAsIoReader, GetOffsetAndLength()).First();
+
+            return methods[firstBlock.CompressionMethodIndex];
+        }
+    }
 
     private FIoOffsetAndLength GetOffsetAndLength()
     {
@@ -38,11 +49,11 @@ public class FIoStoreEntry : UnrealFileEntry
     public override byte[] Read()
     {
         var offsetLength = GetOffsetAndLength();
-        var blocks = GetCompressionBlocks((IoStoreReader)GetIoFile().Reader, offsetLength);
-        var reader = (IoStoreReader)GetIoFile().Reader;
+        var ioReader = GetIoFile().ReaderAsIoReader;
+        var blocks = GetCompressionBlocks(ioReader, offsetLength);
         
         var data = new byte[offsetLength.Length];
-        reader.ReadBlocks(blocks, data);
+        ioReader.ReadBlocks(blocks, data);
 
         return data;
     }

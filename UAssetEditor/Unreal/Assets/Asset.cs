@@ -11,11 +11,12 @@ using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Utils;
 using UsmapDotNet;
 
-namespace UAssetEditor;
+namespace UAssetEditor.Unreal.Assets;
 
 public class ObjectContainer : Container<UObject>
 {
@@ -124,12 +125,12 @@ public abstract class Asset : Reader
     public abstract void Fix();
     public abstract void WriteHeader(Writer writer);
 
-    public static int ReferenceOrAddString(Asset asset, string str)
+    public int ReferenceOrAddString(string str)
     {
-        if (!asset.NameMap.Contains(str))
-            asset.NameMap.Add(str);
+        if (!NameMap.Contains(str))
+            NameMap.Add(str);
 
-        return asset.NameMap.GetIndex(str);
+        return NameMap.GetIndex(str);
     }
 
     public abstract ResolvedObject? ResolvePackageIndex(FPackageIndex? index);

@@ -1,6 +1,7 @@
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Summaries;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Objects;
 
 namespace UAssetEditor.Unreal.Exports;
@@ -60,7 +61,7 @@ public class FExportMapEntry
     
     public void SetObjectName(string name)
     {
-        var i = UAssetEditor.Asset.ReferenceOrAddString(Asset, name);
+        var i = Asset.ReferenceOrAddString(name);
         ObjectName = new FMappedName((uint)i, 0);
     }
 }

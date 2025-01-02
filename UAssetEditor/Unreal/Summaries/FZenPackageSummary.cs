@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 
 namespace UAssetEditor.Summaries;
 
