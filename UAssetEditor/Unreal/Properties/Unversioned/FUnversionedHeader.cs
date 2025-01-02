@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Exports;
-using UsmapDotNet;
 
 namespace UAssetEditor.Unreal.Properties.Unversioned;
 

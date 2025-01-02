@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using Newtonsoft.Json;
 using UAssetEditor;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;

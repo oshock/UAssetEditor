@@ -3,7 +3,6 @@ using Serilog;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
-using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Properties.Structs.Misc;
 using UAssetEditor.Utils;

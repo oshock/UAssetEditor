@@ -1,8 +1,9 @@
 ﻿using System.Text;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Misc;
 
-namespace UAssetEditor.Classes.Containers;
+namespace UAssetEditor.Unreal.Names;
 
 public class NameMapContainer : Container<string>
 {
@@ -55,7 +56,7 @@ public class NameMapContainer : Container<string>
             case < 0:
                 throw new IndexOutOfRangeException($"Name map cannot have a length of {count}!");
             case 0:
-                return default;
+                return new NameMapContainer([]);
         }
 
         var numBytes = reader.Read<uint>();

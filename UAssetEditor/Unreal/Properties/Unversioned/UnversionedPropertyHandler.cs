@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Data;
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Exports;
@@ -70,11 +69,13 @@ public static class UnversionedPropertyHandler
     
     public static void SerializeProperties(ZenAsset asset, Writer writer, UStruct struc, List<UProperty> properties)
     {
+	    var sorted = SortProperties(properties, struc);
+	    
 	    // Serialize header
-	    FUnversionedHeader.Serialize(writer, struc, properties);
+	    FUnversionedHeader.Serialize(writer, struc, sorted);
 	    
 	    // Serialize properties
-	    foreach (var prop in properties)
+	    foreach (var prop in sorted)
 	    {
 		    // We write everything atm
 		    /*if (prop.IsZero)
@@ -82,5 +83,20 @@ public static class UnversionedPropertyHandler
 		    
 		    PropertyUtils.WriteProperty(writer, prop, asset);
 	    }
+    }
+    
+    private static List<UProperty> SortProperties(List<UProperty> properties, UStruct struc)
+    {
+	    var result = new List<UProperty>();
+
+	    foreach (var property in struc.Properties)
+	    {
+		    var correspondingProperty = properties.FirstOrDefault(x => x.Name == property.Name);
+		    
+		    if (correspondingProperty != null)
+			    result.Add(correspondingProperty);
+	    }
+
+	    return result;
     }
 }

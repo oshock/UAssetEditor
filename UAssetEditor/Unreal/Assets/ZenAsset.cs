@@ -1,5 +1,4 @@
-﻿using System.Data;
-using UAssetEditor.Unreal.Names;
+﻿using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
@@ -7,8 +6,6 @@ using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Readers.IoStore;
-using UsmapDotNet;
-using Oodle = OodleDotNet.Oodle;
 
 namespace UAssetEditor;
 

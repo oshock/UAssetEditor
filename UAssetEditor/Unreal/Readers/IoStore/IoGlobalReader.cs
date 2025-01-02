@@ -1,5 +1,4 @@
 ﻿using UAssetEditor.Binary;
-using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Objects;
 
