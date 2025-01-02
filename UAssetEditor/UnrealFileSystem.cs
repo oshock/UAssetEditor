@@ -29,11 +29,11 @@ public class UnrealFileSystem
         _containers = new List<ContainerFile>();
     }
 
-    public void LoadMappings(string path)
+    public void LoadMappings(string path, string? oodleDll = null)
     {
         Mappings = new Usmap(path, new UsmapOptions
         {
-            Oodle = new Oodle("oo2core_9_win64.dll"),
+            Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
             SaveNames = false
         });
     }

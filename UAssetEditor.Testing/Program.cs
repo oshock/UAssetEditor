@@ -11,7 +11,7 @@ Logger.StartLogger();
 
 
 // Create system
-var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
+var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
 system.AesKeys.Add(new FGuid(), new FAesKey("0xEF7CC91D735CC2F5316477F780026CD7B2226600A001168B6CB062D7EA9D3121"));
@@ -27,7 +27,7 @@ sw1.Stop();
 Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
-system.LoadMappings("++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap");
+system.LoadMappings("++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap", "oo2core_9_win64.dll");
 
 // Initialize Oodle
 Oodle.Initialize("oo2core_9_win64.dll");

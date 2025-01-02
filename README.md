@@ -13,7 +13,7 @@ system.AesKeys.Add(new FGuid(), new FAesKey("0x0000..."));
 system.Initialize();
 
 // Load mappings
-system.LoadMappings("path/to/usmap/++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap");
+system.LoadMappings("path/to/usmap/++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap", "path/to/dll/oo2core_9_win64.dll (if needed)");
 
 // Initialize Oodle
 Oodle.Initialize("path/to/dll/oo2core_9_win64.dll");
