@@ -373,7 +373,7 @@ public class FText : UStruct, IUnrealType
                 if (HistoryType == ETextHistoryType.AsCurrency)
                 {
                     if (string.IsNullOrEmpty(CurrencyCode))
-                        Log.Warning("History Type is 'AsCurrency' but 'CurrencyCode' is null.");
+                        Warning("History Type is 'AsCurrency' but 'CurrencyCode' is null.");
                     
                     FString.Write(writer, CurrencyCode ?? string.Empty);
                 }
@@ -384,7 +384,7 @@ public class FText : UStruct, IUnrealType
                 if (bHasFormatOptions)
                 {
                     if (FormatOptions is null)
-                        Log.Warning("'bHasFormatOptions' is true but 'FormatOptions' is null.");
+                        Warning("'bHasFormatOptions' is true but 'FormatOptions' is null.");
                     
                     FormatOptions?.Write(writer);
                 }

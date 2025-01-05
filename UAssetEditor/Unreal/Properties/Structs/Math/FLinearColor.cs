@@ -5,43 +5,43 @@ using UAssetEditor.Unreal.Assets;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
-public class FVector : UStruct, IUnrealType
+public class FLinearColor : UStruct, IUnrealType
 {
     [UnrealField]
-    public float A;
+    public float R;
+    
+    [UnrealField]
+    public float G;
     
     [UnrealField]
     public float B;
     
     [UnrealField]
-    public float C;
+    public float A;
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {
         if (mode == ESerializationMode.Zero)
         {
-            A = 0;
+            R = 0;
+            G = 0;
             B = 0;
-            C = 0;
+            A = 0;
             return;
         }
-        
-        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
-        {
-            A = (float)reader.Read<double>();
-            B = (float)reader.Read<double>();
-            C = (float)reader.Read<double>();
-        }
+
+        R = reader.Read<float>();
+        G = reader.Read<float>();
+        B = reader.Read<float>();
+        A = reader.Read<float>();
     }
 
     public override void Write(Writer writer, Asset? asset = null)
     {
-        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
-        {
-            writer.Write((double)A);
-            writer.Write((double)B);
-            writer.Write((double)C);
-        }
+        writer.Write(R);
+        writer.Write(G);
+        writer.Write(B);
+        writer.Write(A);
     }
 }

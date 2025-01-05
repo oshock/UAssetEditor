@@ -1,5 +1,6 @@
 
 using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Assets;
 
 namespace UAssetEditor.Unreal.Names;
 
@@ -15,6 +16,18 @@ public class FName
         Name = name;
         NameIndex = -1;
         ExtraIndex = 0;
+    }
+
+    public FName(FMappedName name, NameMapContainer nameMap)
+    {
+        NameIndex = (int)name.NameIndex;
+        ExtraIndex = (int)name.ExtraIndex;
+        Name = nameMap[NameIndex];
+
+        if (ExtraIndex > 0) // I think this is right
+        {
+            Name += nameMap[ExtraIndex - 1];
+        }
     }
     
     public FName() : this("None")

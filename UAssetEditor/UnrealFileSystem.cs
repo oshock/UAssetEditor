@@ -56,7 +56,7 @@ public class UnrealFileSystem
 
     public void HandleContainer(string file)
     {
-        Log.Information($"Mounting '{file}'");
+        Information($"Mounting '{file}'");
 
         ContainerFile? container = null;
         
@@ -82,7 +82,7 @@ public class UnrealFileSystem
             // TODO paks
         }
         
-        Log.Information($"Mounted '{file}' with {container?.FileCount ?? 0} files.");
+        Information($"Mounted '{file}' with {container?.FileCount ?? 0} files.");
     }
 
     public bool TryGetPackage(string packagePath, out UnrealFileEntry? pkg)

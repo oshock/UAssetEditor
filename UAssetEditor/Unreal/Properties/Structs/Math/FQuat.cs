@@ -5,33 +5,38 @@ using UAssetEditor.Unreal.Assets;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
-public class FVector : UStruct, IUnrealType
+public class FQuat : UStruct, IUnrealType
 {
     [UnrealField]
-    public float A;
+    public float X;
     
     [UnrealField]
-    public float B;
+    public float Y;
     
     [UnrealField]
-    public float C;
+    public float Z;
+    
+    [UnrealField]
+    public float W;
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {
         if (mode == ESerializationMode.Zero)
         {
-            A = 0;
-            B = 0;
-            C = 0;
+            X = 0;
+            Y = 0;
+            Z = 0;
+            W = 0;
             return;
         }
         
         //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
         {
-            A = (float)reader.Read<double>();
-            B = (float)reader.Read<double>();
-            C = (float)reader.Read<double>();
+            X = (float)reader.Read<double>();
+            Y = (float)reader.Read<double>();
+            Z = (float)reader.Read<double>();
+            W = (float)reader.Read<double>();
         }
     }
 
@@ -39,9 +44,10 @@ public class FVector : UStruct, IUnrealType
     {
         //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
         {
-            writer.Write((double)A);
-            writer.Write((double)B);
-            writer.Write((double)C);
+            writer.Write((double)X);
+            writer.Write((double)Y);
+            writer.Write((double)Z);
+            writer.Write((double)W);
         }
     }
 }

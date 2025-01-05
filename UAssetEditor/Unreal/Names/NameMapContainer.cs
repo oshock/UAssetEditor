@@ -80,7 +80,7 @@ public class NameMapContainer : Container<string>
 
         var read = reader.Position - start;
         if (count != numBytes)
-            Log.Warning($"Actual read bytes ({read}) did not equal 'numBytes': {numBytes}");
+            Warning($"Actual read bytes ({read}) did not equal 'numBytes': {numBytes}");
         
         return new NameMapContainer(hashVersion, strings);
     }

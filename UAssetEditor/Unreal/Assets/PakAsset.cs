@@ -35,13 +35,7 @@ public class PakAsset : Asset
         throw new NotImplementedException();
     }
 
-
     public override void WriteAll(Writer writer)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void Fix()
     {
         throw new NotImplementedException();
     }

@@ -1,4 +1,5 @@
 using System.Data;
+using Serilog;
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Exports;
@@ -28,6 +29,8 @@ public static class UnversionedPropertyHandler
 	    var schemaIndex = 0;
 	    var zeroMaskIndex = 0;
 	    
+	    Information($"Starting property deserialization for {struc.Name} at {asset.Position}");
+	    
 	    do
 	    {
 		    var frag = header.Fragments.Current;
@@ -39,7 +42,7 @@ public static class UnversionedPropertyHandler
 		    
 		    while (remainingValues > 0)
 		    {
-			    if (struc.Properties.Count < schemaIndex)
+			    if (struc.Properties.Count <= schemaIndex)
 					throw new KeyNotFoundException($"Could not find property with the schema index {schemaIndex}");
 
 			    var property = struc.Properties.ElementAt(schemaIndex);
@@ -54,6 +57,8 @@ public static class UnversionedPropertyHandler
 				    zeroMaskIndex++;
 			    }
 
+			    Information($"Reading {property.Name} with type {property.Data.Type ?? "None"} as {mode} at offset {asset.Position}");
+			    
 			    var propertyValue = PropertyUtils.ReadProperty(propertyType, asset, property.Data, asset, mode);
 			    var uProperty = new UProperty(property.Data, property.Name, propertyValue, property.ArraySize,
 				    property.SchemaIdx, mode == ESerializationMode.Zero);
@@ -65,12 +70,19 @@ public static class UnversionedPropertyHandler
 
 	    } while (header.Fragments.MoveNext());
 
+	    Information($"Deserialized {properties.Count} properties");
+	    
 	    return properties;
     }
     
     public static void SerializeProperties(ZenAsset asset, Writer writer, UStruct struc, List<UProperty> properties)
     {
+	    Information($"Serializing {struc.Name} with {properties.Count} properties");
+	    Information($"Sorting {properties.Count} properties");
+	    
 	    var sorted = SortProperties(properties, struc);
+	    
+	    Information($"Serializing FUnversionedHeader with {properties.Count} properties");
 	    
 	    // Serialize header
 	    FUnversionedHeader.Serialize(writer, struc, sorted);
@@ -81,6 +93,8 @@ public static class UnversionedPropertyHandler
 		    // We write everything atm
 		    /*if (prop.IsZero)
 			    continue;*/
+		    
+		    Information($"Serializing property: '{prop.Name}' ({prop.Data?.Type ?? "None"})");
 		    
 		    PropertyUtils.WriteProperty(writer, prop, asset);
 	    }

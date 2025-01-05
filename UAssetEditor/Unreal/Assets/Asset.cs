@@ -121,8 +121,6 @@ public abstract class Asset : Reader
     /// </summary>
     /// <param name="writer"></param>
     public abstract void WriteAll(Writer writer);
-
-    public abstract void Fix();
     public abstract void WriteHeader(Writer writer);
 
     public int ReferenceOrAddString(string str)
@@ -191,14 +189,14 @@ public abstract class Asset : Reader
 
             if (property.Value is null)
             {
-                Log.Warning($"Value for '{property.Name}' was null, skipping serialization.");
+                Warning($"Value for '{property.Name}' was null, skipping serialization.");
                 return result;
             }
 
             switch (type)
             {
                 case null:
-                    Log.Error($"'{property.Name}' had a null type. Unable to serialize.");
+                    Error($"'{property.Name}' had a null type. Unable to serialize.");
                     return result;
                 case "ArrayProperty":
                 {
@@ -261,9 +259,14 @@ public abstract class Asset : Reader
                     var objects = new List<Property>();
                     var holder = value?.Holder;
 
-                    if (holder is null)
+                    if (value?.Value is FInstancedStruct struc)
                     {
-                        var obj = value!.Value;
+                        var props = struc.Properties;
+                        objects.AddRange(props.Select(SerializeProperty));
+                    }
+                    else if (holder is null)
+                    {
+                        var obj = value?.Value;
                         GatherFields(obj, objects);
                     }
                     else
@@ -272,7 +275,7 @@ public abstract class Asset : Reader
                         {
                             var prop = new Property
                             {
-                                Type = uProp.Data.Type,
+                                Type = uProp.Data?.Type ?? "None",
                                 Name = uProp.Name,
                                 Value = SerializeProperty(uProp).Value
                             };
@@ -352,81 +355,4 @@ public abstract class Asset : Reader
             return result;
         }
     }
-
-    // TODO
-    /*public static void HandleProperties(BaseAsset asset, List<UProperty> properties)
-    {
-        foreach (var p in properties)
-        {
-            switch (p.Type)
-            {
-                case "ArrayProperty":
-                {
-                    if (p.Value is not List<object> values)
-                        continue;
-
-                    HandleProperties(asset, Array.ConvertAll(values.ToArray(),
-                        x => new UProperty { Value = x, Type = p.InnerType!, StructType = p.StructType }).ToList());
-                    break;
-                }
-                case "StructProperty":
-                {
-                    switch (p.StructType)
-                    {
-                        case "GameplayTags":
-                        case "GameplayTagContainer":
-                        {
-                            var names = (List<FName>)p.Value!;
-                            foreach (var tag in names)
-                                ReferenceOrAddString(asset, tag.Name);
-
-                            break;
-                        }
-                        case "GameplayTag":
-                            var name = (FName)p.Value!;
-                            ReferenceOrAddString(asset, name.Name);
-                            break;
-                        default:
-                            HandleProperties(asset, (List<UProperty>)p.Value!);
-                            break;
-                    }
-
-                    break;
-                }
-                case "SoftObjectProperty":
-                {
-                    if (p.Value is not SoftObjectProperty value)
-                        continue;
-
-                    ReferenceOrAddString(asset, value.AssetPathName);
-                    ReferenceOrAddString(asset, value.PackageName);
-                    break;
-                }
-                case "NameProperty":
-                {
-                    if (p.Value is not FName value)
-                        continue;
-
-                    ReferenceOrAddString(asset, value.Name);
-                    break;
-                }
-                case "ObjectProperty":
-                {
-                    if (p.Value is not ObjectProperty value)
-                        continue;
-
-                    if (asset is ZenAsset zen)
-                    {
-                        var nameIndex = zen.ExportMap.GetIndex(value.Text);
-                        if (nameIndex < 0)
-                            throw new KeyNotFoundException($"Could not find name {p.Name} in export map");
-
-                        p.Value = new ObjectProperty { Value = nameIndex + 1 };
-                    }
-
-                    break;
-                }
-            }
-        }
-    }*/
 }

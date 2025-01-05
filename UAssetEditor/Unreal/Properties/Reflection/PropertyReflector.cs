@@ -39,10 +39,15 @@ public static class PropertyReflector
     
     public static Dictionary<string, Type> DefinedStructsByName = new()
     {
+        { "Box2f", typeof(TBox2<float>) },
         { "GameplayTagContainer", typeof(FGameplayTagContainer) },
         { "InstancedStruct", typeof(FInstancedStruct) },
         { "Vector", typeof(FVector) },
-        { "Rotator", typeof(FRotator) }
+        { "Vector4", typeof(FVector4) },
+        { "DeprecateSlateVector2D", typeof(FVector2D) },
+        { "Rotator", typeof(FRotator) },
+        { "Quat", typeof(FQuat) },
+        { "LinearColor", typeof(FLinearColor) }
     };
 
     public static object ReadProperty(string type, Reader reader, PropertyData? data,

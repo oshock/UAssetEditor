@@ -1,4 +1,6 @@
-﻿using UAssetEditor.Unreal.Names;
+﻿using System.Data;
+using Serilog;
+using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Exports;
@@ -14,6 +16,7 @@ public class ZenAsset : Asset
 {
     public IoGlobalReader? GlobalData;
 
+    public FBulkDataMapEntry[] BulkDataMap;
     public ulong[] ImportedPublicExportHashes;
     public FPackageObjectIndex[] ImportMap;
     public ExportContainer ExportMap;
@@ -81,11 +84,12 @@ public class ZenAsset : Asset
         NameMap = NameMapContainer.ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
 
-        // Not needed
-        // var padSize = Read<long>();
-        // Position += padSize;
-        // Position += Read
-        // Position += (long)Read<ulong>(); // Skip BulkDataMap
+        var padSize = Read<long>();
+        Position += padSize;
+        
+        var bulkDataMapSize = Read<long>();
+        BulkDataMap = ReadArray(() => new FBulkDataMapEntry(this), (int)(bulkDataMapSize / FBulkDataMapEntry.SIZE));
+        
         Position = summary.ImportedPublicExportHashesOffset;
         ImportedPublicExportHashes =
             ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
@@ -158,33 +162,6 @@ public class ZenAsset : Asset
 	    WriteHeader(writer);
 	    uexp.CopyTo(writer);
 	    uexp.Close();
-    }
-
-    // TODO
-    public override void Fix()
-    {
-	    throw new NotImplementedException();
-	    
-	    /*//ExportBundleEntries = new FExportBundleEntry[ExportMap.Length * 2];
-
-	    for (var i = 0; i < ExportMap.Length; i++)
-	    {
-		    var e = ExportMap[i];
-		    e.SetObjectName(e.Name);
-		    /*ExportBundleEntries[i] = new FExportBundleEntry
-		    {
-			    LocalExportIndex = (uint)i,
-			    CommandType = EExportCommandType.ExportCommandType_Create
-		    };
-		    ExportBundleEntries[ExportMap.Length + i] = new FExportBundleEntry
-		    {
-			    LocalExportIndex = (uint)i,
-			    CommandType = EExportCommandType.ExportCommandType_Serialize
-		    };#2#
-
-		    if (e.TryGetProperties(out var ctn))
-			    HandleProperties(this, ctn!.Properties);
-	    }*/
     }
 
     public override void WriteHeader(Writer writer)
@@ -260,8 +237,11 @@ public class ZenAsset : Asset
 
 	    if (index.IsScriptImport)
 	    {
-		    /*if (GlobalData.ScriptObjectEntriesMap.TryGetValue(index, out var entry))
-			    return new Resol*/
+		    if (GlobalData == null)
+			    throw new NoNullAllowedException("Global Data cannot be null.");
+		    
+		    if (GlobalData.ScriptObjectEntriesMap.TryGetValue(index, out var entry))
+			    return new ResolvedScriptObject(entry, this);
 	    }
 
 	    return null;
@@ -271,7 +251,7 @@ public class ZenAsset : Asset
     {
 	    CheckMappings();
 	    
-	    var schema = Mappings.FindSchema(type) ?? throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
+	    var schema = Mappings?.FindSchema(type) ?? throw new KeyNotFoundException($"Cannot find schema with name '{type}'");
 	    var struc = new UStruct(schema, Mappings);
 	    
 	    UnversionedPropertyHandler.SerializeProperties(this, writer, struc, properties);

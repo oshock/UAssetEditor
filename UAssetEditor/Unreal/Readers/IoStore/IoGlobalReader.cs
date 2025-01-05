@@ -10,6 +10,8 @@ public readonly struct FScriptObjectEntry
     public readonly FPackageObjectIndex GlobalIndex;
     public readonly FPackageObjectIndex OuterIndex;
     public readonly FPackageObjectIndex CDOClassIndex;
+
+    public FName GetObjectName(IoGlobalReader globalData) => new(ObjectName, globalData.GlobalNameMap);
 }
 
 public class IoGlobalReader : Reader

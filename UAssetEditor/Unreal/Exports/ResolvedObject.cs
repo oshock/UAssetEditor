@@ -1,5 +1,8 @@
-﻿using UAssetEditor.Unreal.Assets;
+﻿using System.Data;
+using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Readers.IoStore;
+using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Exports;
 
@@ -21,7 +24,7 @@ public class ResolvedObject
 
 public class ResolvedExportObject : ResolvedObject
 {
-    public UObject Object;
+    public virtual UObject Object { get; set; }
 
     public ResolvedExportObject(Asset asset, int exportIndex) : base(asset, exportIndex)
     {
@@ -29,20 +32,17 @@ public class ResolvedExportObject : ResolvedObject
     }
 }
 
-// TODO
-/*public class ResolvedScriptObject : ResolvedObject
+public class ResolvedScriptObject : ResolvedObject
 {
     public FScriptObjectEntry ScriptImport;
 
-    public ResolvedScriptObject(FScriptObjectEntry scriptImport, IoPackage package) : base(package)
+    public ResolvedScriptObject(FScriptObjectEntry scriptImport, ZenAsset package) : base(package)
     {
         ScriptImport = scriptImport;
     }
 
-    public override FName Name => ((IoPackage) Package).CreateFNameFromMappedName(ScriptImport.ObjectName);
-    public override ResolvedObject? Outer => ((IoPackage) Package).ResolveObjectIndex(ScriptImport.OuterIndex);
-    // This means we'll have UScriptStruct's shown as UClass which is wrong.
-    // Unfortunately because the mappings format does not distinguish between classes and structs, there's no other way around :(
-    public override ResolvedObject Class => new ResolvedLoadedObject(new UScriptClass("Class"));
-    public override Lazy<UObject> Object => new(() => new UScriptClass(Name.Text));
-}*/
+    public override FName Name => ScriptImport.GetObjectName(Package.As<ZenAsset>().GlobalData 
+                                                             ?? throw new NoNullAllowedException("Global Data cannot be null."));
+    public override ResolvedObject? Outer => Package.As<ZenAsset>().ResolveObjectIndex(ScriptImport.OuterIndex);
+    public override ResolvedObject? Class => null;
+}

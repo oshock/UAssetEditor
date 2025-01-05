@@ -1,4 +1,5 @@
-﻿using UAssetEditor.Unreal.Exports;
+﻿using Serilog;
+using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Classes.Containers;
 
 namespace UAssetEditor.Unreal.Properties.Structs;
@@ -43,6 +44,9 @@ public class StructureContainer() : Container<LoadedStructure>(new List<LoadedSt
     public void Add(UStruct struc)
     {
         if (!Contains(struc.Name))
+        {
             Items.Add(new LoadedStructure(this, struc));
+            Log.Information($"Saved {struc.Name} for later use");
+        }
     }
 }
