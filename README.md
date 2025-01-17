@@ -1,6 +1,12 @@
 # UAssetEditor
  An Unreal I/O Asset Editor
 
+## Features
+- Mount I/O containers (.utoc) and read packages compressed with Oodle
+- Deserialize unversioned uassets with provided mappings
+- Modify uasset data/ properties easily
+- Serialize the modified asset back into a file
+
 ## How to use
 ```csharp
 // Create system
