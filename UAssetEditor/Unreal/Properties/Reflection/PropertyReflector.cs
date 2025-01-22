@@ -4,10 +4,102 @@ using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
+
+public class VersionedType
+{
+    private FPackageFileVersion _version;
+    public Type Type;
+
+    public VersionedType(EUnrealEngineObjectUE4Version version, Type type)
+    {
+        _version = FPackageFileVersion.CreateUE4Version(version);
+        Type = type;
+    }
+    
+    public VersionedType(EUnrealEngineObjectUE5Version version, Type type)
+    {
+        _version = FPackageFileVersion.CreateUE5Version(version);
+        Type = type;
+    }
+
+    #region OPERATORS
+    public static bool operator ==(VersionedType left, EUnrealEngineObjectUE4Version version)
+    {
+        return left._version == version;
+    }
+    
+    public static bool operator !=(VersionedType left, EUnrealEngineObjectUE4Version version)
+    {
+        return left._version != version;
+    }
+    
+    public static bool operator ==(VersionedType left, EUnrealEngineObjectUE5Version version)
+    {
+        return left._version == version;
+    }
+    
+    public static bool operator !=(VersionedType left, EUnrealEngineObjectUE5Version version)
+    {
+        return left._version != version;
+    }
+    #endregion OPERATORS
+}
+
+public class UStructVer
+{
+    public readonly string Name;
+    public readonly Type Default;
+    private readonly VersionedType[] Versions;
+
+    public UStructVer(string name, Type defaultType, params VersionedType[] versions)
+    {
+        Name = name;
+        Default = defaultType;
+        Versions = versions;
+    }
+
+    public Type Get(EUnrealEngineObjectUE4Version version)
+    {
+        foreach (var ver in Versions)
+        {
+            if (ver == version)
+                return ver.Type;
+        }
+
+        Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
+        return Default;
+    }
+    
+    public Type Get(EUnrealEngineObjectUE5Version version)
+    {
+        foreach (var ver in Versions)
+        {
+            if (ver == version)
+                return ver.Type;
+        }
+
+        Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
+        return Default;
+    }
+    
+    public Type Get(FPackageFileVersion version)
+    {
+        foreach (var ver in Versions)
+        {
+            if (ver == version.FileVersionUE4
+                || ver == version.FileVersionUE5)
+                return ver.Type;
+        }
+
+        Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
+        return Default;
+    }
+}
 
 // I know it's not really reflection, but I'm calling it that okay..
 public static class PropertyReflector
@@ -37,17 +129,22 @@ public static class PropertyReflector
         { "MapProperty", typeof(MapProperty) }
     };
     
-    public static Dictionary<string, Type> DefinedStructsByName = new()
+    public static List<UStructVer> DefinedStructsByName = new()
     {
-        { "Box2f", typeof(TBox2<float>) },
-        { "GameplayTagContainer", typeof(FGameplayTagContainer) },
-        { "InstancedStruct", typeof(FInstancedStruct) },
-        { "Vector", typeof(FVector) },
-        { "Vector4", typeof(FVector4) },
-        { "DeprecateSlateVector2D", typeof(FVector2D) },
-        { "Rotator", typeof(FRotator) },
-        { "Quat", typeof(FQuat) },
-        { "LinearColor", typeof(FLinearColor) }
+        new UStructVer("Box2f", typeof(TBox2<float>)),
+        new UStructVer("GameplayTagContainer", typeof(FGameplayTagContainer)),
+        new UStructVer("InstancedStruct", typeof(FInstancedStruct)),
+        new UStructVer("Vector", typeof(FVector3), 
+            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector3_LARGE_WORLD_COORDINATES))),
+        new UStructVer("Vector4", typeof(FVector4),
+            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector4_LARGE_WORLD_COORDINATES))),
+        new UStructVer("DeprecateSlateVector2D", typeof(FVector2D),
+            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector2D_LARGE_WORLD_COORDINATES))),
+        new UStructVer("Rotator", typeof(FRotator),
+            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FRotator_LARGE_WORLD_COORDINATES))),
+        new UStructVer("Quat", typeof(FQuat),
+            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FQuat_LARGE_WORLD_COORDINATES))),
+        new UStructVer("LinearColor", typeof(FLinearColor))
     };
 
     public static object ReadProperty(string type, Reader reader, PropertyData? data,
@@ -77,20 +174,11 @@ public static class PropertyReflector
         property.Write(writer, prop, asset, mode);
     }
     
-    public static void WriteProperty(Writer writer, AbstractProperty prop, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
-    {
-        var uProperty = new UProperty
-        {
-            Value = prop
-        };
-        
-        prop.Write(writer, uProperty, asset, mode);
-    }
-    
     public static object ReadStruct(Reader reader, PropertyData? data,
         Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(asset);
 
         var type = data.StructType ?? data.InnerType?.StructType ??
             throw new NoNullAllowedException("Struct type cannot be null.");
@@ -98,16 +186,28 @@ public static class PropertyReflector
         // TODO determine properly
         var structType = data.InnerType?.StructType ?? data.StructType;
 
-        foreach (var kvp in DefinedStructsByName)
+        foreach (var ver in DefinedStructsByName)
         {
-            if (structType != kvp.Key)
+            if (structType != ver.Name)
                 continue;
 
-            if (Activator.CreateInstance(kvp.Value) is not UStruct instance)
-                throw new ApplicationException(
-                    $"{kvp.Value.Name} is listed as a property but does not inherit 'UStruct'.");
+            var ustruct = ver.Get(asset.FileVersion);
+            var instance = Activator.CreateInstance(ustruct);
 
-            instance.Read(reader, data, asset, mode);
+            if (ustruct.IsValueType) // is it a struct
+            {
+                var method = asset.GetType()
+                    .GetMethods()
+                    .FirstOrDefault(x => x.Name == "Read")!
+                    .MakeGenericMethod(ustruct);
+
+                return method.Invoke(asset, []) ?? throw new NoNullAllowedException($"{nameof(method)} returned null");
+            }
+
+            if (instance is not UStruct struc)
+                throw new ApplicationException("Defined Struct is not a ValueType or UStruct type. Cannot deserialize!");
+                    
+            struc.Read(reader, data, asset, mode);
             return instance;
         }
 
@@ -115,29 +215,33 @@ public static class PropertyReflector
         
         return new CustomStructHolder(asset.ReadProperties(type));
     }
-    
-    public static void WriteStruct(Writer writer, object property, PropertyData type, Asset? asset = null)
+
+    public static void WriteStruct(Writer writer, object property, PropertyData data, Asset? asset = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
 
-        var structType = type.GetStructType();
-        
+        var structType = data.GetStructType();
+
         if (property is List<UProperty> properties)
         {
             asset.WriteProperties(writer, structType, properties);
             return;
         }
-        
-        foreach (var kvp in DefinedStructsByName)
+
+        var type = property.GetType();
+        if (type.IsValueType) // is it a struct
         {
-            if (structType != kvp.Key)
-                continue;
+            var method = typeof(Writer).GetMethods()
+                .FirstOrDefault(x => x.Name == "Write")!
+                .MakeGenericMethod(type);
+            method.Invoke(writer, [property]);
             
-            if (property is not UStruct @struct)
-                throw new ApplicationException("Defined struct is not a 'UStruct'.");
-            
-            @struct.Write(writer, asset);
             return;
         }
+
+        if (property is not UStruct struc)
+            throw new ApplicationException("Defined Struct is not a ValueType or UStruct type. Cannot serialize!");
+
+        struc.Write(writer, asset);
     }
 }

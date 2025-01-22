@@ -13,6 +13,7 @@ using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Types;
+using UAssetEditor.Unreal.Versioning;
 using UAssetEditor.Utils;
 using UsmapDotNet;
 
@@ -71,6 +72,9 @@ public abstract class Asset : Reader
     public NameMapContainer NameMap;
     public EPackageFlags Flags;
 
+    public EGame Game = EGame.GAME_UE5_LATEST;
+    public FPackageFileVersion FileVersion = FPackageFileVersion.AUTO;
+    
     public bool HasUnversionedProperties => Flags.HasFlag(EPackageFlags.PKG_UnversionedProperties);
 
     public StructureContainer DefinedStructures = new();
@@ -90,6 +94,12 @@ public abstract class Asset : Reader
         if (Mappings is null)
             throw new NoNullAllowedException("Mappings cannot be null");
     }
+
+    public void SetVersion(EUnrealEngineObjectUE4Version version) =>
+        FileVersion = FPackageFileVersion.CreateUE4Version(version);
+
+    public void SetVersion(EUnrealEngineObjectUE5Version version) =>
+        FileVersion = FPackageFileVersion.CreateUE5Version(version);
 
     /// <summary>
     /// Read the entirety of this asset
@@ -320,7 +330,7 @@ public abstract class Asset : Reader
                     if (field.DeclaringType != structType) // I don't know why I can't figure out how to exclude derived fields
                         continue;
                     
-                    if (field.GetCustomAttribute<UnrealField>() == null)
+                    if (field.GetCustomAttribute<UField>() == null)
                         continue;
                                 
                     var prop = new Property
@@ -337,7 +347,7 @@ public abstract class Asset : Reader
 
                 foreach (var method in methods)
                 {
-                    if (method.GetCustomAttribute<UnrealValueGetter>() == null)
+                    if (method.GetCustomAttribute<UValueGetter>() == null)
                         continue;
 
                     var value = method.Invoke(obj, []);

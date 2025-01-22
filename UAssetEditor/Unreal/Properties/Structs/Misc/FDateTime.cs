@@ -7,7 +7,7 @@ namespace UAssetEditor.Unreal.Properties.Structs.Misc;
 
 public class FDateTime : UStruct, IUnrealType
 {
-    [UnrealField]
+    [UField]
     public long Ticks;
     
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)

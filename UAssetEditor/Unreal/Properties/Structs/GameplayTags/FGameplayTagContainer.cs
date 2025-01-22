@@ -9,7 +9,7 @@ namespace UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 
 public class FGameplayTagContainer : UStruct, IUnrealType
 {
-    [UnrealField]
+    [UField]
     public List<FName>? Tags;
 
     public static List<FName> ReadGameplayTagArray(Asset? asset, Reader reader)

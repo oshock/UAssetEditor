@@ -5,31 +5,20 @@ using UAssetEditor.Unreal.Assets;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
-public class FVector2D : UStruct, IUnrealType
+public struct FVector2D : IUnrealType
 {
-    [UnrealField]
+    [UField]
     public float X;
     
-    [UnrealField]
+    [UField]
     public float Y;
+}
 
-    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
-        ESerializationMode mode = ESerializationMode.Normal)
-    {
-        if (mode == ESerializationMode.Zero)
-        {
-            X = 0;
-            Y = 0;
-            return;
-        }
-
-        X = reader.Read<float>();
-        Y = reader.Read<float>();
-    }
-
-    public override void Write(Writer writer, Asset? asset = null)
-    {
-        writer.Write(X);
-        writer.Write(Y);
-    }
+public struct FVector2D_LARGE_WORLD_COORDINATES : IUnrealType
+{
+    [UField]
+    public double X;
+    
+    [UField]
+    public double Y;
 }

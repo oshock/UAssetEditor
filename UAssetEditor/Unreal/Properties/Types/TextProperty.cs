@@ -100,19 +100,19 @@ public enum ETextHistoryType : sbyte
 // https://github.com/FabianFG/CUE4Parse/blob/eb88d2ec617337324755745954eb29b09077868f/CUE4Parse/UE4/Objects/Core/i18N/FText.cs
 public class FText : UStruct, IUnrealType
 {
-    [UnrealField]
+    [UField]
     public uint Flags;
     
-    [UnrealField]
+    [UField]
     public ETextHistoryType Type;
     
-    [UnrealField]
+    [UField]
     public FTextHistory History;
 
     public FText()
     { }
 
-    [UnrealValueGetter]
+    [UValueGetter]
     public override string ToString()
     {
         return History.ToString();

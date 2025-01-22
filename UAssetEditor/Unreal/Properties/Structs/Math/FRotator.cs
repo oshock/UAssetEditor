@@ -5,43 +5,26 @@ using UAssetEditor.Unreal.Assets;
 
 namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
-public class FRotator : UStruct, IUnrealType
+public struct FRotator : IUnrealType
 {
-    [UnrealField]
+    [UField]
     public float Pitch;
     
-    [UnrealField]
+    [UField]
     public float Yaw;
     
-    [UnrealField]
+    [UField]
     public float Roll;
+}
 
-    public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
-        ESerializationMode mode = ESerializationMode.Normal)
-    {
-        if (mode == ESerializationMode.Zero)
-        {
-            Pitch = 0;
-            Yaw = 0;
-            Roll = 0;
-            return;
-        }
-
-        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
-        {
-            Pitch = (float)reader.Read<double>();
-            Yaw = (float)reader.Read<double>();
-            Roll = (float)reader.Read<double>();
-        }
-    }
-
-    public override void Write(Writer writer, Asset? asset = null)
-    {
-        //if (EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
-        {
-            writer.Write((double)Pitch);
-            writer.Write((double)Yaw);
-            writer.Write((double)Roll);
-        }
-    }
+public struct FRotator_LARGE_WORLD_COORDINATES : IUnrealType
+{
+    [UField]
+    public double Pitch;
+    
+    [UField]
+    public double Yaw;
+    
+    [UField]
+    public double Roll;
 }

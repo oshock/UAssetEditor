@@ -99,7 +99,12 @@ public class UProperty
         SchemaIdx = schemaIdx;
         IsZero = isZero;
     }
-    
+
+    public T? GetValue<T>() where T : class
+    {
+        return Value as T;
+    }
+
     public override string ToString() => $"{Name}: {Value} ({Data.Type})";
 }
 

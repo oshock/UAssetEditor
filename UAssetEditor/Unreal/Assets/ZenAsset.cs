@@ -9,6 +9,7 @@ using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Readers.IoStore;
+using UAssetEditor.Unreal.Summaries;
 
 namespace UAssetEditor.Unreal.Assets;
 
@@ -79,7 +80,7 @@ public class ZenAsset : Asset
 
     public override uint ReadHeader()
     {
-        var summary = new FZenPackageSummary(this);
+        var summary = Read<FZenPackageSummary>();
         Flags = summary.PackageFlags;
         NameMap = NameMapContainer.ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
@@ -207,7 +208,7 @@ public class ZenAsset : Asset
 	    summary.PackageFlags = Flags;
 
 	    writer.Position = 0;
-	    summary.Serialize(writer);
+	    writer.Write(summary);
 
 	    writer.Position = end;
     }

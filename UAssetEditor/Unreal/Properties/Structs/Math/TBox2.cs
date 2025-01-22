@@ -7,13 +7,13 @@ namespace UAssetEditor.Unreal.Properties.Structs.Math;
 
 public class TBox2<T> : UStruct, IUnrealType
 {
-    [UnrealField] 
+    [UField] 
     public TIntVector2<T> Min;
 
-    [UnrealField]
+    [UField]
     public TIntVector2<T> Max;
 
-    [UnrealField] 
+    [UField] 
     public byte bIsValid;
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,

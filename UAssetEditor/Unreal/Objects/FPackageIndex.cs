@@ -6,7 +6,7 @@ namespace UAssetEditor.Unreal.Objects;
 
 public class FPackageIndex : IUnrealType
 {
-    [UnrealField]
+    [UField]
     public int Index;
 
     public Asset? Owner;

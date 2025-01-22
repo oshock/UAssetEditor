@@ -1,3 +1,4 @@
+using System.Data;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Binary;
@@ -41,7 +42,25 @@ public class FInstancedStruct : UStruct
     public override void Write(Writer writer, Asset? asset = null)
     {
         writer.Write(Index.Index);
-        writer.Write(Buffer.Length);
-        writer.WriteBytes(Buffer);
+
+        if (Properties == null)
+        {
+            if (Buffer == null)
+                throw new NoNullAllowedException("Since we never deserialized properties the buffer of FInstancedStruct cannot be null!");
+            
+            writer.Write(Buffer.Length);
+            writer.WriteBytes(Buffer);
+        }
+        
+        if (asset is null)
+            throw new NoNullAllowedException("Asset cannot be null!");
+        
+        var properties = new Writer();
+        
+        asset.WriteProperties(properties, Index.ResolvedObject?.Name.ToString() 
+                                          ?? throw new NoNullAllowedException("ResolvedObject cannot be null!"), Properties);
+        
+        writer.Write(properties.Length); // Write Buffer.Length
+        properties.CopyTo(writer); // Write Buffer
     }
 }
