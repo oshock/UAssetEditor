@@ -72,7 +72,7 @@ public abstract class Asset : Reader
     public NameMapContainer NameMap;
     public EPackageFlags Flags;
 
-    public EGame Game = EGame.GAME_UE5_LATEST;
+    public EGame Game = EGame.GAME_UE5_LATEST; // TODO implement
     public FPackageFileVersion FileVersion = FPackageFileVersion.AUTO;
     
     public bool HasUnversionedProperties => Flags.HasFlag(EPackageFlags.PKG_UnversionedProperties);
