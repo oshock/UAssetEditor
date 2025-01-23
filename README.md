@@ -26,7 +26,7 @@ system.Initialize();
 
 // Write stats
 sw1.Stop();
-Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
+Console.WriteLine($"Read all in {sw1.ElapsedMilliseconds}ms.");
 
 // Load mappings
 system.LoadMappings("path/to/usmap/++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap", "path/to/dll/oo2core_9_win64.dll (if needed)");
@@ -48,7 +48,7 @@ asset!.ReadAll();
 
 // Write stats
 sw2.Stop();
-Console.WriteLine($"\nRead all in {sw2.ElapsedMilliseconds}ms.\n");
+Console.WriteLine($"Read all in {sw2.ElapsedMilliseconds}ms.");
 
 var json = asset.ToString(); // Convert to Json String
 File.WriteAllText("CID_028_Athena_Commando_F.json", json);
