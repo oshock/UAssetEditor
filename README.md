@@ -9,58 +9,78 @@
 
 ## How to use
 ```csharp
+// Start logging
+Logger.StartLogger();
+
 // Create system
 var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
-system.AesKeys.Add(new FGuid(), new FAesKey("0x0000..."));
+system.AesKeys.Add(new FGuid(), new FAesKey("0x0000...")); // Replace with your game's AesKey
+
+// Start a stopwatch
+var sw1 = Stopwatch.StartNew();
 
 // Mount containers
 system.Initialize();
+
+// Write stats
+sw1.Stop();
+Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
 system.LoadMappings("path/to/usmap/++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap", "path/to/dll/oo2core_9_win64.dll (if needed)");
 
 // Initialize Oodle
-Oodle.Initialize("path/to/dll/oo2core_9_win64.dll");
+Oodle.Initialize("oo2core_9_win64.dll");
 
 // Extract the asset
-if (!system.TryExtractAsset("FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/CID_028_Athena_Commando_F.uasset", out var asset))
+if (!system.TryExtractAsset(
+        "FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/CID_028_Athena_Commando_F.uasset",
+        out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
-var uasset = (ZenAsset)asset!;
-
-// Global .utoc path (required for class identification)
-var globalToc = system.GetGlobalReader();
-uasset.Initialize(globalToc!);
+// Start a stopwatch
+var sw2 = Stopwatch.StartNew();
 
 // Read everything
-uasset.ReadAll();
+asset!.ReadAll();
 
-// Output json
-var json = asset.ToString();
+// Write stats
+sw2.Stop();
+Console.WriteLine($"\nRead all in {sw2.ElapsedMilliseconds}ms.\n");
+
+var json = asset.ToString(); // Convert to Json String
 File.WriteAllText("CID_028_Athena_Commando_F.json", json);
 
-// Get the CID_028_Athena_Commando_F export
-var CID_028_Athena_Commando_F = uasset["CID_028_Athena_Commando_F"];
+// Get ItemName Property
+var text = asset["CID_028_Athena_Commando_F"]?["ItemName"]?.GetValue<TextProperty>();
 
-// Get the ItemName property
-var text = (TextProperty)CID_028_Athena_Commando_F["ItemName"].Value;
+if (text?.Value == null)
+    throw new NoNullAllowedException("Could not get ItemName property!");
 
-// Set the new value
+// Set new FText value
 text.Value.Text = "Very cool item!";
 
-// Serialize the new data
+// Create a writer with the file "CID_028_Athena_Commando_F.uasset"
 var writer = new Writer("CID_028_Athena_Commando_F.uasset");
-uasset.WriteAll(writer);
+
+// Serialize the asset and dispose the writer
+asset.WriteAll(writer);
 writer.Close();
 
-// Open the serialized data to make sure it wrote correctly
+// Create a new ZenAsset with the asset with just serialized
 var testAsset = new ZenAsset("CID_028_Athena_Commando_F.uasset");
-testAsset.Initialize(globalToc!);
-testAsset.Mappings = system.Mappings;
-testAsset.ReadAll();
 
+// Set the GlobalReader instance
+var globalToc = system.GetGlobalReader();
+testAsset.Initialize(globalToc!);
+
+// Set mappings
+testAsset.Mappings = system.Mappings;
+
+// Test if it reads our asset properly
+testAsset.ReadAll();
 ```
 
 ## TODOs
