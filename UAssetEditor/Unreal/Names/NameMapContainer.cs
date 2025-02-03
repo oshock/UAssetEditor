@@ -79,7 +79,7 @@ public class NameMapContainer : Container<string>
         var strings = headers.Select(t => Encoding.UTF8.GetString(reader.ReadBytes(t))).ToList();
 
         var read = reader.Position - start;
-        if (count != numBytes)
+        if (read != numBytes)
             Warning($"Actual read bytes ({read}) did not equal 'numBytes': {numBytes}");
         
         return new NameMapContainer(hashVersion, strings);
