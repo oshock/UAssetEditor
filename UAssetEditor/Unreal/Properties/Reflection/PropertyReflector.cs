@@ -6,6 +6,7 @@ using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Assets;
+using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
@@ -143,7 +144,8 @@ public static class PropertyReflector
             new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FRotator_LARGE_WORLD_COORDINATES))),
         new UStructVer("Quat", typeof(FQuat),
             new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FQuat_LARGE_WORLD_COORDINATES))),
-        new UStructVer("LinearColor", typeof(FLinearColor))
+        new UStructVer("LinearColor", typeof(FLinearColor)),
+        new UStructVer("Guid", typeof(FGuid))
     };
 
     public static object ReadProperty(string type, Reader reader, PropertyData? data,

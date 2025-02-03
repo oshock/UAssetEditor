@@ -1,12 +1,13 @@
 ﻿using System.Runtime.InteropServices;
+using UAssetEditor.Classes;
 
 namespace UAssetEditor.Unreal.Misc;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public record struct FGuid // I have no idea why it wants this as "record" but cool
+public struct FGuid : IUnrealType
 {
-    public uint A;
-    public uint B;
-    public uint C;
-    public uint D;
+    [UField] public uint A;
+    [UField] public uint B;
+    [UField] public uint C;
+    [UField] public uint D;
 }
