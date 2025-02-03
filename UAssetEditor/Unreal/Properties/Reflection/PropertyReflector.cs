@@ -138,8 +138,7 @@ public static class PropertyReflector
             new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector3_LARGE_WORLD_COORDINATES))),
         new UStructVer("Vector4", typeof(FVector4),
             new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector4_LARGE_WORLD_COORDINATES))),
-        new UStructVer("DeprecateSlateVector2D", typeof(FVector2D),
-            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector2D_LARGE_WORLD_COORDINATES))),
+        new UStructVer("DeprecateSlateVector2D", typeof(FVector2D)),
         new UStructVer("Rotator", typeof(FRotator),
             new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FRotator_LARGE_WORLD_COORDINATES))),
         new UStructVer("Quat", typeof(FQuat),
@@ -196,6 +195,9 @@ public static class PropertyReflector
 
             if (ustruct.IsValueType) // is it a struct
             {
+                if (mode == ESerializationMode.Zero)
+                    return instance; // return default
+                
                 var method = asset.GetType()
                     .GetMethods()
                     .FirstOrDefault(x => x.Name == "Read")!
