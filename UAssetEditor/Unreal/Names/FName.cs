@@ -24,9 +24,9 @@ public class FName
         ExtraIndex = (int)name.ExtraIndex;
         Name = nameMap[NameIndex];
 
-        if (ExtraIndex > 0) // I think this is right
+        if (ExtraIndex != 0)
         {
-            Name += nameMap[ExtraIndex - 1];
+            Name = $"{Name}_{ExtraIndex - 1}";
         }
     }
     
@@ -37,8 +37,12 @@ public class FName
     {
         NameIndex = reader.Read<int>();
         ExtraIndex = reader.Read<int>();
+        
         if (nameMap.Length > NameIndex && NameIndex >= 0)
             Name = nameMap[NameIndex];
+        
+        if (ExtraIndex != 0)
+            Name = $"{Name}_{ExtraIndex - 1}";
     }
 
     public FName(NameMapContainer nameMapContainer, string name, int extraIndex)
