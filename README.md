@@ -85,7 +85,6 @@ testAsset.ReadAll();
 
 ## TODOs
 - Export Types (Blueprints, etc.)
-- Optional I/O Container reading to populate imports
 - Paks and versioned uassets
 - Desktop app
 - Documentation (wip)
