@@ -29,6 +29,11 @@ public class UObject
         Owner = asset;
     }
 
+    public override string ToString()
+    {
+        return $"{Class?.Name ?? "None"}.{Name}";
+    }
+
     public UProperty? this[string name]
     {
         get => Properties.FirstOrDefault(x => x.Name == name);

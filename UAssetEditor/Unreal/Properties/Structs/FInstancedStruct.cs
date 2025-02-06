@@ -11,9 +11,7 @@ namespace UAssetEditor.Unreal.Properties.Structs;
 public class FInstancedStruct : UStruct
 {
     public FPackageIndex Index;
-    public UStruct? Class;
     public byte[]? Buffer;
-    public List<UProperty>? Properties;
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
@@ -26,8 +24,10 @@ public class FInstancedStruct : UStruct
         
         if (struc != null)
         {
+            Class = new UStruct(struc, asset!.Mappings!);
+
             var start = reader.Position;
-            Properties = asset?.ReadProperties(className);
+            Properties = asset.ReadProperties(className);
 
             var actualSize = reader.Position - start;
             if (actualSize != serialSize)
@@ -43,7 +43,7 @@ public class FInstancedStruct : UStruct
     {
         writer.Write(Index.Index);
 
-        if (Properties == null)
+        if (!Properties.Any())
         {
             if (Buffer == null)
                 throw new NoNullAllowedException("Since we never deserialized properties the buffer of FInstancedStruct cannot be null!");
