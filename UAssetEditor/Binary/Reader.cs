@@ -92,4 +92,43 @@ public class Reader : BinaryReader
             _ => throw new DataException("Invalid boolean value.")
         };
     }
+
+    public T[] ReadCArrayView<T>()
+    {
+        var start = Position;
+        var num = Read<int>();
+        var offsetToDataFromThis = Read<int>();
+
+        if (num == 0)
+            return [];
+
+        var continuePos = Position;
+        Position = start + offsetToDataFromThis;
+
+        var result = ReadArray<T>(num);
+        Position = continuePos;
+
+        return result;
+    }
+    
+    public T[] ReadCArrayView<T>(Func<T> func)
+    {
+        var start = Position;
+        var num = Read<int>();
+        var offsetToDataFromThis = Read<int>();
+
+        if (num == 0)
+            return [];
+
+        var continuePos = Position;
+        Position = start + offsetToDataFromThis;
+
+        var result = new T[num];
+        for (int i = 0; i < result.Length; i++)
+            result[i] = func();
+        
+        Position = continuePos;
+
+        return result;
+    }
 }

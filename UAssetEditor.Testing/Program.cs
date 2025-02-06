@@ -7,8 +7,12 @@ using UAssetEditor.Compression;
 using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Misc;
+using UAssetEditor.Utils;
 
 Logger.StartLogger();
+
+// Initialize Oodle (FIRST)
+Oodle.Initialize("oo2core_9_win64.dll");
 
 // Create system
 var system = new UnrealFileSystem(@"C:\Fortnite\FortniteGame\Content\Paks");
@@ -27,10 +31,7 @@ sw1.Stop();
 Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
-system.LoadMappings("++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap", "oo2core_9_win64.dll");
-
-// Initialize Oodle
-Oodle.Initialize("oo2core_9_win64.dll");
+system.LoadMappings("++Fortnite+Release-33.30-CL-39435251-Windows_oo.usmap", "oo2core_9_win64.dll");
 
 // Extract the asset
 if (!system.TryExtractAsset(
@@ -44,9 +45,18 @@ var sw = Stopwatch.StartNew();
 // Read everything
 asset!.ReadAll();
 
+// Populate Imported Packages
+((ZenAsset)asset).PopulateImportIds();
+
 // Write stats
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
+
+// Get Hero Definition (Testing)
+var heroDefinition = asset["CID_028_Athena_Commando_F"]?["HeroDefinition"].GetValue<ObjectProperty>();
+var obj = heroDefinition?.Value?.ResolvedObject;
+if (obj != null)
+    Console.WriteLine($"HeroDefinition: '{obj.Name}'");
 
 var json = asset.ToString(); // Convert to Json String
 File.WriteAllText("CID_028_Athena_Commando_F.json", json);

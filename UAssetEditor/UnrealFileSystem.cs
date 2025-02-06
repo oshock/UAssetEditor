@@ -5,6 +5,7 @@ using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Packages;
+using UAssetEditor.Unreal.Readers;
 using UAssetEditor.Unreal.Readers.IoStore;
 using UAssetEditor.Utils;
 using UsmapDotNet;
@@ -85,23 +86,25 @@ public class UnrealFileSystem
         Information($"Mounted '{file}' with {container?.FileCount ?? 0} files.");
     }
 
-    public bool TryGetPackage(string packagePath, out UnrealFileEntry? pkg)
+    public bool TryGetPackage(string packagePath, out UnrealFileEntry? pkg, out ContainerFile? file)
     {
         foreach (var container in Containers)
         {
             if (!container.TryFindPackage(packagePath.ToLower(), out pkg))
                 continue;
 
+            file = container;
             return true;
         }
 
         pkg = null;
+        file = null;
         return false;
     }
     
     public bool TryRead(string packagePath, out byte[] data)
     {
-        if (!TryGetPackage(packagePath, out var pkg))
+        if (!TryGetPackage(packagePath, out var pkg, out _))
         {
             data = [];
             return false;
@@ -113,7 +116,7 @@ public class UnrealFileSystem
 
     public bool TryExtractAsset(string packagePath, out Asset? asset)
     {
-        if (!TryGetPackage(packagePath, out var pkg))
+        if (!TryGetPackage(packagePath, out var pkg, out var ctn))
         {
             asset = null;
             return false;
@@ -124,7 +127,7 @@ public class UnrealFileSystem
             case FIoStoreEntry ioEntry:
             {
                 var data = ioEntry.Read();
-                asset = new ZenAsset(data);
+                asset = new ZenAsset(data, this, ctn?.Reader as UnrealFileReader);
 
                 var globalToc = GetGlobalReader();
                 asset.As<ZenAsset>().Initialize(globalToc!);

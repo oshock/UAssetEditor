@@ -1,4 +1,6 @@
 ﻿using UAssetEditor.Binary;
+using UAssetEditor.Unreal.Objects.IO;
+using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Readers.IoStore;
 using UAssetEditor.Utils;
 
@@ -6,6 +8,7 @@ namespace UAssetEditor.Unreal.Containers;
 
 public class IoFile : ContainerFile
 {
+    public Dictionary<FPackageId, FIoStoreEntry>? FilesById;
     public IoStoreReader ReaderAsIoReader => Reader!.As<IoStoreReader>();
     public FIoStoreTocHeader Header => Resource.Header;
     public FIoStoreTocResource Resource => ReaderAsIoReader.Resource;
@@ -32,5 +35,14 @@ public class IoFile : ContainerFile
             throw new ApplicationException("Cannot mount a non I/O store container");
         
         ReaderAsIoReader.ProcessIndex();
+        FilesById = new Dictionary<FPackageId, FIoStoreEntry>();
+
+        foreach (var pkg in PackagesByPath)
+        {
+            var entry = (FIoStoreEntry)pkg.Value;
+            FilesById[entry.GetChunkId().AsPackageId()] = entry;
+        }
+
+        ReaderAsIoReader.ReadContainerHeader();
     }
 }

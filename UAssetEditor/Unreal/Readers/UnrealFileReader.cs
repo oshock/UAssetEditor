@@ -23,7 +23,7 @@ public abstract class UnrealFileReader : Reader
     public bool IsMounted { get; protected set; }
     public string? MountPoint { get; protected set; }
 
-    private FAesKey? AesKey;
+    public FAesKey? AesKey;
     
     /// <summary>
     /// Does this container have an aes key assigned to it?

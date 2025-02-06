@@ -91,4 +91,18 @@ public class FIoStoreTocResource
             DirectoryIndexPosition = reader.Position;
         }
     }
+
+    public unsafe ulong HashChunkIdWithSeed(int seed, FIoChunkId chunk)
+    {
+        var ptr = (byte*)&chunk;
+        var size = sizeof(FIoChunkId);
+        var hash = seed != 0 ? (ulong)seed : 0xcbf29ce484222325;
+       
+        for (uint index = 0; index < size; index++)
+        {
+            hash = (hash * 0x00000100000001B3) ^ ptr[index];
+        }
+
+        return hash;
+    }
 }

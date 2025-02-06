@@ -1,6 +1,8 @@
 ﻿using System.Data;
+using Serilog;
 using UAssetEditor.Binary;
 using UAssetEditor.Compression;
+using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Packages;
@@ -10,6 +12,10 @@ namespace UAssetEditor.Unreal.Readers.IoStore;
 public class IoStoreReader : UnrealFileReader
 {
     public FIoStoreTocResource Resource;
+    public FIoContainerHeader ContainerHeader;
+    public Dictionary<FIoChunkId, FIoOffsetAndLength>? TocImperfectHashMapFallback;
+
+    private bool bHasPerfectHashMap => Resource.ChunkPerfectHashSeeds != null;
     
     public override bool IsEncrypted => Resource.IsEncrypted;
     public override string[] CompressionMethods => Resource.CompressionMethods;
@@ -28,34 +34,84 @@ public class IoStoreReader : UnrealFileReader
             var path = Name.Replace(".utoc", i > 0 ? $"_s{i}.ucas" : ".ucas");
             Archives.Add(new Reader(path));
         }
+
+        // https://github.com/FabianFG/CUE4Parse/blob/7b085b0a374edf1e59f552b50751e9b2f3960499/CUE4Parse/UE4/IO/IoStoreReader.cs#L92
+        if (Resource.ChunkPerfectHashSeeds != null)
+        {
+            TocImperfectHashMapFallback = new();
+            if (Resource.ChunkIndicesWithoutPerfectHash != null)
+            {
+                foreach (var chunkIndexWithoutPerfectHash in Resource.ChunkIndicesWithoutPerfectHash)
+                {
+                    TocImperfectHashMapFallback[Resource.ChunkIds[chunkIndexWithoutPerfectHash]] =
+                        Resource.OffsetAndLengths[chunkIndexWithoutPerfectHash];
+                }
+            }
+        }
+    }
+
+    public FIoOffsetAndLength? FindChunkImperfect(FIoChunkId chunkId)
+    {
+        if (TocImperfectHashMapFallback != null)
+        {
+            return TocImperfectHashMapFallback.GetValueOrDefault(chunkId);
+        }
+
+        var chunkIndex = Array.IndexOf(Resource.ChunkIds, chunkId);
+        return chunkIndex == -1 ? null : Resource.OffsetAndLengths[chunkIndex];
+    }
+
+    public FIoOffsetAndLength? FindChunkInternal(FIoChunkId chunkId)
+    {
+        if (bHasPerfectHashMap)
+        {
+            var chunkCount = (uint)Resource.ChunkIds.Length;
+            if (chunkCount == 0)
+                return null;
+
+            var seedCount = (uint)Resource.ChunkPerfectHashSeeds!.Length;
+            var seedIndex = (uint)(Resource.HashChunkIdWithSeed(0, chunkId) % seedCount);
+            var seed = Resource.ChunkPerfectHashSeeds[seedIndex];
+            if (seed == 0)
+                return null;
+
+            var slot = 0U;
+            if (seed < 0)
+            {
+                var seedAsIndex = (uint)(-seed - 1);
+                if (seedAsIndex < chunkCount)
+                {
+                    slot = seedAsIndex;
+                }
+                else
+                {
+                    return FindChunkImperfect(chunkId);
+                }
+            }
+            else
+            {
+                slot = (uint)(Resource.HashChunkIdWithSeed(seed, chunkId) % chunkCount);
+            }
+
+            return Resource.ChunkIds[slot].GetHashCode() == chunkId.GetHashCode() ? Resource.OffsetAndLengths[slot] : null;
+        }
+
+        return null;
     }
     
-    public byte[] ExtractChunk(ulong id, EIoChunkType5 type)
+    public byte[] ExtractChunk(FIoChunkId chunkId)
     {
-        var index = (uint)(HashWithSeed(id, type, 0) % Resource.Header.TocChunkPerfectHashSeedsCount);
-        var seed = Resource.ChunkPerfectHashSeeds?[index] ?? throw new NoNullAllowedException("ChunkPerfectHashSeeds cannot be null to extract chunk from id.");
+        var offsetAndLength = FindChunkInternal(chunkId);
+        if (offsetAndLength == null)
+            throw new ApplicationException(
+                $"Could not find chunk with id {chunkId.ChunkId} and type {chunkId.ChunkType}");
+        
+        var blocks = FIoStoreEntry.GetCompressionBlocks(this, offsetAndLength);
 
-        var slot = (uint)(HashWithSeed(id, type, seed) % Resource.Header.TocEntryCount);
-        var offsetLength = Resource.OffsetAndLengths[slot];
-        var blocks = FIoStoreEntry.GetCompressionBlocks(this, offsetLength);
-
-        var data = new byte[offsetLength.Length];
+        var data = new byte[offsetAndLength.Length];
         ReadBlocks(blocks, data);
         
         return data;
-    }
-
-    public ulong HashWithSeed(ulong id, EIoChunkType5 type, int seed)
-    {
-        var buffer = BitConverter.GetBytes(id);
-
-        var hash = seed != 0 ? (ulong)seed : 0xcbf29ce484222325;
-        for (var index = 0; index < sizeof(ulong); ++index)
-        {
-            hash = (hash * 0x00000100000001B3) ^ buffer[index];
-        }
-
-        return hash;
     }
 
     public void ReadBlocks(FIoStoreTocCompressedBlockEntry[] blocks, byte[] data)
@@ -68,8 +124,8 @@ public class IoStoreReader : UnrealFileReader
             var archive = GetArchive(indexAndOffset.index);
 
             archive.Position = indexAndOffset.offset;
-            var compressed = archive.ReadBytes((int)block.CompressedSize);
-            var decompressed = CompressionHandler.HandleDecompression(this, block.CompressionMethodIndex, compressed, (int)block.UncompressedSize);
+            var buffer = DecryptIfEncrypted(archive.ReadBytes((int)block.CompressedSize));
+            var decompressed = CompressionHandler.HandleDecompression(this, block.CompressionMethodIndex, buffer, (int)block.UncompressedSize);
 
             if (offset + decompressed.Length > data.Length)
                 throw new OutOfMemoryException("The buffer given is too small to receive all of these blocks");
@@ -136,5 +192,30 @@ public class IoStoreReader : UnrealFileReader
                 dir = dirEntry.NextSiblingEntry;
             }
         }
+    }
+
+    public void ReadContainerHeader()
+    {
+        var chunkId = new FIoChunkId(Resource.Header.ContainerId.Id, 0, EIoChunkType5.ContainerHeader);
+
+        byte[]? data = null;
+        
+        try
+        {
+            data = ExtractChunk(chunkId);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex.ToString());
+        }
+
+        if (data == null)
+        {
+            Log.Error("Unable to extract ContainerHeader chunk!");
+            return;
+        }
+
+        var reader = new Reader(data);
+        ContainerHeader = new FIoContainerHeader(reader);
     }
 }

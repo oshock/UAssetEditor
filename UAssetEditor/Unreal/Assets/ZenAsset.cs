@@ -7,15 +7,21 @@ using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Binary;
 using UAssetEditor.Classes.Containers;
+using UAssetEditor.Unreal.Containers;
+using UAssetEditor.Unreal.Objects.IO;
+using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Properties;
+using UAssetEditor.Unreal.Readers;
 using UAssetEditor.Unreal.Readers.IoStore;
 using UAssetEditor.Unreal.Summaries;
+using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Assets;
 
 public class ZenAsset : Asset
 {
     public IoGlobalReader? GlobalData;
+    public IoStoreReader? IoReader => Reader as IoStoreReader;
 
     public FBulkDataMapEntry[] BulkDataMap;
     public ulong[] ImportedPublicExportHashes;
@@ -25,8 +31,10 @@ public class ZenAsset : Asset
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
     public FZenPackageImportedPackageNamesContainer ImportedPackageNamesContainer;
+
+    public List<FPackageId>? ImportedPackageIds;
     
-    public ZenAsset(byte[] data) : base(data)
+    public ZenAsset(byte[] data, UnrealFileSystem? system = null, UnrealFileReader? reader = null) : base(data, system, reader)
     { }
     
     public ZenAsset(string path) : this(File.ReadAllBytes(path))
@@ -128,6 +136,46 @@ public class ZenAsset : Asset
 	    return UnversionedPropertyHandler.DeserializeProperties(this, structure);
     }
 
+    // https://github.com/FabianFG/CUE4Parse/blob/11a92870024a088888aae79c74d8ae0c6c8af3e5/CUE4Parse/UE4/Assets/IoPackage.cs#L102
+    public void PopulateImportIds()
+    {
+	    Information($"Attempting to get package imports for '{Name}'");
+	    
+	    var header = IoReader?.ContainerHeader;
+	    if (header == null)
+	    {
+		    Log.Warning("Could not populate imports because ContainerHeader is null.");
+		    return;
+	    }
+
+	    var packageId = FPackageId.FromName(Name);
+	    var storeEntryIdx = Array.IndexOf(header.PackageIds, packageId);
+	    FFilePackageStoreEntry? storeEntry = null;
+	    
+	    if (storeEntryIdx != -1)
+	    {
+		    storeEntry = header.StoreEntries[storeEntryIdx];
+	    }
+	    else
+	    {
+		    var optionalSegmentStoreEntryIdx = Array.IndexOf(header.OptionalSegmentPackageIds, packageId);
+		    if (optionalSegmentStoreEntryIdx != -1)
+		    {
+			    storeEntry = header.OptionalSegmentStoreEntries[optionalSegmentStoreEntryIdx];
+		    }
+		    else
+		    {
+			    Log.Warning("Could not populate imports because store entry could not be found.");
+		    }
+	    }
+
+	    if (storeEntry == null)
+		    return;
+
+	    ImportedPackageIds = storeEntry.ImportedPackages.ToList();
+	    Information($"Populated {ImportedPackageIds.Count} imported package ids.");
+    }
+
     /// <summary>
     /// Serializes the entire asset to a stream.
     /// </summary>
@@ -173,7 +221,10 @@ public class ZenAsset : Asset
 	    writer.Position = FZenPackageSummary.Size;
 	    NameMapContainer.WriteNameMap(writer, NameMap);
 
-	    writer.Position += sizeof(long) + sizeof(ulong); // pad size + bulk data size
+	    writer.Write<long>(0); // pakSize
+	    writer.Write<long>(BulkDataMap.Length * FBulkDataMapEntry.SIZE); // bulkDataMapSize
+	    foreach (var entry in BulkDataMap)
+		    entry.Serialize(writer);
 
 	    summary.ImportedPublicExportHashesOffset = (int)writer.Position;
 	    writer.WriteArray(ImportedPublicExportHashes);
@@ -228,6 +279,7 @@ public class ZenAsset : Asset
 	    return null;
     }
 
+    // https://github.com/FabianFG/CUE4Parse/blob/11a92870024a088888aae79c74d8ae0c6c8af3e5/CUE4Parse/UE4/Assets/IoPackage.cs#L347
     public ResolvedObject? ResolveObjectIndex(FPackageObjectIndex index)
     {
 	    if (index.IsNull)
@@ -243,6 +295,52 @@ public class ZenAsset : Asset
 		    
 		    if (GlobalData.ScriptObjectEntriesMap.TryGetValue(index, out var entry))
 			    return new ResolvedScriptObject(entry, this);
+	    }
+
+	    if (index.IsPackageImport && System != null && ImportedPackageIds != null)
+	    {
+		    var packageImportRef = index.AsPackageImportRef;
+		    if (packageImportRef.ImportedPackageIndex < ImportedPackageIds.Count)
+		    {
+			    var packageId = ImportedPackageIds[(int)packageImportRef.ImportedPackageIndex];
+			    
+			    if (Reader is { Owner: not null })
+			    {
+				    if (!Reader.Owner.As<IoFile>().FilesById!.TryGetValue(packageId, out var entry))
+				    {
+					    Log.Error("Could not find package!");
+					    return null;
+				    }
+					    
+				    if (!System.TryExtractAsset(entry.Path, out var asset))
+				    {
+						Log.Error($"Found file via id. But system was unable to extract using path: '{entry.Path}'");
+						return null;
+				    }
+				    
+				    var pkg = asset as ZenAsset;
+				    
+				    if (pkg != null)
+				    {
+					    Information($"Reading package: '{entry.Path}'");
+					    pkg.ReadAll();
+				    
+					    for (int exportIndex = 0; exportIndex < pkg.ExportMap.Length; ++exportIndex)
+					    {
+						    if (pkg.ExportMap[exportIndex].PublicExportHash ==
+						        ImportedPublicExportHashes[packageImportRef.ImportedPublicExportHashIndex])
+						    {
+							    return new ResolvedExportObject(pkg, exportIndex);
+						    }
+					    }
+				    }
+				    else
+				    {
+					    Log.Warning("Reading Pak assets are not implemented yet!");
+					    return null;
+				    }
+			    }
+		    }
 	    }
 
 	    return null;

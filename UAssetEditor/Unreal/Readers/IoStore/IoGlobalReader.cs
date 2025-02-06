@@ -27,7 +27,7 @@ public class IoGlobalReader : Reader
     public static IoGlobalReader InitializeGlobalData(string path)
     {
         var ioStoreReader = new IoStoreReader(null, path);
-        var data = ioStoreReader.ExtractChunk(0, EIoChunkType5.ScriptObjects);
+        var data = ioStoreReader.ExtractChunk(new FIoChunkId(0, 0, EIoChunkType5.ScriptObjects));
         var reader = new IoGlobalReader(data);
         
         reader.GlobalNameMap = NameMapContainer.ReadNameMap(reader);

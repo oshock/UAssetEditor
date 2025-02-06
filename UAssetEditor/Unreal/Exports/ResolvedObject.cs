@@ -11,7 +11,7 @@ public class ResolvedObject
     public Asset Package;
     public int ExportIndex;
 
-    public virtual FName Name => new("None");
+    public virtual FName Name => new();
     public virtual ResolvedObject? Outer => null;
     public virtual ResolvedObject? Class => null;
     
@@ -25,6 +25,7 @@ public class ResolvedObject
 public class ResolvedExportObject : ResolvedObject
 {
     public virtual UObject Object { get; set; }
+    public override FName Name => new(Object.Name);
 
     public ResolvedExportObject(Asset asset, int exportIndex) : base(asset, exportIndex)
     {

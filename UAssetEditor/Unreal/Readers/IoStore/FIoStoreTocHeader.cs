@@ -45,7 +45,7 @@ public class FIoStoreTocHeader
     public readonly uint CompressionBlockSize;
     public readonly uint DirectoryIndexSize;
     public uint PartitionCount;
-    // public readonly FIoContainerId ContainerId;
+    public readonly FIoContainerId ContainerId;
     public readonly FGuid EncryptionKeyGuid;
     public readonly EIoContainerFlags ContainerFlags;
     // private readonly byte _reserved3;
@@ -73,8 +73,7 @@ public class FIoStoreTocHeader
         CompressionBlockSize = reader.Read<uint>();
         DirectoryIndexSize = reader.Read<uint>();
         PartitionCount = reader.Read<uint>();
-
-        reader.Position += sizeof(ulong); // sizeof(FIoContainerId)
+        ContainerId = reader.Read<FIoContainerId>();
         EncryptionKeyGuid = reader.Read<FGuid>();
 
         ContainerFlags = reader.Read<EIoContainerFlags>();

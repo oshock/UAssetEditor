@@ -13,6 +13,7 @@ using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Types;
+using UAssetEditor.Unreal.Readers;
 using UAssetEditor.Unreal.Versioning;
 using UAssetEditor.Utils;
 using UsmapDotNet;
@@ -67,6 +68,9 @@ public class ObjectContainer : Container<UObject>
 
 public abstract class Asset : Reader
 {
+    public UnrealFileSystem? System;
+    public UnrealFileReader? Reader;
+    
     public string Name { get; set; }
     public Usmap? Mappings;
     public NameMapContainer NameMap;
@@ -80,9 +84,12 @@ public abstract class Asset : Reader
     public StructureContainer DefinedStructures = new();
 
     public ObjectContainer Exports = new();
-    
-    public Asset(byte[] data) : base(data)
-    { }
+
+    public Asset(byte[] data, UnrealFileSystem? system = null, UnrealFileReader? reader = null) : base(data)
+    {
+        System = system;
+        Reader = reader;
+    }
 
     public UObject? this[string name] => Exports[name];
     

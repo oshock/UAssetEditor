@@ -28,11 +28,9 @@ public class FIoStoreEntry : UnrealFileEntry
         }
     }
 
-    private FIoOffsetAndLength GetOffsetAndLength()
-    {
-        var container = (IoFile)Owner!;
-        return container.Resource.OffsetAndLengths[TocEntryIndex];
-    }
+    public FIoChunkId GetChunkId() => GetIoFile().Resource.ChunkIds[TocEntryIndex];
+
+    private FIoOffsetAndLength GetOffsetAndLength() => GetIoFile().Resource.OffsetAndLengths[TocEntryIndex];
     
     public static FIoStoreTocCompressedBlockEntry[] GetCompressionBlocks(IoStoreReader reader, FIoOffsetAndLength offsetAndLength)
     {

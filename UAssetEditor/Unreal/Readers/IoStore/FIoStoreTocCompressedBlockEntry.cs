@@ -26,7 +26,7 @@ public class FIoStoreTocCompressedBlockEntry
     public (int index, long offset) GetContainerIndexAndOffset(IoStoreReader reader)
     {
         var index = (int) ((ulong) Offset / reader.Resource.Header.PartitionSize);
-        var offset = (int) ((ulong) Offset % reader.Resource.Header.PartitionSize);
+        var offset =  (long) ((ulong) Offset % reader.Resource.Header.PartitionSize);
 
         return (index, offset);
     }
