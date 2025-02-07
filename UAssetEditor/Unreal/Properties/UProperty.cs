@@ -51,6 +51,11 @@ public class PropertyData
     
     public PropertyData()
     { }
+
+    public PropertyData(string type)
+    {
+        Type = type;
+    }
     
     public PropertyData(UsmapPropertyData data)
     {
