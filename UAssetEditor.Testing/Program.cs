@@ -35,7 +35,7 @@ system.LoadMappings("++Fortnite+Release-33.30-CL-39435251-Windows_oo.usmap", "oo
 
 // Extract the asset
 if (!system.TryExtractAsset(
-        "FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Weapons/WID_Harvest_Pickaxe_HolidayCandyCane_Athena.uasset",
+        "FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Athena/Items/Cosmetics/Characters/CID_028_Athena_Commando_F.uasset",
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
@@ -53,22 +53,22 @@ sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
 
 // Get Hero Definition (Testing)
-/*var heroDefinition = asset["CID_028_Athena_Commando_F"]?["HeroDefinition"].GetValue<ObjectProperty>();
+var heroDefinition = asset["CID_028_Athena_Commando_F"]?["HeroDefinition"].GetValue<ObjectProperty>();
 var obj = heroDefinition?.Value?.ResolvedObject;
 if (obj != null)
     Console.WriteLine($"HeroDefinition: '{obj.Name}'");
 
 var json = asset.ToString(); // Convert to Json String
-File.WriteAllText("CID_028_Athena_Commando_F.json", json);*/
+File.WriteAllText("CID_028_Athena_Commando_F.json", json);
 
 // Get ItemName Property
-/*var text = asset["CID_028_Athena_Commando_F"]?["ItemName"]?.GetValue<TextProperty>();
+var text = asset["CID_028_Athena_Commando_F"]?["ItemName"]?.GetValue<TextProperty>();
 
 if (text?.Value == null)
     throw new NoNullAllowedException("Could not get ItemName property!");
 
 // Set new FText value
-text.Value.Text = "Very cool item!";*/
+text.Value.Text = "Very cool item!";
 
 // Create a writer with the file "CID_028_Athena_Commando_F.uasset"
 var writer = new Writer("CID_028_Athena_Commando_F.uasset");
