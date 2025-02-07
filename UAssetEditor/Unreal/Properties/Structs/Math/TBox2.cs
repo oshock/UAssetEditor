@@ -19,15 +19,14 @@ public class TBox2<T> : UStruct, IUnrealType
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {
-        Min = new TIntVector2<T>();
-        Max = new TIntVector2<T>();
-        
         if (mode == ESerializationMode.Zero)
         {
             return;
         }
 
+        Min = new TIntVector2<T>();
         Min.Read(reader, null);
+        Max = new TIntVector2<T>();
         Max.Read(reader, null);
         bIsValid = reader.ReadByte();
     }

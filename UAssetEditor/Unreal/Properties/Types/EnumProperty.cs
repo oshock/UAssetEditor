@@ -2,7 +2,6 @@ using System.Data;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Assets;
-using UAssetEditor.Unreal.Properties.Reflection;
 
 
 namespace UAssetEditor.Unreal.Properties.Types;
@@ -82,18 +81,6 @@ public class EnumProperty : AbstractProperty<string>
         ArgumentNullException.ThrowIfNull(enumProperty.Value);
         
         var index = enumData.Names.ToList().IndexOf(enumProperty.Value);
-        var enumType = property.Data?.InnerType?.Type;
-        
-        ArgumentNullException.ThrowIfNull(enumType);
-        
-        PropertyReflector.WriteProperty(writer, new UProperty(new PropertyData(enumType), "Dummy", enumType switch
-        {
-            "ByteProperty" => new ByteProperty((byte)index),
-            "Int16Property" => new Int16Property((short)index),
-            "Int64Property" => new Int64Property(index),
-            "IntProperty" => new IntProperty(index),
-            "UInt16Property" => new UInt16Property((ushort)index),
-            "UInt64Property" => new UInt64Property((ulong)index)
-        }));
+        writer.WriteByte((byte)index);
     }
 }

@@ -8,10 +8,10 @@ namespace UAssetEditor.Unreal.Properties.Structs.Math;
 public class TIntVector2<T> : UStruct, IUnrealType
 {
     [UField]
-    public T? X;
+    public T X;
     
     [UField]
-    public T? Y;
+    public T Y;
 
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
