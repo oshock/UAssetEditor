@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Runtime.InteropServices;
 using Serilog;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties.Unversioned;
@@ -18,14 +19,6 @@ using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Assets;
 
-//Cell offset struct 
-[StructLayout(LayoutKind.Sequential)]
-public struct FZenPackageCellOffsets
-{
-    public int CellImportMapOffset;
-    public int CellExportMapOffset;
-}
-
 public class ZenAsset : Asset
 {
     public IoGlobalReader? GlobalData;
@@ -35,6 +28,8 @@ public class ZenAsset : Asset
     public ulong[] ImportedPublicExportHashes;
     public FPackageObjectIndex[] ImportMap;
     public ExportContainer ExportMap;
+    public FPackageObjectIndex[] CellImportMap;
+    FCellExportMapEntry[] CellExportMap;
     public FExportBundleEntry[] ExportBundleEntries;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
@@ -98,8 +93,10 @@ public class ZenAsset : Asset
     {
         var summary = Read<FZenPackageSummary>();
         Flags = summary.PackageFlags;
-        FZenPackageCellOffsets cellOffsets;
-        cellOffsets = Read<FZenPackageCellOffsets>();
+        
+        // EUnrealEngineObjectUE5Version::VERSE_CELLS
+        var cellOffsets = Read<FZenPackageCellOffsets>();
+        
         NameMap = NameMapContainer.ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
 
@@ -114,12 +111,19 @@ public class ZenAsset : Asset
             ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
 
         Position = summary.ImportMapOffset;
-        ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) / sizeof(ulong));
-
+        ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) / FPackageObjectIndex.Size);
+        
         Position = summary.ExportMapOffset;
-        ExportMap = ExportContainer.Read(this, summary);
+        ExportMap = ExportContainer.Read(this, summary, cellOffsets);
 
         Position = cellOffsets.CellImportMapOffset;
+        CellImportMap =  ReadArray<FPackageObjectIndex>((cellOffsets.CellExportMapOffset - cellOffsets.CellImportMapOffset) / FPackageObjectIndex.Size);
+        
+        Position = cellOffsets.CellExportMapOffset;
+        CellExportMap = ReadArray(() => new FCellExportMapEntry(this),
+	        summary.ExportBundleEntriesOffset - cellOffsets.CellExportMapOffset);
+        
+        Position = summary.ExportBundleEntriesOffset;
         ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
 
         Position = summary.DependencyBundleHeadersOffset;
@@ -228,8 +232,9 @@ public class ZenAsset : Asset
         var summary = default(FZenPackageSummary);
         summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
 
-        // Reserve space for summary and cell offsets (we'll overwrite them at the end) credit: @superintenseminecraftplayer2150 on discord aka RenegadesGlitches123 on github
-        writer.Position = FZenPackageSummary.Size + sizeof(int) * 2;
+        // Reserve space
+        var cellOffsets = new FZenPackageCellOffsets();
+        writer.Position = FZenPackageSummary.Size + FZenPackageCellOffsets.Size;
 
         // Write NameMap
         NameMapContainer.WriteNameMap(writer, NameMap);
@@ -250,12 +255,13 @@ public class ZenAsset : Asset
         foreach (var export in ExportMap)
             export.Serialize(writer);
 
-        var cellOffsets = new FZenPackageCellOffsets
-        {
-            CellImportMapOffset = (int)writer.Position,
-            CellExportMapOffset = (int)writer.Position
-        };
-
+        cellOffsets.CellImportMapOffset = (int)writer.Position;
+		writer.WriteArray(CellImportMap);
+		
+		cellOffsets.CellExportMapOffset = (int)writer.Position;
+		foreach (var cell in CellExportMap)
+			cell.Serialize(writer);
+        
         summary.ExportBundleEntriesOffset = (int)writer.Position;
         writer.WriteArray(ExportBundleEntries);
 
@@ -274,14 +280,13 @@ public class ZenAsset : Asset
         ImportedPackageNamesContainer.Serialize(writer);
 
         var end = writer.Position;
+        
         summary.HeaderSize = (uint)end;
         summary.PackageFlags = Flags;
 
-        // Write summary and cell offsets at the beginning
         writer.Position = 0;
         writer.Write(summary);
-        writer.Write(cellOffsets.CellImportMapOffset);
-        writer.Write(cellOffsets.CellExportMapOffset);
+        writer.Write(cellOffsets);
 
         writer.Position = end;
     }
@@ -386,9 +391,12 @@ public class ExportContainer : Container<FExportMapEntry>
 	public ExportContainer(List<FExportMapEntry> items) : base(items)
 	{ }
 
-	public static ExportContainer Read(ZenAsset asset, FZenPackageSummary summary)
+	public static ExportContainer Read(ZenAsset asset, FZenPackageSummary summary, FZenPackageCellOffsets? cellOffsets)
 	{
-		return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset),
-			(summary.ExportBundleEntriesOffset - summary.ExportMapOffset) / FExportMapEntry.Size).ToList());
+		var size = cellOffsets.HasValue
+			? cellOffsets.Value.CellImportMapOffset - summary.ExportMapOffset
+			: summary.ExportBundleEntriesOffset - summary.ExportMapOffset;
+		return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset), size / FExportMapEntry.Size)
+			.ToList());
 	}
 }

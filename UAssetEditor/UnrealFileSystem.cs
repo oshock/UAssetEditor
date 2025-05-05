@@ -20,6 +20,8 @@ public class UnrealFileSystem
     
     private string _directory;
 
+    public List<UnrealFileEntry> Files = new();
+ 
     public Usmap? Mappings { get; private set; }
 
     public IoGlobalReader? GetGlobalReader() => Containers.FirstOrDefault(x => x.Reader is IoGlobalReader)?.Reader as IoGlobalReader;
@@ -74,6 +76,8 @@ public class UnrealFileSystem
             {
                 container = new IoFile(file, this);
                 container.Mount();
+
+                //Files.AddRange(container.PackagesByPath.Values);
             }
 
             _containers.Add(container);
