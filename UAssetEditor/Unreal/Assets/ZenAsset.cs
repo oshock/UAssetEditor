@@ -18,6 +18,14 @@ using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Assets;
 
+//Cell offset struct 
+[StructLayout(LayoutKind.Sequential)]
+public struct FZenPackageCellOffsets
+{
+    public int CellImportMapOffset;
+    public int CellExportMapOffset;
+}
+
 public class ZenAsset : Asset
 {
     public IoGlobalReader? GlobalData;
@@ -90,6 +98,8 @@ public class ZenAsset : Asset
     {
         var summary = Read<FZenPackageSummary>();
         Flags = summary.PackageFlags;
+        FZenPackageCellOffsets cellOffsets;
+        cellOffsets = Read<FZenPackageCellOffsets>();
         NameMap = NameMapContainer.ReadNameMap(this);
         Name = NameMap[(int)summary.Name.NameIndex];
 
@@ -109,7 +119,7 @@ public class ZenAsset : Asset
         Position = summary.ExportMapOffset;
         ExportMap = ExportContainer.Read(this, summary);
 
-        Position = summary.ExportBundleEntriesOffset;
+        Position = cellOffsets.CellImportMapOffset;
         ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
 
         Position = summary.DependencyBundleHeadersOffset;
@@ -215,53 +225,65 @@ public class ZenAsset : Asset
 
     public override void WriteHeader(Writer writer)
     {
-	    var summary = default(FZenPackageSummary);
-	    summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
+        var summary = default(FZenPackageSummary);
+        summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
 
-	    writer.Position = FZenPackageSummary.Size;
-	    NameMapContainer.WriteNameMap(writer, NameMap);
+        // Reserve space for summary and cell offsets (we'll overwrite them at the end) credit: @superintenseminecraftplayer2150 on discord aka RenegadesGlitches123 on github
+        writer.Position = FZenPackageSummary.Size + sizeof(int) * 2;
 
-	    writer.Write<long>(0); // pakSize
-	    writer.Write<long>(BulkDataMap.Length * FBulkDataMapEntry.SIZE); // bulkDataMapSize
-	    foreach (var entry in BulkDataMap)
-		    entry.Serialize(writer);
+        // Write NameMap
+        NameMapContainer.WriteNameMap(writer, NameMap);
 
-	    summary.ImportedPublicExportHashesOffset = (int)writer.Position;
-	    writer.WriteArray(ImportedPublicExportHashes);
+        writer.Write<long>(0); // pakSize
+        writer.Write<long>(BulkDataMap.Length * FBulkDataMapEntry.SIZE); // bulkDataMapSize
 
-	    summary.ImportMapOffset = (int)writer.Position;
-	    writer.WriteArray(ImportMap);
+        foreach (var entry in BulkDataMap)
+            entry.Serialize(writer);
 
-	    summary.ExportMapOffset = (int)writer.Position;
-	    foreach (var export in ExportMap)
-		    export.Serialize(writer);
+        summary.ImportedPublicExportHashesOffset = (int)writer.Position;
+        writer.WriteArray(ImportedPublicExportHashes);
 
-	    summary.ExportBundleEntriesOffset = (int)writer.Position;
-	    writer.WriteArray(ExportBundleEntries);
+        summary.ImportMapOffset = (int)writer.Position;
+        writer.WriteArray(ImportMap);
 
-	    summary.DependencyBundleHeadersOffset = (int)writer.Position;
-	    foreach (var depHeader in DependencyBundleHeaders)
-	    {
-		    writer.Write(depHeader.FirstEntryIndex);
-		    foreach (var a in depHeader.EntryCount)
-			    writer.WriteArray(a);
-	    }
+        summary.ExportMapOffset = (int)writer.Position;
+        foreach (var export in ExportMap)
+            export.Serialize(writer);
 
-	    summary.DependencyBundleEntriesOffset = (int)writer.Position;
-	    writer.WriteArray(DependencyBundleEntries);
+        var cellOffsets = new FZenPackageCellOffsets
+        {
+            CellImportMapOffset = (int)writer.Position,
+            CellExportMapOffset = (int)writer.Position
+        };
 
-	    summary.ImportedPackageNamesOffset = (int)writer.Position;
-	    ImportedPackageNamesContainer.Serialize(writer);
+        summary.ExportBundleEntriesOffset = (int)writer.Position;
+        writer.WriteArray(ExportBundleEntries);
 
-	    var end = writer.Position;
+        summary.DependencyBundleHeadersOffset = (int)writer.Position;
+        foreach (var depHeader in DependencyBundleHeaders)
+        {
+            writer.Write(depHeader.FirstEntryIndex);
+            foreach (var a in depHeader.EntryCount)
+                writer.WriteArray(a);
+        }
 
-	    summary.HeaderSize = (uint)end;
-	    summary.PackageFlags = Flags;
+        summary.DependencyBundleEntriesOffset = (int)writer.Position;
+        writer.WriteArray(DependencyBundleEntries);
 
-	    writer.Position = 0;
-	    writer.Write(summary);
+        summary.ImportedPackageNamesOffset = (int)writer.Position;
+        ImportedPackageNamesContainer.Serialize(writer);
 
-	    writer.Position = end;
+        var end = writer.Position;
+        summary.HeaderSize = (uint)end;
+        summary.PackageFlags = Flags;
+
+        // Write summary and cell offsets at the beginning
+        writer.Position = 0;
+        writer.Write(summary);
+        writer.Write(cellOffsets.CellImportMapOffset);
+        writer.Write(cellOffsets.CellExportMapOffset);
+
+        writer.Position = end;
     }
 
     // https://github.com/FabianFG/CUE4Parse/blob/87020fa42ab70bb44a08bcd9f5d742ad70c97373/CUE4Parse/UE4/Assets/IoPackage.cs#L331
