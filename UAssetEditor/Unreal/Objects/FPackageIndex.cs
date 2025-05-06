@@ -50,4 +50,10 @@ public class FPackageIndex : IUnrealType
             // not implemented
         }
     }
+
+    public static FPackageIndex Read(Asset asset)
+    {
+        var index = asset.Read<int>();
+        return new FPackageIndex(asset, index);
+    }
 }

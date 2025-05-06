@@ -23,7 +23,7 @@ public class FExportMapEntry
 
     public ZenAsset Asset;
     public string Name;
-    public string Class;
+    public Lazy<string> Class;
     
     public FExportMapEntry(ZenAsset reader)
     {
@@ -41,7 +41,7 @@ public class FExportMapEntry
         reader.Position += 3;
         
         Name = reader.NameMap[(int)ObjectName.NameIndex];
-        Class = reader.GlobalData?.GetScriptName(ClassIndex) ?? "None";
+        Class = new Lazy<string>(() => Asset.ResolveObjectIndex(ClassIndex)?.Name.ToString() ?? "None");
     }
 
     public void Serialize(Writer writer)

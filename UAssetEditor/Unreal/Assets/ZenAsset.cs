@@ -67,6 +67,10 @@ public class ZenAsset : Asset
     public override void ReadAll()
     {
 	    var headerSize = Position = ReadHeader();
+	    
+	    // Moved here cause package imports need to be loaded before reading them
+	    PopulateImportIds();
+	    
 	    foreach (var entry in ExportBundleEntries)
 	    {
 		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
@@ -74,13 +78,19 @@ public class ZenAsset : Asset
 		    
 		    var export = ExportMap[entry.LocalExportIndex];
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    var className = export.Class;
-
+		    var className = export.Class.Value;
 		    
 		    var obj = new UObject(this);
 		    obj.Name = name;
-		    obj.Class = new UStruct(Mappings?.Schemas.FirstOrDefault(x => x.Name == className) 
-		                            ?? throw new KeyNotFoundException($"Could not find schema named '{className}'"), Mappings);
+
+		    var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == className);
+		    if (schema == null)
+		    {
+			    Log.Error($"Could not find schema named '{className}'. Skipping deserialization.");
+			    continue;
+		    }
+			    
+		    obj.Class = new UStruct(schema, Mappings);
 		    
 		    var position = headerSize + (long)export.CookedSerialOffset;
 		    obj.Deserialize(position);

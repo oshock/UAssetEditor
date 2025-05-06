@@ -36,7 +36,7 @@ system.LoadMappings("++Fortnite+Release-35.00-CL-41994699-Windows_oo.usmap", "oo
 
 // Extract the asset
 if (!system.TryExtractAsset(
-        "FortniteGame/Content/Balance/DefaultGameDataCosmetics.uasset",
+        "FortniteGame/Content/Items/Traps/Blueprints/Device_Floor_VehicleSpawnerParent.uasset",
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
@@ -45,9 +45,6 @@ var sw = Stopwatch.StartNew();
 
 // Read everything
 asset!.ReadAll();
-
-// Populate Imported Packages
-((ZenAsset)asset).PopulateImportIds();
 
 // Write stats
 sw.Stop();

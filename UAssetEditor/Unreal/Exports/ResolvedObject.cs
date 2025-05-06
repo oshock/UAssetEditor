@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Serilog;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Readers.IoStore;
@@ -22,14 +23,31 @@ public class ResolvedObject
     }
 }
 
-public class ResolvedExportObject : ResolvedObject
+public sealed class ResolvedExportObject : ResolvedObject
 {
-    public virtual UObject Object { get; set; }
-    public override FName Name => new(Object.Name);
-
+    public UObject? Object { get; set; }
+    public override FName Name => new(Object?.Name ?? "None");
+    
     public ResolvedExportObject(Asset asset, int exportIndex) : base(asset, exportIndex)
     {
-        Object = asset.Exports[exportIndex];
+        Load();
+    }
+
+    public void Load()
+    {
+        if (Package.Exports.Length > ExportIndex)
+            Object = Package.Exports[ExportIndex];
+        else
+        {
+            throw new ArgumentOutOfRangeException(
+                $"Export {ExportIndex} in package '{Package.Name}' can not be referenced because package only contains {Package.Exports.Length} export(s)");
+        }
+    }
+
+    public UObject? GetObject()
+    {
+        Load();
+        return Object;
     }
 }
 

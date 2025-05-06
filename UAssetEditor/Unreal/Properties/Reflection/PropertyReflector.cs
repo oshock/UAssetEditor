@@ -7,6 +7,7 @@ using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Misc;
+using UAssetEditor.Unreal.Properties.Structs.Curves;
 using UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
@@ -127,7 +128,8 @@ public static class PropertyReflector
         { "SoftObjectProperty", typeof(SoftObjectProperty) },
         { "ScriptInterface", typeof(ObjectProperty) },
         { "ObjectProperty", typeof(ObjectProperty) },
-        { "MapProperty", typeof(MapProperty) }
+        { "MapProperty", typeof(MapProperty) },
+        { "MulticastDelegateProperty", typeof(MulticastDelegateProperty) }
     };
     
     public static List<UStructVer> DefinedStructsByName = new()
@@ -145,7 +147,9 @@ public static class PropertyReflector
         new UStructVer("Quat", typeof(FQuat),
             new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FQuat_LARGE_WORLD_COORDINATES))),
         new UStructVer("LinearColor", typeof(FLinearColor)),
-        new UStructVer("Guid", typeof(FGuid))
+        new UStructVer("Guid", typeof(FGuid)),
+        new UStructVer("RichCurveKey", typeof(RichCurve.FRichCurveKey)),
+        new UStructVer("SimpleCurveKey", typeof(SimpleCurve.FSimpleCurveKey))
     };
 
     public static object ReadProperty(string type, Reader reader, PropertyData? data,
