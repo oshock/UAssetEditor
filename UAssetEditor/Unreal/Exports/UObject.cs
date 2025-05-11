@@ -9,10 +9,10 @@ namespace UAssetEditor.Unreal.Exports;
 public class UObject
 {
     public string Name;
-    public UObject? Outer;
+    public Lazy<UObject?> Outer;
     public UStruct? Class;
-    public ResolvedObject? Super;
-    public ResolvedObject? Template;
+    public Lazy<ResolvedObject?> Super;
+    public Lazy<ResolvedObject?> Template;
 
     public List<UProperty> Properties;
 

@@ -5,7 +5,7 @@ namespace UAssetEditor.Unreal.Packages;
 
 public class FIoStoreEntry : UnrealFileEntry
 {
-    private uint TocEntryIndex;
+    public uint TocEntryIndex;
 
     public FIoStoreEntry(string path, ContainerFile container, uint tocEntryIndex) : base(path, container)
     {
@@ -14,7 +14,7 @@ public class FIoStoreEntry : UnrealFileEntry
 
     public IoFile GetIoFile() => (IoFile)Owner!;
 
-    public override bool IsEncrypted { get; }
+    public override bool IsEncrypted => GetIoFile().IsEncrypted;
 
     public override string CompressionMethod
     {

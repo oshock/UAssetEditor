@@ -20,7 +20,7 @@ public class UStruct : UObject
         SuperType = superType;
     }
     
-    public UStruct(UsmapSchema schema, Usmap mappings) : base()
+    public UStruct(UsmapSchema schema, Usmap mappings)
     {
         Name = schema.Name;
         SuperType = schema.SuperType ?? "None";

@@ -1,4 +1,5 @@
-﻿using OodleDotNet;
+﻿using System.Collections.Concurrent;
+using OodleDotNet;
 using Serilog;
 using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Assets;
@@ -20,8 +21,8 @@ public class UnrealFileSystem
     
     private string _directory;
 
-    public List<UnrealFileEntry> Files = new();
- 
+    public ConcurrentDictionary<string, UnrealFileEntry> Packages { get; } = new();
+
     public Usmap? Mappings { get; private set; }
 
     public IoGlobalReader? GetGlobalReader() => Containers.FirstOrDefault(x => x.Reader is IoGlobalReader)?.Reader as IoGlobalReader;
@@ -77,7 +78,8 @@ public class UnrealFileSystem
                 container = new IoFile(file, this);
                 container.Mount();
 
-                //Files.AddRange(container.PackagesByPath.Values);
+                foreach (var pkg in container.PackagesByPath)
+                    Packages.TryAdd(pkg.Key, pkg.Value);
             }
 
             _containers.Add(container);

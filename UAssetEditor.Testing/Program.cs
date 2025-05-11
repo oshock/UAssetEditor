@@ -16,7 +16,7 @@ Logger.StartLogger();
 Oodle.Initialize("oo2core_9_win64.dll");
 
 // Create system
-var system = new UnrealFileSystem(@"S:\Fortnite\FortniteGame\Content\Paks");
+var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
 system.AesKeys.Add(new FGuid(), new FAesKey("0x17243B0E3E66DA90347F7C4787692505EC5E5285484633D71B09CD6ABB714E9B"));

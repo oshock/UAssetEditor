@@ -80,8 +80,14 @@ public class ZenAsset : Asset
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
 		    var className = export.Class.Value;
 		    
-		    var obj = new UObject(this);
-		    obj.Name = name;
+		    var obj = new UObject(this)
+		    {
+			    Name = name,
+			    Outer = new Lazy<UObject?>(() =>
+				    ResolveObjectIndex(export.OuterIndex)?.As<ResolvedExportObject>().Object),
+			    Super = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.OuterIndex)),
+			    Template = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.TemplateIndex))
+		    };
 
 		    var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == className);
 		    if (schema == null)
