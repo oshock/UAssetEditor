@@ -1,6 +1,10 @@
 ﻿using System.Data;
+using UAssetEditor.Binary;
 using UAssetEditor.Classes;
+using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Assets;
+using UAssetEditor.Unreal.Exports.Engine;
+using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Unversioned;
 
@@ -13,6 +17,8 @@ public class UObject
     public UStruct? Class;
     public Lazy<ResolvedObject?> Super;
     public Lazy<ResolvedObject?> Template;
+    public EObjectFlags Flags;
+    public FGuid? ObjectGuid { get; private set; }
 
     public List<UProperty> Properties;
 
@@ -27,6 +33,16 @@ public class UObject
     public UObject(Asset asset) : this()
     {
         Owner = asset;
+    }
+
+    // TODO other export types
+    public static UObject ConstructObject(Asset asset, string className)
+    {
+        return className switch
+        {
+            "CurveTable" => new UCurveTable(asset),
+            _ => new UObject(asset)
+        };
     }
 
     public override string ToString()
@@ -81,6 +97,38 @@ public class UObject
         else
         {
             // TODO tagged properties
+        }
+        
+        if (!Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject) && Owner.Read<int>() == 1)
+        {
+            ObjectGuid = Owner.Read<FGuid>();
+        }
+    }
+    
+    public virtual void Serialize(Writer writer)
+    {
+        if (Owner is null)
+            throw new NoNullAllowedException("Cannot serialize UObject without a valid asset to work with.");
+
+        if (Class is null)
+            throw new NoNullAllowedException($"Class cannot be null.");
+        
+        if (Owner.HasUnversionedProperties)
+        {
+            UnversionedPropertyHandler.SerializeProperties((ZenAsset)Owner, writer, Class, Properties);
+        }
+        else
+        {
+            // TODO tagged properties
+        }
+        
+        if (!Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject))
+        {
+            var shouldWriteGuid = ObjectGuid != null;
+            writer.Write(shouldWriteGuid ? 1 : 0); // Boolean as Int32
+            
+            if (shouldWriteGuid)
+                writer.Write(ObjectGuid);
         }
     }
 }

@@ -80,14 +80,13 @@ public class ZenAsset : Asset
 		    var name = NameMap[(int)export.ObjectName.NameIndex];
 		    var className = export.Class.Value;
 		    
-		    var obj = new UObject(this)
-		    {
-			    Name = name,
-			    Outer = new Lazy<UObject?>(() =>
-				    ResolveObjectIndex(export.OuterIndex)?.As<ResolvedExportObject>().Object),
-			    Super = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.OuterIndex)),
-			    Template = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.TemplateIndex))
-		    };
+		    var obj = UObject.ConstructObject(this, className);
+		    obj.Name = name;
+		    obj.Outer = new Lazy<UObject?>(() =>
+			    ResolveObjectIndex(export.OuterIndex)?.As<ResolvedExportObject>().Object);
+		    obj.Super = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.OuterIndex));
+		    obj.Template = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.TemplateIndex));
+		    obj.Flags |= export.ObjectFlags;
 
 		    var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == className);
 		    if (schema == null)
@@ -95,11 +94,18 @@ public class ZenAsset : Asset
 			    Log.Error($"Could not find schema named '{className}'. Skipping deserialization.");
 			    continue;
 		    }
-			    
+		    
 		    obj.Class = new UStruct(schema, Mappings);
 		    
 		    var position = headerSize + (long)export.CookedSerialOffset;
+		    var validPos = position + (long)export.CookedSerialSize;
 		    obj.Deserialize(position);
+
+		    if (Position != validPos)
+		    {
+			    Warning(
+				    $"'{obj.Class.Name}.{obj.Name}' did not read correctly! Expected serial size: {export.CookedSerialSize}, but got {Position - (long)export.CookedSerialOffset}");
+		    }
 		    
 		    Exports.Add(obj);
 	    }
@@ -219,21 +225,16 @@ public class ZenAsset : Asset
 	    for (int i = 0; i < ExportMap.Length; i++)
 	    {
 		    var name = NameMap[(int)ExportMap[i].ObjectName.NameIndex];
-		    var className = GlobalData!.GetScriptName(ExportMap[i].ClassIndex);
- 
 		    
 		    ExportMap[i].CookedSerialOffset = (ulong)uexp.Position;
 
-		    var properties = Exports[name]?.Properties
-		                     ?? throw new KeyNotFoundException(
-			                     "Object exists in the export map, but not in the loaded exports.");
-		    
-		    var schema = Mappings?.FindSchema(className) ?? throw new KeyNotFoundException($"Cannot find schema named '{className}'.");
-		    var struc = new UStruct(schema, Mappings);
-
 		    var start = uexp.Position;
-		    UnversionedPropertyHandler.SerializeProperties(this, uexp, struc, properties);
-		    uexp.Write(0); // Padding
+		    var export = Exports[name];
+
+		    if (export == null)
+			    throw new KeyNotFoundException("Object exists in the export map, but not in the loaded exports.");
+		    
+		    export.Serialize(uexp);
 
 		    ExportMap[i].CookedSerialSize = (ulong)(uexp.Position - start);
 	    }

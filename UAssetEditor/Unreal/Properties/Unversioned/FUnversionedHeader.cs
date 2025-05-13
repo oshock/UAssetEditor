@@ -11,6 +11,8 @@ public class FUnversionedHeader
     public readonly int ZeroMaskNum;
     public readonly int UnmaskedNum;
     public readonly bool HasNonZeroValues;
+
+    public bool HasValues => HasNonZeroValues | ZeroMask?.Length > 0;
     
     public FUnversionedHeader(Reader asset)
     {
@@ -73,6 +75,15 @@ public class FUnversionedHeader
 
     public static void Serialize(Writer writer, UStruct struc, List<UProperty> properties)
     {
+        if (!properties.Any())
+        {
+            writer.Write(new FFragment
+            {
+                bIsLast = true
+            }.Pack());
+            return;
+        }
+        
         var frags = new List<FFragment>();
         var zeroMask = new List<bool>();
         

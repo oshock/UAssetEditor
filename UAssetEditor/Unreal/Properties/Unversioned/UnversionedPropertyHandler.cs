@@ -21,7 +21,9 @@ public static class UnversionedPropertyHandler
 	    
 	    // Get fragments
 	    var header = new FUnversionedHeader(asset);
-
+	    if (!header.HasValues)
+		    return [];
+		    
 	    // Add struct for possible later use
 	    asset.DefinedStructures.Add(struc);
 	    
@@ -75,7 +77,7 @@ public static class UnversionedPropertyHandler
 	    return properties;
     }
     
-    public static void SerializeProperties(ZenAsset asset, Writer writer, UStruct struc, List<UProperty> properties)
+    public static void SerializeProperties(ZenAsset? asset, Writer writer, UStruct struc, List<UProperty> properties)
     {
 	    Information($"Serializing {struc.Name} with {properties.Count} properties");
 	    Information($"Sorting {properties.Count} properties");
@@ -102,6 +104,9 @@ public static class UnversionedPropertyHandler
     
     private static List<UProperty> SortProperties(List<UProperty> properties, UStruct struc)
     {
+	    if (struc.Properties.Count == 0) // Skunked, but basically this bypasses defined classes like CurveTable not having any schema properties
+		    return properties;
+	    
 	    var result = new List<UProperty>();
 
 	    foreach (var property in struc.Properties)
