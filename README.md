@@ -1,5 +1,5 @@
 # UAssetEditor
- A C# Unreal I/O UAsset Editor
+A C# Unreal I/O UAsset Editor for Fortnite
 
 ## Features
 - Mount I/O containers (.utoc) and read packages compressed with Oodle
@@ -88,6 +88,7 @@ testAsset.ReadAll();
 - Paks and versioned uassets
 - Desktop app
 - Documentation (wip)
+- Engine version switching (only 5.6 works)
 
 ### Special thanks to
 This project was heavily based on [CUE4Parse](https://github.com/FabianFG/CUE4Parse) with the goal of recreating Unreal Engine's asset reading and writing functionality as an easy to use API
