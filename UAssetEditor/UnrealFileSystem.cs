@@ -42,23 +42,26 @@ public class UnrealFileSystem
         });
     }
     
-    public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6)
+    public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6, bool unloadContainersWithNoFiles = true)
     {
         var files = Directory.EnumerateFiles(_directory);
 
         if (loadInParallel)
         {
             Parallel.ForEach(files, new ParallelOptions
-                { MaxDegreeOfParallelism = maxDegreeOfParallelism }, HandleContainer);
+                { MaxDegreeOfParallelism = maxDegreeOfParallelism }, x => HandleContainer(x, unloadContainersWithNoFiles));
         }
         else
         {
             foreach (var file in files)
-                HandleContainer(file);
+                HandleContainer(file, unloadContainersWithNoFiles);
         }
+        
+        if (unloadContainersWithNoFiles)
+            GC.Collect();
     }
 
-    public void HandleContainer(string file)
+    public void HandleContainer(string file, bool unloadContainerIfNoFilesFound)
     {
         Information($"Mounting '{file}'");
 
@@ -77,6 +80,16 @@ public class UnrealFileSystem
             {
                 container = new IoFile(file, this);
                 container.Mount();
+
+                if (unloadContainerIfNoFilesFound)
+                {
+                    if (container.FileCount == 0)
+                    {
+                        container.Unmount();
+                        Information($"Unmounted '{file}' because no virtual files were found.");
+                        return;
+                    }
+                }
 
                 foreach (var pkg in container.PackagesByPath)
                     Packages.TryAdd(pkg.Key, pkg.Value);

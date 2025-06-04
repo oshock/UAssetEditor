@@ -10,6 +10,11 @@ public class PakFile : ContainerFile
 
     public override void Mount()
     {
-        
+        throw new NotImplementedException();
+    }
+
+    public override void Unmount()
+    {
+        throw new NotImplementedException();
     }
 }

@@ -36,6 +36,7 @@ public abstract class UnrealFileReader : Reader
     }
 
     public abstract void ProcessIndex();
+    public abstract void Unmount();
 
     public byte[] DecryptIfEncrypted(byte[] buffer)
     {
@@ -46,6 +47,5 @@ public abstract class UnrealFileReader : Reader
             throw new NoNullAllowedException($"{nameof(AesKey)} cannot be null when attempting to decrypt.");
             
         return buffer.Decrypt(AesKey!);
-
     }
 }

@@ -194,6 +194,13 @@ public class IoStoreReader : UnrealFileReader
         }
     }
 
+    public override void Unmount()
+    {
+        Resource = null;
+        ContainerHeader = null;
+        TocImperfectHashMapFallback = null;
+    }
+
     public void ReadContainerHeader()
     {
         var chunkId = new FIoChunkId(Resource.Header.ContainerId.Id, 0, EIoChunkType5.ContainerHeader);
@@ -202,7 +209,12 @@ public class IoStoreReader : UnrealFileReader
         
         try
         {
-            data = ExtractChunk(chunkId);
+            if (IsAssignedAes)
+                data = ExtractChunk(chunkId);
+            else
+            {
+                Log.Error($"'{Owner?.Path}' ({Resource.Header.EncryptionKeyGuid}) has not been assigned an AesKey");
+            }
         }
         catch (Exception ex)
         {

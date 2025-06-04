@@ -45,4 +45,11 @@ public class IoFile : ContainerFile
 
         ReaderAsIoReader.ReadContainerHeader();
     }
+
+    public override void Unmount()
+    {
+        FilesById = null;
+        ReaderAsIoReader.Unmount();
+        ReaderAsIoReader.Dispose();
+    }
 }

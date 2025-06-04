@@ -7,7 +7,7 @@ using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Containers;
 
-public abstract class ContainerFile
+public abstract class ContainerFile : IDisposable
 {
     public Reader? Reader { get; protected set; }
     public abstract bool IsEncrypted { get; }
@@ -30,6 +30,7 @@ public abstract class ContainerFile
     /// Loads the container and all of its data
     /// </summary>
     public abstract void Mount();
+    public abstract void Unmount();
 
     /// <summary>
     /// Attempts to find a package via its path.
@@ -53,5 +54,10 @@ public abstract class ContainerFile
             path = path.StartsWith(reader.MountPoint) ? path : reader.MountPoint + path;
         
         return PackagesByPath.TryGetValue(path, out pkg);
+    }
+
+    public void Dispose()
+    {
+        Reader?.Dispose();
     }
 }
