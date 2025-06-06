@@ -25,6 +25,7 @@ public class ResolvedObject
 
 public sealed class ResolvedExportObject : ResolvedObject
 {
+    public FExportMapEntry? ExportMapEntry { get; set; }
     public UObject? Object { get; set; }
     public override FName Name => new(Object?.Name ?? "None");
     
@@ -35,13 +36,12 @@ public sealed class ResolvedExportObject : ResolvedObject
 
     public void Load()
     {
-        if (Package.Exports.Length > ExportIndex)
-            Object = Package.Exports[ExportIndex];
-        else
-        {
-            throw new ArgumentOutOfRangeException(
-                $"Export {ExportIndex} in package '{Package.Name}' can not be referenced because package only contains {Package.Exports.Length} export(s)");
-        }
+        var map = Package.As<ZenAsset>().ExportMap;
+        if (ExportIndex >= map.Length)
+            return;
+        
+        ExportMapEntry = map[ExportIndex];
+        Package.ExportObjectsToLoad.Add(this);
     }
 
     public UObject? GetObject()

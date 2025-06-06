@@ -19,7 +19,7 @@ Oodle.Initialize("oo2core_9_win64.dll");
 var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
-system.AesKeys.Add(new FGuid(), new FAesKey("0x17243B0E3E66DA90347F7C4787692505EC5E5285484633D71B09CD6ABB714E9B"));
+system.AesKeys.Add(new FGuid(), new FAesKey("0x67E992943B63878FEF3C02DE9E0100C127A6C34A569231ED153E03E6CDB0F5A2"));
 
 // Start a stopwatch
 var sw1 = Stopwatch.StartNew();
@@ -32,11 +32,11 @@ sw1.Stop();
 Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
-system.LoadMappings("++Fortnite+Release-35.00-CL-41994699-Windows_oo.usmap", "oo2core_9_win64.dll");
+system.LoadMappings("++Fortnite+Release-35.20-CL-42911808-Windows_oo.usmap", "oo2core_9_win64.dll");
 
 // Extract the asset
 if (!system.TryExtractAsset(
-        "FortniteGame/Content/Items/Traps/Blueprints/Device_Floor_VehicleSpawnerParent.uasset",
+        "FortniteGame/Content/Athena/HUD/MapKey.uasset",
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
@@ -49,12 +49,6 @@ asset!.ReadAll();
 // Write stats
 sw.Stop();
 Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
-
-// Get Hero Definition (Testing)
-/*var heroDefinition = asset["CID_028_Athena_Commando_F"]?["HeroDefinition"].GetValue<ObjectProperty>();
-var obj = heroDefinition?.Value?.ResolvedObject;
-if (obj != null)
-    Console.WriteLine($"HeroDefinition: '{obj.Name}'");*/
 
 var json = asset.ToString(); // Convert to Json String
 File.WriteAllText("CID_028_Athena_Commando_F.json", json);
