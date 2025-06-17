@@ -19,7 +19,7 @@ Oodle.Initialize("oo2core_9_win64.dll");
 var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
-system.AesKeys.Add(new FGuid(), new FAesKey("0x67E992943B63878FEF3C02DE9E0100C127A6C34A569231ED153E03E6CDB0F5A2"));
+system.AesKeys.Add(new FGuid(), new FAesKey("0x69385B0781311449AC9FD56B70C8EE9FD0EF062FD55FF8E28E0AE45C22AE2A1A"));
 
 // Start a stopwatch
 var sw1 = Stopwatch.StartNew();
@@ -32,11 +32,11 @@ sw1.Stop();
 Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
-system.LoadMappings("++Fortnite+Release-35.20-CL-42911808-Windows_oo.usmap", "oo2core_9_win64.dll");
+system.LoadMappings("++Fortnite+Release-36.00-CL-43214806-Windows_oo.usmap", "oo2core_9_win64.dll");
 
 // Extract the asset
 if (!system.TryExtractAsset(
-        "FortniteGame/Content/Athena/HUD/MapKey.uasset",
+        "FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Characters/Player/Male/Medium/Bodies/M_MED_WeaveHarbor/Textures/T_WeaveHarbor_Body_D.uasset",
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 

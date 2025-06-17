@@ -149,7 +149,8 @@ public static class PropertyReflector
         new UStructVer("LinearColor", typeof(FLinearColor)),
         new UStructVer("Guid", typeof(FGuid)),
         new UStructVer("RichCurveKey", typeof(RichCurve.FRichCurveKey)),
-        new UStructVer("SimpleCurveKey", typeof(SimpleCurve.FSimpleCurveKey))
+        new UStructVer("SimpleCurveKey", typeof(SimpleCurve.FSimpleCurveKey)),
+        new UStructVer("IntPoint", typeof(FIntPoint))
     };
 
     public static object ReadProperty(string type, Reader reader, PropertyData? data,
