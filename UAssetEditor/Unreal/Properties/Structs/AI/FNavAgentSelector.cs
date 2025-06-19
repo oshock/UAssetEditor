@@ -11,7 +11,7 @@ namespace UAssetEditor.Unreal.Properties.Structs.AI;
 // Not supposed to be in here but idk you can move it if you want.
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct FNavAgentSelector : IUnrealType
+public struct FNavAgentSelector : IUnrealType
 {
-    public readonly uint PackedBits;
+    public uint PackedBits;
 }
