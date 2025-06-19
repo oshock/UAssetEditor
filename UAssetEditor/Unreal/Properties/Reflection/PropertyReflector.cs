@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using UAssetEditor.Unreal.Exports;
 using UAssetEditor.Unreal.Properties.Structs;
 using UAssetEditor.Unreal.Properties.Structs.Math;
@@ -9,6 +9,9 @@ using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Properties.Structs.Curves;
 using UAssetEditor.Unreal.Properties.Structs.GameplayTags;
+using System.Drawing;
+using UAssetEditor.Unreal.Properties.Structs.Misc;
+using UAssetEditor.Unreal.Properties.Structs.AI;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
 
@@ -135,6 +138,12 @@ public static class PropertyReflector
     public static List<UStructVer> DefinedStructsByName = new()
     {
         new UStructVer("Box2f", typeof(TBox2<float>)),
+        new UStructVer("Box", typeof(FBox)),
+        new UStructVer("Box2D", typeof(FBox2D)),
+        new UStructVer("NavAgentSelector", typeof(FNavAgentSelector)),
+        new UStructVer("Color", typeof(FColor)),
+        new UStructVer("DateTime", typeof(FDateTime)),
+        new UStructVer("FrameNumber", typeof(FFrameNumber)),
         new UStructVer("GameplayTagContainer", typeof(FGameplayTagContainer)),
         new UStructVer("InstancedStruct", typeof(FInstancedStruct)),
         new UStructVer("Vector", typeof(FVector3), 
@@ -150,7 +159,14 @@ public static class PropertyReflector
         new UStructVer("Guid", typeof(FGuid)),
         new UStructVer("RichCurveKey", typeof(RichCurve.FRichCurveKey)),
         new UStructVer("SimpleCurveKey", typeof(SimpleCurve.FSimpleCurveKey)),
-        new UStructVer("IntPoint", typeof(FIntPoint))
+        new UStructVer("IntPoint", typeof(FIntPoint)),
+        new UStructVer("IntVector2", typeof(TIntVector2<int>)),
+        new UStructVer("UintVector2", typeof(TIntVector2<uint>)),
+        new UStructVer("IntVector", typeof(FIntVector)),
+        new UStructVer("Transform3f", typeof(FTransform)),
+        new UStructVer("Plane", typeof(FPlane),
+            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FPlane_LARGE_WORLD_COORDINATES))),
+        new UStructVer("Int32Point", typeof(FIntPoint))
     };
 
     public static object ReadProperty(string type, Reader reader, PropertyData? data,
