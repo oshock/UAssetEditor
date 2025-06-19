@@ -11,5 +11,5 @@ namespace UAssetEditor.Unreal.Properties.Structs.Misc;
 public struct FFrameNumber : IUnrealType
 {
     [UField]
-    public readonly int Value;
+    public int Value;
 }
