@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +12,7 @@ public struct FTransform : IUnrealType
     [UField]
     public FQuat Rotation;
     [UField]
-    public FVector Translation;
+    public FVector3 Translation;
     [UField]
-    public FVector Scale3D;
+    public FVector3 Scale3D;
 }
