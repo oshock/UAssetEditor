@@ -60,7 +60,7 @@ public class FInstancedStruct : UStruct
         asset.WriteProperties(properties, Index.ResolvedObject?.Name.ToString() 
                                           ?? throw new NoNullAllowedException("ResolvedObject cannot be null!"), Properties);
         
-        writer.Write(properties.Length); // Write Buffer.Length
+        writer.Write((int)properties.Length); // Write Buffer.Length
         properties.CopyTo(writer); // Write Buffer
     }
 }
