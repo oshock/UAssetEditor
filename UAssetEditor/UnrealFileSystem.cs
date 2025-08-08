@@ -20,7 +20,9 @@ public class UnrealFileSystem
     public Dictionary<FGuid, FAesKey> AesKeys = new();
     
     private string _directory;
-
+    public readonly IEnumerable<string> Files;
+    public int MountedFiles { get; private set; }
+    
     public ConcurrentDictionary<string, UnrealFileEntry> Packages { get; } = new();
 
     public Usmap? Mappings { get; private set; }
@@ -30,12 +32,22 @@ public class UnrealFileSystem
     public UnrealFileSystem(string directory)
     {
         _directory = directory;
+        Files = Directory.EnumerateFiles(_directory);
         _containers = new List<ContainerFile>();
     }
 
     public void LoadMappings(string path, string? oodleDll = null)
     {
         Mappings = new Usmap(path, new UsmapOptions
+        {
+            Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
+            SaveNames = false
+        });
+    }
+    
+    public void LoadMappings(byte[] data, string? oodleDll = null)
+    {
+        Mappings = new Usmap(data, new UsmapOptions
         {
             Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
             SaveNames = false
@@ -80,6 +92,7 @@ public class UnrealFileSystem
             {
                 container = new IoFile(file, this);
                 container.Mount();
+                MountedFiles++;
 
                 if (unloadContainerIfNoFilesFound)
                 {

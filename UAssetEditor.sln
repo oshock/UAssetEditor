@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor.Testing", "UAs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor", "UAssetEditor\UAssetEditor.csproj", "{D10D2D14-A824-4977-A44A-C7ACA3DB123E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAssetEditor.Console", "UAssetEditor.Console\UAssetEditor.Console.csproj", "{60401F44-1708-4710-9025-913693EC481F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{D10D2D14-A824-4977-A44A-C7ACA3DB123E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D10D2D14-A824-4977-A44A-C7ACA3DB123E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D10D2D14-A824-4977-A44A-C7ACA3DB123E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60401F44-1708-4710-9025-913693EC481F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60401F44-1708-4710-9025-913693EC481F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60401F44-1708-4710-9025-913693EC481F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60401F44-1708-4710-9025-913693EC481F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
