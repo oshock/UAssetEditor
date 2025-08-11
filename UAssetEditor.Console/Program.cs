@@ -4,7 +4,9 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using Spectre.Console;
 using UAssetEditor;
+using UAssetEditor.Binary;
 using UAssetEditor.Compression;
+using UAssetEditor.Console;
 using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Properties;
@@ -12,7 +14,7 @@ using UAssetEditor.Unreal.Properties.Types;
 
 // Construct USystem
 Oodle.Initialize("oo2core_9_win64.dll");
-var paks = AnsiConsole.Prompt(new TextPrompt<string>("[blue]What is the path to your paks folder?[/]"));
+var paks = Prompts.Ask("[blue]What is the path to your paks folder?[/]");
 var uSystem = new UnrealFileSystem(paks);
 
 // Use GenxGames.gg for Aes Keys
@@ -88,15 +90,20 @@ if (useMappingsEndpoint)
     AnsiConsole.Markup("\n[blue]Loaded mappings.");
 }
 else
-{
-    AnsiConsole.MarkupLine("[blue]Enter the path to your mappings file[/] (.usmap)");
-    var mappingsPath = AnsiConsole.Prompt(new TextPrompt<string>("[aqua]>>>[/]")).Replace("\"", "").Replace("/", "\\").Trim();
+{ 
+    mappingsPath:
+    var mappingsPath = Prompts.Ask("[blue]Enter the path to your mappings file[/] (.usmap)").Replace("\"", "").Replace("/", "\\").Trim();
+    if (!File.Exists(mappingsPath))
+    {
+        AnsiConsole.MarkupLine($"[red]Could not find file: '[white]{mappingsPath}[/]'[/]");    
+        goto mappingsPath;
+    }
+    
     uSystem.LoadMappings(mappingsPath, "oo2core_9_win64.dll");
 }
 
 extractAsset:
-AnsiConsole.MarkupLine("[blue]Enter a path to an asset [/](ex: 'FortniteGame/Content/Asset.uasset')");
-var assetPath = AnsiConsole.Prompt(new TextPrompt<string>(">>>")).Replace("\\", "/").Trim();
+var assetPath = Prompts.Ask("[blue]Enter a path to an asset [/](ex: 'FortniteGame/Content/Asset.uasset')").Replace("\\", "/").Trim();
 AnsiConsole.MarkupLine($"[blue]Extracting '[white]{assetPath}[/]'...[/]");
 
 if (!uSystem.TryExtractAsset(assetPath, out var asset))
@@ -121,12 +128,40 @@ Thread.Sleep(1500);
 openExport:
 AnsiConsole.Clear();
 
+var exportChoices = asset.Exports.Select(x => x.Name).ToList();
+exportChoices.Add("Export Asset");
 var exportName = AnsiConsole.Prompt(
     new SelectionPrompt<string>()
         .Title("[blue]Pick an export to open[/]:")
         .PageSize(10)
         .MoreChoicesText("[grey](Move up and down to show more exports)[/]")
-        .AddChoices(asset.Exports.Select(x => x.Name)));
+        .AddChoices(exportChoices));
+
+if (exportName == "Export Asset")
+{
+    exportAsset:
+    try
+    {
+        AnsiConsole.Clear();
+        var filePath = Prompts.Ask("[blue]Enter a file path [white](ex: C:\\Asset.uasset)[/][/]");
+        var writer = new Writer(filePath);
+
+        var sw2 = Stopwatch.StartNew();
+        asset.WriteAll(writer);
+        sw2.Stop();
+        writer.Close();
+
+        AnsiConsole.MarkupLine($"[aqua]Wrote asset in [white]{sw2.ElapsedMilliseconds}ms[/][/]");
+        Thread.Sleep(1000);
+        return;
+    }
+    catch (Exception ex)
+    {
+        AnsiConsole.MarkupLine($"[red]{ex}[/]");
+        goto exportAsset;
+    }
+}
+
 var export = asset.Exports[exportName];
 
 var properties = export!.Properties.Select(x => Markup.Escape($"{x.Name} ({x.Data?.Type ?? "None"})")).ToList();
@@ -162,8 +197,7 @@ switch (property.Data?.Type)
     {
         var value = property.GetValue<SoftObjectProperty>();
         AnsiConsole.MarkupLine($"[blue]\"[white]{value?.Value ?? "None"}[/]\"[/]");
-        AnsiConsole.MarkupLine("[blue]Enter a new value [white](ex: /Game/Path.Name)[/] or type '.' to exit...[/]");
-        var newValue = AnsiConsole.Prompt(new TextPrompt<string>("[aqua]>>>[/]"));
+        var newValue = Prompts.Ask("[blue]Enter a new value [white](ex: /Game/Path.Name)[/] or type '.' to exit...[/]");
         if (newValue != ".")
             value!.Value = newValue;
         
