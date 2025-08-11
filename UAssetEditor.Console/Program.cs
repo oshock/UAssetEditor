@@ -178,7 +178,7 @@ var propertyName = AnsiConsole.Prompt(
 if (propertyName == "..")
     goto openExport;
 
-var property = export.Properties[properties.ToList().FindIndex(x => x == propertyName)];
+var property = export.Properties[properties.ToList().FindIndex(x => x == propertyName) - 1];
 PrintPropertyInfo(property);
 
 switch (property.Data?.Type)
