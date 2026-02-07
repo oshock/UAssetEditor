@@ -24,9 +24,9 @@ var sw1 = Stopwatch.StartNew();
 // Mount containers
 system.Initialize();
 
-// Write stats
+// Print stats
 sw1.Stop();
-Console.WriteLine($"Read all in {sw1.ElapsedMilliseconds}ms.");
+Console.WriteLine($"\nMounted {system.Containers.Count} containers(s) in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
 system.LoadMappings("path/to/usmap/++Fortnite+Release-33.11-CL-38773622-Windows_oo.usmap", "path/to/dll/oo2core_9_win64.dll (if needed)");
@@ -44,7 +44,7 @@ if (!system.TryExtractAsset(
 var sw2 = Stopwatch.StartNew();
 
 // Read everything
-asset!.ReadAll();
+asset.ReadAll();
 
 // Write stats
 sw2.Stop();
