@@ -28,7 +28,7 @@ var sw1 = Stopwatch.StartNew();
 // Mount containers
 system.Initialize();
 
-// Write stats
+// Print stats
 sw1.Stop();
 Console.WriteLine($"\nMounted {system.Containers.Count} containers(s) in {sw1.ElapsedMilliseconds}ms.\n");
 
