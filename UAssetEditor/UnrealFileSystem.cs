@@ -38,7 +38,7 @@ public class UnrealFileSystem
 
     public void LoadMappings(string path, string? oodleDll = null)
     {
-        Mappings = new Usmap(path, new UsmapOptions
+        Mappings = Usmap.Parse(path, new UsmapOptions
         {
             Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
             SaveNames = false
@@ -47,7 +47,7 @@ public class UnrealFileSystem
     
     public void LoadMappings(byte[] data, string? oodleDll = null)
     {
-        Mappings = new Usmap(data, new UsmapOptions
+        Mappings = Usmap.Parse(data, new UsmapOptions
         {
             Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
             SaveNames = false

@@ -82,12 +82,12 @@ if (useMappingsEndpoint)
 {
     var response = new RestClient().ExecuteGet(new RestRequest("https://fortnitecentral.genxgames.gg/api/v1/mappings"));
     var json = JObject.Parse(response.Content);
-    var mappingsUrl = json[0]["url"].ToString();
+    var mappingsUrl = json["mappings"]["ZStandard"].ToString();
 
     var data = new HttpClient().GetByteArrayAsync(mappingsUrl).GetAwaiter().GetResult();
     uSystem.LoadMappings(data, "oo2core_9_win64.dll");
     
-    AnsiConsole.Markup("\n[blue]Loaded mappings.");
+    AnsiConsole.Markup("\n[blue]Loaded mappings.[/]");
 }
 else
 { 
