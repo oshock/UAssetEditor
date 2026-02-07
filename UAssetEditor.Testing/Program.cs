@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
+using System.IO.Enumeration;
 using UAssetEditor;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Binary;
@@ -29,7 +30,7 @@ system.Initialize();
 
 // Write stats
 sw1.Stop();
-Console.WriteLine($"\nRead all in {sw1.ElapsedMilliseconds}ms.\n");
+Console.WriteLine($"\nMounted {system.Containers.Count} containers(s) in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
 system.LoadMappings("++Fortnite+Release-36.00-CL-43214806-Windows_oo.usmap", "oo2core_9_win64.dll");

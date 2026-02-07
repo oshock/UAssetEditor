@@ -50,8 +50,8 @@ public class EnumProperty : AbstractProperty<string>
         if (enumData is null)
             throw new NullReferenceException($"Enum {data.EnumName} not found in mappings.");
         
-        Value = enumData.Names.Length >= index
-            ? enumData.Names[index]
+        Value = enumData.Members.Count >= index
+            ? enumData.Members.ElementAt(index).Name
             : throw new KeyNotFoundException($"Could not find a enum name ('{data.EnumName}') at index {index}.");
     }
     
@@ -81,7 +81,7 @@ public class EnumProperty : AbstractProperty<string>
         
         ArgumentNullException.ThrowIfNull(enumProperty.Value);
         
-        var index = enumData.Names.ToList().IndexOf(enumProperty.Value);
+        var index = enumData.Members.Select(x => x.Name).ToList().IndexOf(enumProperty.Value);
         var enumType = property.Data?.InnerType?.Type;
         
         ArgumentNullException.ThrowIfNull(enumType);
