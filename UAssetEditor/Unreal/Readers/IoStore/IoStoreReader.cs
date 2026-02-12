@@ -148,7 +148,7 @@ public class IoStoreReader : UnrealFileReader
 
         try
         {
-            MountPoint = FString.Read(indexReader);
+            MountPoint = FString.Read(indexReader).ToLower();
         }
         catch
         {

@@ -50,14 +50,24 @@ public abstract class ContainerFile : IDisposable
             return false;
         }
         
-        if (!string.IsNullOrEmpty(reader.MountPoint))
-            path = path.StartsWith(reader.MountPoint) ? path : reader.MountPoint + path;
-        
+        var root = reader.MountPoint?.Split("../../../").LastOrDefault();
+        if (root != null)
+        {
+            var part = path.Split().LastOrDefault();
+            if (part != null)
+                path = "../../../" + part;
+        }
+
         return PackagesByPath.TryGetValue(path, out pkg);
     }
 
     public void Dispose()
     {
         Reader?.Dispose();
+    }
+
+    public override string ToString()
+    {
+        return Reader?.Name ?? "None";
     }
 }
