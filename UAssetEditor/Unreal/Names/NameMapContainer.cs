@@ -16,6 +16,8 @@ public class NameMapContainer : Container<string>
     public ulong HashVersion;
     public override int GetIndex(string str) => Items.FindIndex(x => x == str);
 
+    private const ulong DEFAULT_HASH_VERSION = 0xC164000000;
+    
     public NameMapContainer(List<string> items) : base(items)
     { }
 
@@ -33,6 +35,9 @@ public class NameMapContainer : Container<string>
     {
         HashVersion = hashVersion;
     }
+    
+    public NameMapContainer() : this(DEFAULT_HASH_VERSION, new())
+    { }
     
     public static void WriteNameMap(Writer writer, NameMapContainer nameMap)
     {

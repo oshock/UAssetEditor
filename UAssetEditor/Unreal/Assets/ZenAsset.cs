@@ -26,18 +26,18 @@ public class ZenAsset : Asset
     public IoGlobalReader? GlobalData;
     public IoStoreReader? IoReader => Reader as IoStoreReader;
 
-    public FBulkDataMapEntry[] BulkDataMap;
-    public ulong[] ImportedPublicExportHashes;
+    public FBulkDataMapEntry[] BulkDataMap = [];
+    public ulong[] ImportedPublicExportHashes = [];
     public FPackageObjectIndex[] ImportMap;
     public ExportContainer ExportMap;
-    public FPackageObjectIndex[] CellImportMap;
-    FCellExportMapEntry[] CellExportMap;
+    public FPackageObjectIndex[] CellImportMap = [];
+    FCellExportMapEntry[] CellExportMap = [];
     public FExportBundleHeader[]? ExportBundleHeaders;
     public FExportBundleEntry[] ExportBundleEntries;
     public Tuple<FPackageId, FArc[]>[] SortedExternalArcs;
-    public FDependencyBundleHeader[] DependencyBundleHeaders;
-    public int[] DependencyBundleEntries;
-    public FZenPackageImportedPackageNamesContainer ImportedPackageNamesContainer;
+    public FDependencyBundleHeader[] DependencyBundleHeaders = [];
+    public int[] DependencyBundleEntries = [];
+    public FZenPackageImportedPackageNamesContainer ImportedPackageNamesContainer = new();
 
     public List<FPackageId>? ImportedPackageIds;
     
@@ -327,6 +327,7 @@ public class ZenAsset : Asset
 		    if (export == null)
 			    throw new KeyNotFoundException("Object exists in the export map, but not in the loaded exports.");
 		    
+            export.Class = new UStruct(Mappings.FindSchema(export.Class.Name), Mappings);
 		    export.Serialize(uexp);
 
 		    ExportMap[i].CookedSerialSize = (ulong)(uexp.Position - start);

@@ -30,6 +30,38 @@ zen.Mappings = Usmap.Parse(@"C:\Users\Owens\Documents\FModel\Output\.data\++Fort
 });
 zen.ReadAll();
 
+var latestGlobalToc = IoGlobalReader.InitializeGlobalData(@"S:\Fortnite\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE5_LATEST);
+var latestMappings = Usmap.Parse("++Fortnite+Release-39.51-CL-51287198_zs.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+
+zen.GlobalData = latestGlobalToc;
+zen.Mappings = latestMappings;
+zen.Game = EGame.GAME_UE5_LATEST;
+
+// Create a writer with the file "CID_028_Athena_Commando_F.uasset"
+var writer = new Writer("WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03.uasset");
+
+// Serialize the asset and dispose the writer
+zen.WriteAll(writer);
+writer.Close();
+
+// Create a new ZenAsset with the asset with just serialized
+var testAsset = new ZenAsset("WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03.uasset");
+
+// Set the GlobalReader instance
+testAsset.Initialize(latestGlobalToc);
+
+// Set mappings
+testAsset.Game = EGame.GAME_UE5_LATEST;
+testAsset.Mappings = latestMappings;
+
+// Test if it reads our asset properly
+testAsset.ReadAll();
+return;
+/*
 // Initialize Oodle (FIRST)
 Oodle.Initialize("oo2core_9_win64.dll");
 
@@ -100,5 +132,6 @@ testAsset.Mappings = system.Mappings;
 
 // Test if it reads our asset properly
 testAsset.ReadAll();
+*/
 
 Console.ReadKey();
