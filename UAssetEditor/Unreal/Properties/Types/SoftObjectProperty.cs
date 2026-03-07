@@ -1,5 +1,6 @@
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Assets;
 
 
@@ -50,12 +51,20 @@ public class SoftObjectProperty : AbstractProperty<string>
             SubPathName = "";
             return;
         }
+
+        if (asset.FileVersion >= EUnrealEngineObjectUE5Version.FSOFTOBJECTPATH_REMOVE_ASSET_PATH_FNAMES)
+        {
+            AssetPathName = new FName(reader, asset.NameMap);
+            PackageName = new FName(reader, asset.NameMap);
+            Value = $"{AssetPathName}.{PackageName}";
+        }
+        else
+        {
+            AssetPathName = new FName(reader, asset.NameMap);
+            Value = $"{AssetPathName}";
+        }
         
-        AssetPathName = new FName(reader, asset.NameMap);
-        PackageName = new FName(reader, asset.NameMap);
-        SubPathName = FString.Read(reader);
-        
-        Value = $"{AssetPathName}.{PackageName}";
+        SubPathName = FString.Read(reader); // TODO fortnite version branch object
     }
 
     public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)

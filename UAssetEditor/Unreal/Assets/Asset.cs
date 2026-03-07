@@ -76,8 +76,18 @@ public abstract class Asset : Reader
     public NameMapContainer NameMap;
     public EPackageFlags Flags;
 
-    public EGame Game = EGame.GAME_UE5_LATEST; // TODO implement
-    public FPackageFileVersion FileVersion = FPackageFileVersion.AUTO;
+    private EGame _game;
+
+    public EGame Game
+    {
+        get => _game;
+        set
+        {
+            _game = value;
+            FileVersion.Game = value;
+        }
+    }
+    public FPackageFileVersion FileVersion = FPackageFileVersion.AUTO_UE5;
     
     public bool HasUnversionedProperties => Flags.HasFlag(EPackageFlags.PKG_UnversionedProperties);
 
@@ -105,11 +115,11 @@ public abstract class Asset : Reader
             throw new NoNullAllowedException("Mappings cannot be null");
     }
 
-    public void SetVersion(EUnrealEngineObjectUE4Version version) =>
-        FileVersion = FPackageFileVersion.CreateUE4Version(version);
+    public void SetVersion(EGame game, EUnrealEngineObjectUE4Version version) =>
+        FileVersion = FPackageFileVersion.CreateUE4Version(game, version);
 
-    public void SetVersion(EUnrealEngineObjectUE5Version version) =>
-        FileVersion = FPackageFileVersion.CreateUE5Version(version);
+    public void SetVersion(EGame game, EUnrealEngineObjectUE5Version version) =>
+        FileVersion = FPackageFileVersion.CreateUE5Version(game, version);
 
     /// <summary>
     /// Read the entirety of this asset

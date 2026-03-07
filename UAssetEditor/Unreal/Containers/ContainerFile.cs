@@ -51,14 +51,14 @@ public abstract class ContainerFile : IDisposable
         }
         
         var root = reader.MountPoint?.Split("../../../").LastOrDefault();
-        if (root != null)
-        {
-            var part = path.Split().LastOrDefault();
-            if (part != null)
-                path = "../../../" + part;
-        }
-
-        return PackagesByPath.TryGetValue(path, out pkg);
+                if (root != null)
+                {
+                    var part = path.Split().LastOrDefault();
+                    if (part != null)
+                        path = "../../../" + part;
+                }
+        
+                return PackagesByPath.TryGetValue(path, out pkg);
     }
 
     public void Dispose()

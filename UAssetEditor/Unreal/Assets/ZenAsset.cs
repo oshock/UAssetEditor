@@ -15,6 +15,8 @@ using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Readers;
 using UAssetEditor.Unreal.Readers.IoStore;
 using UAssetEditor.Unreal.Summaries;
+using UAssetEditor.Unreal.Summaries.IO;
+using UAssetEditor.Unreal.Versioning;
 using UAssetEditor.Utils;
 
 namespace UAssetEditor.Unreal.Assets;
@@ -30,7 +32,9 @@ public class ZenAsset : Asset
     public ExportContainer ExportMap;
     public FPackageObjectIndex[] CellImportMap;
     FCellExportMapEntry[] CellExportMap;
+    public FExportBundleHeader[]? ExportBundleHeaders;
     public FExportBundleEntry[] ExportBundleEntries;
+    public Tuple<FPackageId, FArc[]>[] SortedExternalArcs;
     public FDependencyBundleHeader[] DependencyBundleHeaders;
     public int[] DependencyBundleEntries;
     public FZenPackageImportedPackageNamesContainer ImportedPackageNamesContainer;
@@ -70,101 +74,190 @@ public class ZenAsset : Asset
 	    
 	    // Moved here cause package imports need to be loaded before reading them
 	    PopulateImportIds();
-	    
-	    foreach (var entry in ExportBundleEntries)
-	    {
-		    if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
-			    continue;
-		    
-		    var export = ExportMap[entry.LocalExportIndex];
-		    var name = NameMap[(int)export.ObjectName.NameIndex];
-		    var className = export.Class.Value;
-		    
-		    var obj = UObject.ConstructObject(this, className);
-		    obj.Name = name;
-		    obj.Outer = new Lazy<UObject?>(() =>
-			    ResolveObjectIndex(export.OuterIndex)?.As<ResolvedExportObject>().Object);
-		    obj.Super = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.OuterIndex));
-		    obj.Template = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.TemplateIndex));
-		    obj.Flags |= export.ObjectFlags;
 
-		    var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == className);
-		    if (schema == null)
-		    {
-			    Log.Error($"Could not find schema named '{className}'. Skipping deserialization.");
-			    continue;
-		    }
-		    
-		    obj.Class = new UStruct(schema, Mappings);
-		    
-		    var position = headerSize + (long)export.CookedSerialOffset;
-		    var validPos = position + (long)export.CookedSerialSize;
-		    obj.Deserialize(position);
+        if (ExportBundleHeaders != null)
+        {
+            var position = headerSize;
+            foreach (var header in ExportBundleHeaders)
+            {
+                for (var i = 0u; i < header.EntryCount; i++)
+                {
+                    position += ProcessEntry(ExportBundleEntries[header.FirstEntryIndex + i], (int)position, true);
+                }
+            }
+        }
+        else
+        {
+            foreach (var entry in ExportBundleEntries)
+            {
+                ProcessEntry(entry, 0);
+            }
+        }
 
-		    if (Position != validPos)
-		    {
-			    Warning(
-				    $"'{obj.Class.Name}.{obj.Name}' did not read correctly! Expected serial size: {export.CookedSerialSize}, but got {Position - (long)export.CookedSerialOffset}");
-		    }
-		    
-		    Exports.Add(obj);
-	    }
+        return;
+
+        int ProcessEntry(FExportBundleEntry entry, int pos, bool isFromHeader = false)
+        {
+            if (entry.CommandType != EExportCommandType.ExportCommandType_Serialize)
+                return 0;
+
+            var export = ExportMap[entry.LocalExportIndex];
+            var name = NameMap[(int)export.ObjectName.NameIndex];
+            var className = export.Class.Value;
+
+            var obj = UObject.ConstructObject(this, className);
+            obj.Name = name;
+            obj.Outer = new Lazy<UObject?>(() =>
+                ResolveObjectIndex(export.OuterIndex)?.As<ResolvedExportObject>().Object);
+            obj.Super = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.OuterIndex));
+            obj.Template = new Lazy<ResolvedObject?>(() => ResolveObjectIndex(export.TemplateIndex));
+            obj.Flags |= export.ObjectFlags;
+
+            var schema = Mappings?.Schemas.FirstOrDefault(x => x.Name == className);
+            if (schema == null)
+            {
+                Log.Error($"Could not find schema named '{className}'. Skipping deserialization.");
+                return 0;
+            }
+
+            obj.Class = new UStruct(schema, Mappings);
+
+            var position = isFromHeader ? pos:
+                headerSize + (long)export.CookedSerialOffset;
+            var validPos = position + (long)export.CookedSerialSize;
+            obj.Deserialize(position);
+
+            if (Position != validPos)
+            {
+                Warning(
+                    $"'{obj.Class.Name}.{obj.Name}' did not read correctly! Expected serial size: {export.CookedSerialSize}, but got {Position - (long)export.CookedSerialOffset}");
+            }
+
+            Exports.Add(obj);
+            return (int)export.CookedSerialSize;
+        }
     }
 
     public override uint ReadHeader()
     {
-        var summary = Read<FZenPackageSummary>();
-        Flags = summary.PackageFlags;
-        
-        // EUnrealEngineObjectUE5Version::VERSE_CELLS
-        var cellOffsets = Read<FZenPackageCellOffsets>();
-        
-        NameMap = NameMapContainer.ReadNameMap(this);
-        Name = NameMap[(int)summary.Name.NameIndex];
+        if (Game >= EGame.GAME_UE5_0)
+        {
+            var summary = Read<FZenPackageSummary>();
+            Flags = summary.PackageFlags;
 
-        var padSize = Read<long>();
-        Position += padSize;
-        
-        var bulkDataMapSize = Read<long>();
-        BulkDataMap = ReadArray(() => new FBulkDataMapEntry(this), (int)(bulkDataMapSize / FBulkDataMapEntry.SIZE));
-        
-        Position = summary.ImportedPublicExportHashesOffset;
-        ImportedPublicExportHashes =
-            ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
+            // EUnrealEngineObjectUE5Version::VERSE_CELLS
+            var cellOffsets = Read<FZenPackageCellOffsets>();
 
-        Position = summary.ImportMapOffset;
-        ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) / FPackageObjectIndex.Size);
-        
-        Position = summary.ExportMapOffset;
-        ExportMap = ExportContainer.Read(this, summary, cellOffsets);
+            NameMap = NameMapContainer.ReadNameMap(this);
+            Name = NameMap[(int)summary.Name.NameIndex];
 
-        Position = cellOffsets.CellImportMapOffset;
-        CellImportMap =  ReadArray<FPackageObjectIndex>((cellOffsets.CellExportMapOffset - cellOffsets.CellImportMapOffset) / FPackageObjectIndex.Size);
-        
-        Position = cellOffsets.CellExportMapOffset;
-        CellExportMap = ReadArray(() => new FCellExportMapEntry(this),
-	        summary.ExportBundleEntriesOffset - cellOffsets.CellExportMapOffset);
-        
-        Position = summary.ExportBundleEntriesOffset;
-        ExportBundleEntries = ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
+            var padSize = Read<long>();
+            Position += padSize;
 
-        Position = summary.DependencyBundleHeadersOffset;
-        DependencyBundleHeaders = ReadArray(() => 
-		        new FDependencyBundleHeader
-		        {
-			        FirstEntryIndex = Read<int>(), 
-			        EntryCount = ReadArray(() => ReadArray<uint>(2), 2)
-		        },
-	        (summary.DependencyBundleEntriesOffset - summary.DependencyBundleHeadersOffset) / 20);
+            var bulkDataMapSize = Read<long>();
+            BulkDataMap = ReadArray(() => new FBulkDataMapEntry(this), (int)(bulkDataMapSize / FBulkDataMapEntry.SIZE));
 
-        Position = summary.DependencyBundleEntriesOffset;
-        DependencyBundleEntries =
-	        ReadArray<int>((summary.ImportedPackageNamesOffset - summary.DependencyBundleEntriesOffset) / sizeof(int));
+            Position = summary.ImportedPublicExportHashesOffset;
+            ImportedPublicExportHashes =
+                ReadArray<ulong>((summary.ImportMapOffset - summary.ImportedPublicExportHashesOffset) / sizeof(ulong));
 
-        Position = summary.ImportedPackageNamesOffset;
-        ImportedPackageNamesContainer = new FZenPackageImportedPackageNamesContainer(this);
-        
-        return summary.HeaderSize;
+            Position = summary.ImportMapOffset;
+            ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) /
+                                                       FPackageObjectIndex.Size);
+
+            Position = summary.ExportMapOffset;
+            ExportMap = ExportContainer.Read(this, summary, cellOffsets);
+
+            Position = cellOffsets.CellImportMapOffset;
+            CellImportMap = ReadArray<FPackageObjectIndex>(
+                (cellOffsets.CellExportMapOffset - cellOffsets.CellImportMapOffset) / FPackageObjectIndex.Size);
+
+            Position = cellOffsets.CellExportMapOffset;
+            CellExportMap = ReadArray(() => new FCellExportMapEntry(this),
+                summary.ExportBundleEntriesOffset - cellOffsets.CellExportMapOffset);
+
+            Position = summary.ExportBundleEntriesOffset;
+            ExportBundleEntries =
+                ReadArray<FExportBundleEntry>(ExportMap.Length * (byte)EExportCommandType.ExportCommandType_Count);
+
+            Position = summary.DependencyBundleHeadersOffset;
+            DependencyBundleHeaders = ReadArray(() =>
+                    new FDependencyBundleHeader
+                    {
+                        FirstEntryIndex = Read<int>(),
+                        EntryCount = ReadArray(() => ReadArray<uint>(2), 2)
+                    },
+                (summary.DependencyBundleEntriesOffset - summary.DependencyBundleHeadersOffset) / 20);
+
+            Position = summary.DependencyBundleEntriesOffset;
+            DependencyBundleEntries =
+                ReadArray<int>((summary.ImportedPackageNamesOffset - summary.DependencyBundleEntriesOffset) /
+                               sizeof(int));
+
+            Position = summary.ImportedPackageNamesOffset;
+            ImportedPackageNamesContainer = new FZenPackageImportedPackageNamesContainer(this);
+
+            return summary.HeaderSize;
+        }
+        else
+        {
+            var summary = Read<FPackageSummaryIO>();
+            Flags = summary.PackageFlags;
+
+            Position = summary.NameMapNamesOffset;
+            NameMap = NameMapContainer.ReadNameMap(this, summary);
+            Name = NameMap[(int)summary.Name.NameIndex];
+
+            Position = summary.ImportMapOffset;
+            ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportBundlesOffset - summary.ImportMapOffset) /
+                                                       FPackageObjectIndex.Size);
+            
+            Position = summary.ExportMapOffset;
+            ExportMap = ExportContainer.Read(this, summary);
+
+            Position = summary.ExportBundlesOffset;
+            LoadExportBundles(summary.GraphDataOffset - summary.ExportBundlesOffset, out ExportBundleHeaders,
+                out ExportBundleEntries);
+
+            // https://github.com/EpicGames/UnrealEngine/blob/1598cf219e46e521f6049ebb6822a534071b2782/Engine/Source/Developer/IoStoreUtilities/Private/IoStoreUtilities.cpp#L2275
+            Position = summary.GraphDataOffset;
+            var referencedPackagesCount = Read<int>();
+            SortedExternalArcs = new Tuple<FPackageId, FArc[]>[referencedPackagesCount];
+
+            for (int i = 0; i < SortedExternalArcs.Length; i++)
+            {
+                var importedPackageId = Read<FPackageId>();
+                var externalArcCount = Read<int>();
+                var arcs = ReadArray<FArc>(externalArcCount);
+
+                SortedExternalArcs[i] = new(importedPackageId, arcs);
+            }
+
+            return (uint)(summary.GraphDataOffset + summary.GraphDataSize);
+        }
+    }
+    
+    // https://github.com/FabianFG/CUE4Parse/blob/ae9c85c8b6bae523b3194be29c72ea889f801a50/CUE4Parse/UE4/Assets/IoPackage.cs#L353-L373
+    private void LoadExportBundles(int graphDataSize, out FExportBundleHeader[] bundleHeadersArray, out FExportBundleEntry[] bundleEntriesArray)
+    {
+        var remainingBundleEntryCount = graphDataSize / (4 + 4);
+        var foundBundlesCount = 0;
+        var foundBundleHeaders = new List<FExportBundleHeader>();
+        while (foundBundlesCount < remainingBundleEntryCount)
+        {
+            // This location is occupied by header, so it is not a bundle entry
+            remainingBundleEntryCount--;
+            var bundleHeader = new FExportBundleHeader(this);
+            foundBundlesCount += (int) bundleHeader.EntryCount;
+            foundBundleHeaders.Add(bundleHeader);
+        }
+
+        if (foundBundlesCount != remainingBundleEntryCount)
+            throw new DataException($"{nameof(foundBundlesCount)} != {nameof(remainingBundleEntryCount)} ({foundBundlesCount} != {remainingBundleEntryCount})");
+
+        // Load export bundles into arrays
+        bundleHeadersArray = foundBundleHeaders.ToArray();
+        bundleEntriesArray = ReadArray<FExportBundleEntry>(foundBundlesCount);
     }
 
     public override List<UProperty> ReadProperties(UStruct structure)
@@ -270,7 +363,7 @@ public class ZenAsset : Asset
 
         summary.ExportMapOffset = (int)writer.Position;
         foreach (var export in ExportMap)
-            export.Serialize(writer);
+            export.Serialize(writer, this);
 
         cellOffsets.CellImportMapOffset = (int)writer.Position;
 		writer.WriteArray(CellImportMap);
@@ -416,4 +509,11 @@ public class ExportContainer : Container<FExportMapEntry>
 		return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset), size / FExportMapEntry.Size)
 			.ToList());
 	}
+    
+    public static ExportContainer Read(ZenAsset asset, FPackageSummaryIO summary)
+    {
+        var size = summary.ExportBundlesOffset - summary.ExportMapOffset;
+        return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset), size / FExportMapEntry.Size)
+            .ToList());
+    }
 }

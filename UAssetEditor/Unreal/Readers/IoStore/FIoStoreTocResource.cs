@@ -34,6 +34,12 @@ public class FIoStoreTocResource
     {
         Reader = reader;
         Header = new FIoStoreTocHeader(reader);
+
+        if (Header.Version < EIoStoreTocVersion.PartitionSize)
+        {
+            Header.PartitionCount = 1;
+            Header.PartitionSize = ulong.MaxValue;
+        }
         
         ChunkIds = reader.ReadArray<FIoChunkId>((int)Header.TocEntryCount);
 

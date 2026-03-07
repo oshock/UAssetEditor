@@ -14,8 +14,6 @@ public class IoStoreReader : UnrealFileReader
     public FIoStoreTocResource Resource;
     public FIoContainerHeader ContainerHeader;
     public Dictionary<FIoChunkId, FIoOffsetAndLength>? TocImperfectHashMapFallback;
-
-    private bool bHasPerfectHashMap => Resource.ChunkPerfectHashSeeds != null;
     
     public override bool IsEncrypted => Resource.IsEncrypted;
     public override string[] CompressionMethods => Resource.CompressionMethods;
@@ -63,7 +61,7 @@ public class IoStoreReader : UnrealFileReader
 
     public FIoOffsetAndLength? FindChunkInternal(FIoChunkId chunkId)
     {
-        if (bHasPerfectHashMap)
+        if (Resource.ChunkPerfectHashSeeds != null)
         {
             var chunkCount = (uint)Resource.ChunkIds.Length;
             if (chunkCount == 0)
@@ -96,7 +94,7 @@ public class IoStoreReader : UnrealFileReader
             return Resource.ChunkIds[slot].GetHashCode() == chunkId.GetHashCode() ? Resource.OffsetAndLengths[slot] : null;
         }
 
-        return null;
+        return FindChunkImperfect(chunkId);
     }
     
     public byte[] ExtractChunk(FIoChunkId chunkId)

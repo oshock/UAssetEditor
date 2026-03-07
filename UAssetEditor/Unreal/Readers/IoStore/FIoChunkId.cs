@@ -4,6 +4,21 @@ using UAssetEditor.Unreal.Objects.IO;
 
 namespace UAssetEditor.Unreal.Readers.IoStore;
 
+public enum EIoChunkType : byte
+{
+    Invalid,
+    InstallManifest,
+    ExportBundleData,
+    BulkData,
+    OptionalBulkData,
+    MemoryMappedBulkData,
+    LoaderGlobalMeta,
+    LoaderInitialLoadMeta,
+    LoaderGlobalNames,
+    LoaderGlobalNameHashes,
+    ContainerHeader
+}
+
 public enum EIoChunkType5 : byte
 {
     Invalid = 0,
@@ -27,13 +42,20 @@ public record struct FIoChunkId
     public ulong ChunkId;
     public ushort ChunkIndex;
     private byte _padding;
-    public EIoChunkType5 ChunkType;
+    public byte ChunkType;
 
     public FIoChunkId(ulong id, ushort index, EIoChunkType5 type)
     {
         ChunkId = id;
         ChunkIndex = index;
-        ChunkType = type;
+        ChunkType = (byte)type;
+    }
+    
+    public FIoChunkId(ulong id, ushort index, EIoChunkType type)
+    {
+        ChunkId = id;
+        ChunkIndex = index;
+        ChunkType = (byte)type;
     }
 
     public FPackageId AsPackageId() => new(ChunkId);

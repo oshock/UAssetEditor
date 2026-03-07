@@ -30,6 +30,8 @@ public struct FPackageObjectIndex : IEquatable<FPackageObjectIndex>
         ImportedPublicExportHashIndex = (uint)TypeAndId
     };
 
+    public static FPackageObjectIndex GetInvalid() => new(Invalid);
+
     public FPackageObjectIndex(ulong typeAndId)
     {
         TypeAndId = typeAndId;
