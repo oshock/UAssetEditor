@@ -34,7 +34,7 @@ public class ZenAsset : Asset
     FCellExportMapEntry[] CellExportMap = [];
     public FExportBundleHeader[]? ExportBundleHeaders;
     public FExportBundleEntry[] ExportBundleEntries;
-    public Tuple<FPackageId, FArc[]>[] SortedExternalArcs;
+    public Tuple<FPackageId, FArc[]>[] SortedExternalArcs = [];
     public FDependencyBundleHeader[] DependencyBundleHeaders = [];
     public int[] DependencyBundleEntries = [];
     public FZenPackageImportedPackageNamesContainer ImportedPackageNamesContainer = new();
@@ -201,7 +201,7 @@ public class ZenAsset : Asset
         }
         else
         {
-            var summary = Read<FPackageSummaryIO>();
+            var summary = Read<FPackageSummary>();
             Flags = summary.PackageFlags;
 
             Position = summary.NameMapNamesOffset;
@@ -209,7 +209,7 @@ public class ZenAsset : Asset
             Name = NameMap[(int)summary.Name.NameIndex];
 
             Position = summary.ImportMapOffset;
-            ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportBundlesOffset - summary.ImportMapOffset) /
+            ImportMap = ReadArray<FPackageObjectIndex>((summary.ExportMapOffset - summary.ImportMapOffset) /
                                                        FPackageObjectIndex.Size);
             
             Position = summary.ExportMapOffset;
@@ -340,66 +340,143 @@ public class ZenAsset : Asset
 
     public override void WriteHeader(Writer writer)
     {
-        var summary = default(FZenPackageSummary);
-        summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
-
-        // Reserve space
-        var cellOffsets = new FZenPackageCellOffsets();
-        writer.Position = FZenPackageSummary.Size + FZenPackageCellOffsets.Size;
-
-        // Write NameMap
-        NameMapContainer.WriteNameMap(writer, NameMap);
-
-        writer.Write<long>(0); // pakSize
-        writer.Write<long>(BulkDataMap.Length * FBulkDataMapEntry.SIZE); // bulkDataMapSize
-
-        foreach (var entry in BulkDataMap)
-            entry.Serialize(writer);
-
-        summary.ImportedPublicExportHashesOffset = (int)writer.Position;
-        writer.WriteArray(ImportedPublicExportHashes);
-
-        summary.ImportMapOffset = (int)writer.Position;
-        writer.WriteArray(ImportMap);
-
-        summary.ExportMapOffset = (int)writer.Position;
-        foreach (var export in ExportMap)
-            export.Serialize(writer, this);
-
-        cellOffsets.CellImportMapOffset = (int)writer.Position;
-		writer.WriteArray(CellImportMap);
-		
-		cellOffsets.CellExportMapOffset = (int)writer.Position;
-		foreach (var cell in CellExportMap)
-			cell.Serialize(writer);
-        
-        summary.ExportBundleEntriesOffset = (int)writer.Position;
-        writer.WriteArray(ExportBundleEntries);
-
-        summary.DependencyBundleHeadersOffset = (int)writer.Position;
-        foreach (var depHeader in DependencyBundleHeaders)
+        if (Game >= EGame.GAME_UE5_0)
         {
-            writer.Write(depHeader.FirstEntryIndex);
-            foreach (var a in depHeader.EntryCount)
-                writer.WriteArray(a);
+            var summary = default(FZenPackageSummary);
+            summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
+
+            // Reserve space
+            var cellOffsets = new FZenPackageCellOffsets();
+            writer.Position = FZenPackageSummary.Size + FZenPackageCellOffsets.Size;
+
+            // Write NameMap
+            NameMapContainer.WriteNameMap(writer, NameMap);
+
+            writer.Write<long>(0); // pakSize
+            writer.Write<long>(BulkDataMap.Length * FBulkDataMapEntry.SIZE); // bulkDataMapSize
+
+            foreach (var entry in BulkDataMap)
+                entry.Serialize(writer);
+
+            summary.ImportedPublicExportHashesOffset = (int)writer.Position;
+            writer.WriteArray(ImportedPublicExportHashes);
+
+            summary.ImportMapOffset = (int)writer.Position;
+            writer.WriteArray(ImportMap);
+
+            summary.ExportMapOffset = (int)writer.Position;
+            foreach (var export in ExportMap)
+                export.Serialize(writer, this);
+
+            cellOffsets.CellImportMapOffset = (int)writer.Position;
+            writer.WriteArray(CellImportMap);
+
+            cellOffsets.CellExportMapOffset = (int)writer.Position;
+            foreach (var cell in CellExportMap)
+                cell.Serialize(writer);
+
+            summary.ExportBundleEntriesOffset = (int)writer.Position;
+            writer.WriteArray(ExportBundleEntries);
+
+            summary.DependencyBundleHeadersOffset = (int)writer.Position;
+            foreach (var depHeader in DependencyBundleHeaders)
+            {
+                writer.Write(depHeader.FirstEntryIndex);
+                foreach (var a in depHeader.EntryCount)
+                    writer.WriteArray(a);
+            }
+
+            summary.DependencyBundleEntriesOffset = (int)writer.Position;
+            writer.WriteArray(DependencyBundleEntries);
+
+            summary.ImportedPackageNamesOffset = (int)writer.Position;
+            ImportedPackageNamesContainer.Serialize(writer);
+
+            var end = writer.Position;
+
+            summary.HeaderSize = (uint)end;
+            summary.PackageFlags = Flags;
+
+            writer.Position = 0;
+            writer.Write(summary);
+            writer.Write(cellOffsets);
+
+            writer.Position = end;
         }
+        else
+        {
+            var summary = default(FPackageSummary);
+            summary.Name = new FMappedName((uint)NameMap.GetIndexOrAdd(Name), 0);
+            summary.SourceName = summary.Name; // TODO figure out what this is
 
-        summary.DependencyBundleEntriesOffset = (int)writer.Position;
-        writer.WriteArray(DependencyBundleEntries);
+            // Reserve space
+            writer.Position += FPackageSummary.Size;
+            
+            // Offset setting is done in WriteNameMap method
+            NameMapContainer.WriteNameMap(writer, NameMap, ref summary);
+            
+            summary.ImportMapOffset = (int)writer.Position;
+            writer.WriteArray(ImportMap);
+            
+            summary.ExportMapOffset = (int)writer.Position;
+            foreach (var export in ExportMap)
+                export.Serialize(writer, this);
 
-        summary.ImportedPackageNamesOffset = (int)writer.Position;
-        ImportedPackageNamesContainer.Serialize(writer);
+            summary.ExportBundlesOffset = (int)writer.Position;
+            SaveExportBundles(writer);
 
-        var end = writer.Position;
+            summary.GraphDataOffset = (int)writer.Position;
+            writer.Write(SortedExternalArcs.Length);
+            foreach (var arc in SortedExternalArcs)
+            {
+                writer.Write(arc.Item1);
+                writer.Write(arc.Item2.Length);
+                writer.WriteArray(arc.Item2);
+            }
+
+            var end = writer.Position;
+
+            summary.GraphDataSize = (int)(end - summary.GraphDataOffset);
+            summary.PackageFlags = Flags;
+            summary.CookedHeaderSize = (uint)end; // TODO is this right?
+            
+            writer.Position = 0;
+            writer.Write(summary);
+
+            writer.Position = end;
+        }
+    }
+    
+    private void SaveExportBundles(Writer writer)
+    {
+        if (ExportBundleHeaders == null) // TODO: This eventually needs to be done properly
+        {
+            var headers = new List<FExportBundleHeader>();
+            var entries = new List<FExportBundleEntry>();
+            
+            foreach (var entry in ExportBundleEntries)
+            {
+                if (entry.CommandType != EExportCommandType.ExportCommandType_Create)
+                    continue;
+                
+                headers.Add(new FExportBundleHeader 
+                {
+                    FirstEntryIndex = (uint)entries.Count,
+                    EntryCount = 2
+                });
+
+                entries.Add(entry with { CommandType = EExportCommandType.ExportCommandType_Create });
+                entries.Add(entry with { CommandType = EExportCommandType.ExportCommandType_Serialize });
+            }
+
+            ExportBundleHeaders = headers.ToArray();
+            ExportBundleEntries = entries.ToArray();
+        }
         
-        summary.HeaderSize = (uint)end;
-        summary.PackageFlags = Flags;
+        foreach (var bundle in ExportBundleHeaders)
+            bundle.Serialize(writer, this);
 
-        writer.Position = 0;
-        writer.Write(summary);
-        writer.Write(cellOffsets);
-
-        writer.Position = end;
+        writer.WriteArray(ExportBundleEntries);
     }
 
     // https://github.com/FabianFG/CUE4Parse/blob/87020fa42ab70bb44a08bcd9f5d742ad70c97373/CUE4Parse/UE4/Assets/IoPackage.cs#L331
@@ -511,7 +588,7 @@ public class ExportContainer : Container<FExportMapEntry>
 			.ToList());
 	}
     
-    public static ExportContainer Read(ZenAsset asset, FPackageSummaryIO summary)
+    public static ExportContainer Read(ZenAsset asset, FPackageSummary summary)
     {
         var size = summary.ExportBundlesOffset - summary.ExportMapOffset;
         return new ExportContainer(asset.ReadArray(() => new FExportMapEntry(asset), size / FExportMapEntry.Size)

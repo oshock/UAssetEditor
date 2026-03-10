@@ -16,11 +16,60 @@ using UsmapDotNet;
 
 Logger.StartLogger();
 
-var globalData =
+var latestGlobalToc = IoGlobalReader.InitializeGlobalData(@"S:\Fortnite\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE5_LATEST);
+var latestMappings = Usmap.Parse("++Fortnite+Release-39.51-CL-51287198_zs.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+
+var zen = new ZenAsset(
+    @"C:\Users\Owens\Documents\FModel\Output\Exports\Playlist_ForbiddenFruitNoBuildBRSolo.uasset");
+zen.Game = EGame.GAME_UE5_LATEST;
+zen.GlobalData = latestGlobalToc;
+zen.Mappings = latestMappings;
+zen.ReadAll();
+
+// Set 14.40 values
+var oldGlobalData = IoGlobalReader.InitializeGlobalData(@"B:\FN Versions\14.40\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE4_26);
+var oldMappings = Usmap.Parse(@"C:\Users\Owens\Documents\FModel\Output\.data\++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+zen.Game = EGame.GAME_UE4_26;
+zen.GlobalData = oldGlobalData;
+zen.Mappings = oldMappings;
+
+// Fix enum
+zen["Playlist_ForbiddenFruitNoBuildBRSolo"]["GameType"].Value = new EnumProperty("BR");
+
+var writer = new Writer("Playlist_ForbiddenFruitNoBuildBRSolo 14.40.uasset");
+
+// Serialize the asset and dispose the writer
+zen.WriteAll(writer);
+writer.Close();
+
+// Create a new ZenAsset with the asset with just serialized
+var testAsset = new ZenAsset("Playlist_ForbiddenFruitNoBuildBRSolo 14.40.uasset");
+
+// Set the GlobalReader instance
+testAsset.Initialize(oldGlobalData);
+
+// Set mappings
+testAsset.Game = EGame.GAME_UE4_26;
+testAsset.Mappings = oldMappings;
+
+// Test if it reads our asset properly
+testAsset.ReadAll();
+return;
+
+// 14.40 to 39.51
+/*var globalData =
     IoGlobalReader.InitializeGlobalData(@"B:\FN Versions\14.40\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE4_26);
 
 var zen = new ZenAsset(
-    @"C:\Users\Owens\Documents\FModel\Output\Exports\WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03.uasset");
+    @"C:\Users\Owens\Documents\FModel\Output\Exports\WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03_14.40.uasset");
 zen.Game = EGame.GAME_UE4_26;
 zen.GlobalData = globalData;
 zen.Mappings = Usmap.Parse(@"C:\Users\Owens\Documents\FModel\Output\.data\++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", new UsmapOptions
@@ -59,7 +108,7 @@ testAsset.Game = EGame.GAME_UE5_LATEST;
 testAsset.Mappings = latestMappings;
 
 // Test if it reads our asset properly
-testAsset.ReadAll();
+testAsset.ReadAll();*/
 return;
 /*
 // Initialize Oodle (FIRST)

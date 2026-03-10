@@ -58,6 +58,35 @@ public class NameMapContainer : Container<string>
             writer.WriteString(s);
     }
     
+    public static void WriteNameMap(Writer writer, NameMapContainer nameMap, ref FPackageSummary summary)
+    {
+        var start = writer.Position;
+        summary.NameMapNamesOffset = (int)start;
+        
+        foreach (var str in nameMap)
+        {
+            // TODO utf16
+            var buffer = new byte[str.Length + 1];
+            Buffer.BlockCopy(Encoding.ASCII.GetBytes(str), 0, buffer, 0, str.Length);
+            
+            var header = new FSerializedNameHeader((byte)buffer.Length);
+            writer.Write(header);
+            writer.WriteBytes(buffer);
+        }
+
+        var namesSize = writer.Position - start;
+        var hashStart = writer.Position;
+        summary.NameMapHashesOffset = (int)hashStart;
+        
+        writer.Write(nameMap.HashVersion);
+        foreach (var str in nameMap)
+            writer.Write(CityHash.TransformString(str));
+
+        var hashesSize = writer.Position - hashStart;
+        summary.NameMapNamesSize = (int)namesSize;
+        summary.NameMapHashesSize = (int)hashesSize;
+    }
+    
     public static NameMapContainer ReadNameMap(Reader reader)
     {
         var count = reader.Read<int>();
@@ -94,7 +123,7 @@ public class NameMapContainer : Container<string>
         return new NameMapContainer(hashVersion, strings);
     }
 
-    public static NameMapContainer ReadNameMap(Reader reader, FPackageSummaryIO summary)
+    public static NameMapContainer ReadNameMap(Reader reader, FPackageSummary summary)
     {
         return ReadNameMap(reader, summary.NameMapNamesSize, summary.NameMapHashesSize);
     }

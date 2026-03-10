@@ -73,6 +73,7 @@ public class FExportMapEntry
         }
         else
         {
+            // TODO figure out how to calculate GlobalImportIndex 
             writer.Write(GlobalImportIndex);
         }
         

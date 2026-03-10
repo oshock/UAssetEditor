@@ -112,10 +112,24 @@ public static class UnversionedPropertyHandler
 	    foreach (var property in struc.Properties)
 	    {
 		    var correspondingProperty = properties.FirstOrDefault(x => x.Name == property.Name);
-		    
-		    if (correspondingProperty != null)
-			    result.Add(correspondingProperty);
-	    }
+            
+            if (correspondingProperty != null)
+            {
+                if (property.Data is null || correspondingProperty.Data is null)
+                    throw new NoNullAllowedException("Can not serialize property if property data is null!");
+
+                if (property.Data == correspondingProperty.Data)
+                {
+                    Information($"Serializing '{correspondingProperty.Name}'");
+                    result.Add(correspondingProperty);
+                }
+                else
+                {
+                    Warning(
+                        $"Cannot serialize '{correspondingProperty.Name}' because the corresponding property does not share the same type data!");
+                }
+            }
+        }
 
 	    return result;
     }

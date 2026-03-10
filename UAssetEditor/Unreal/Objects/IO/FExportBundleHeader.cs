@@ -10,6 +10,9 @@ public class FExportBundleHeader
     public uint FirstEntryIndex;
     public uint EntryCount;
 
+    public FExportBundleHeader()
+    { }
+    
     public FExportBundleHeader(Asset asset)
     {
         SerialOffset = asset.Game >= EGame.GAME_UE5_0 ? asset.Read<ulong>() : ulong.MaxValue;

@@ -124,6 +124,30 @@ public class PropertyData
                 break;
         }
     }
+    
+    public static bool operator==(PropertyData left, PropertyData right)
+    {
+        return left.Type == right.Type
+               && left.EnumName == right.EnumName
+               && left.StructType == right.StructType
+               && ((left.InnerType is null && right.InnerType is null)
+                   || left.InnerType! == right.InnerType!)
+               && ((left.ValueType is null && right.ValueType is null)
+                   || left.ValueType! == right.ValueType!);
+    }
+    
+    public static bool operator!=(PropertyData left, PropertyData right)
+    {
+        return left.Type != right.Type
+               || left.EnumName != right.EnumName
+               || left.StructType != right.StructType
+               || left.InnerType is not null && right.InnerType is null
+               || left.InnerType is null && right.InnerType is not null
+               || left.InnerType! != right.InnerType!
+               || left.ValueType is not null && right.ValueType is null
+               || left.ValueType is null && right.ValueType is not null
+               || left.ValueType! != right.ValueType!;
+    }
 }
 
 public class UProperty
