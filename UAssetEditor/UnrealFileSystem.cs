@@ -8,6 +8,7 @@ using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Readers;
 using UAssetEditor.Unreal.Readers.IoStore;
+using UAssetEditor.Unreal.Versioning;
 using UAssetEditor.Utils;
 using UsmapDotNet;
 
@@ -25,25 +26,33 @@ public class UnrealFileSystem
     
     public ConcurrentDictionary<string, UnrealFileEntry> Packages { get; } = new();
 
+    public EGame Game;
     public Usmap? Mappings { get; private set; }
 
     public IoGlobalReader? GetGlobalReader() => Containers.FirstOrDefault(x => x.Reader is IoGlobalReader)?.Reader as IoGlobalReader;
     
-    public UnrealFileSystem(string directory)
+    public UnrealFileSystem(string directory, EGame gameVersion)
     {
         _directory = directory;
+        Game = gameVersion;
         Files = Directory.EnumerateFiles(_directory);
         _containers = new List<ContainerFile>();
     }
 
-    public void LoadMappings(string path, string? oodleDll = null)
+    public static Usmap LoadMappingsStatic(string path, string? oodleDll = null)
     {
-        Mappings = Usmap.Parse(path, new UsmapOptions
+        return Usmap.Parse(path, new UsmapOptions
         {
             Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
             SaveNames = false
         });
     }
+    
+    public void LoadMappings(string path, string? oodleDll = null)
+    {
+        Mappings = LoadMappingsStatic(path, oodleDll);
+    }
+
     
     public void LoadMappings(byte[] data, string? oodleDll = null)
     {
@@ -124,7 +133,7 @@ public class UnrealFileSystem
         {
             if (!container.TryFindPackage(packagePath.ToLower(), out pkg))
                 continue;
-
+            
             file = container;
             return true;
         }
@@ -164,6 +173,7 @@ public class UnrealFileSystem
                 var globalToc = GetGlobalReader();
                 asset.As<ZenAsset>().Initialize(globalToc!);
 
+                asset.Game = Game;
                 asset.Mappings = Mappings;
 
                 return true;

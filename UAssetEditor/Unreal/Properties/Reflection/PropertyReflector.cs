@@ -34,24 +34,64 @@ public class VersionedType
     }
 
     #region OPERATORS
-    public static bool operator ==(VersionedType left, EUnrealEngineObjectUE4Version version)
+    public static bool operator ==(EUnrealEngineObjectUE4Version version, VersionedType right)
     {
-        return left._version == version;
+        return version == right._version.FileVersionUE4;
     }
     
-    public static bool operator !=(VersionedType left, EUnrealEngineObjectUE4Version version)
+    public static bool operator !=(EUnrealEngineObjectUE4Version version, VersionedType right)
     {
-        return left._version != version;
+        return version != right._version.FileVersionUE4;
     }
     
-    public static bool operator ==(VersionedType left, EUnrealEngineObjectUE5Version version)
+    public static bool operator >(EUnrealEngineObjectUE4Version version, VersionedType right)
     {
-        return left._version == version;
+        return version > right._version.FileVersionUE4;
     }
     
-    public static bool operator !=(VersionedType left, EUnrealEngineObjectUE5Version version)
+    public static bool operator <(EUnrealEngineObjectUE4Version version, VersionedType right)
     {
-        return left._version != version;
+        return version < right._version.FileVersionUE4;
+    }
+    
+    public static bool operator >=(EUnrealEngineObjectUE4Version version, VersionedType right)
+    {
+        return version >= right._version.FileVersionUE4;
+    }
+    
+    public static bool operator <=(EUnrealEngineObjectUE4Version version, VersionedType right)
+    {
+        return version <= right._version.FileVersionUE4;
+    }
+    
+    public static bool operator ==(EUnrealEngineObjectUE5Version version, VersionedType right)
+    {
+        return version == right._version.FileVersionUE5;
+    }
+    
+    public static bool operator !=(EUnrealEngineObjectUE5Version version, VersionedType right)
+    {
+        return version != right._version.FileVersionUE5;
+    }
+    
+    public static bool operator >(EUnrealEngineObjectUE5Version version, VersionedType right)
+    {
+        return version > right._version.FileVersionUE5;
+    }
+    
+    public static bool operator <(EUnrealEngineObjectUE5Version version, VersionedType right)
+    {
+        return version < right._version.FileVersionUE5;
+    }
+    
+    public static bool operator >=(EUnrealEngineObjectUE5Version version, VersionedType right)
+    {
+        return version >= right._version.FileVersionUE5;
+    }
+    
+    public static bool operator <=(EUnrealEngineObjectUE5Version version, VersionedType right)
+    {
+        return version <= right._version.FileVersionUE5;
     }
     #endregion OPERATORS
 }
@@ -73,7 +113,7 @@ public class UStructVer
     {
         foreach (var ver in Versions)
         {
-            if (ver == version)
+            if (version >= ver)
                 return ver.Type;
         }
 
@@ -85,7 +125,7 @@ public class UStructVer
     {
         foreach (var ver in Versions)
         {
-            if (ver == version)
+            if (version >= ver)
                 return ver.Type;
         }
 
@@ -95,19 +135,17 @@ public class UStructVer
     
     public Type Get(FPackageFileVersion version)
     {
-        foreach (var ver in Versions)
-        {
-            if (ver == version.FileVersionUE4
-                || ver == version.FileVersionUE5)
-                return ver.Type;
-        }
+        if (version.IsUE4())
+            return Get(version.FileVersionUE4);
+        if (version.IsUE5())
+            return Get(version.FileVersionUE5);
 
         Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
         return Default;
     }
 }
 
-// I know it's not really reflection, but I'm calling it that okay..
+// I know it's not really reflection, but I'm calling it that okay...
 public static class PropertyReflector
 {
     public static Dictionary<string, Type> PropertiesByName = new()

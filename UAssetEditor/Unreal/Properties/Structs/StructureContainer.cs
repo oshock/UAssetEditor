@@ -15,6 +15,11 @@ public class LoadedStructure(StructureContainer container, UStruct struc)
     {
         container.Remove(this);
     }
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }
 
 public class StructureContainer() : Container<LoadedStructure>(new List<LoadedStructure>())
