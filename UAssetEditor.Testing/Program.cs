@@ -9,15 +9,113 @@ using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Readers.IoStore;
+using UAssetEditor.Unreal.Versioning;
 using UAssetEditor.Utils;
+using UsmapDotNet;
 
 Logger.StartLogger();
 
+var latestGlobalToc = IoGlobalReader.InitializeGlobalData(@"S:\Fortnite\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE5_LATEST);
+var latestMappings = Usmap.Parse("++Fortnite+Release-39.51-CL-51287198_zs.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+
+var zen = new ZenAsset(
+    @"C:\Users\Owens\Documents\FModel\Output\Exports\Playlist_ForbiddenFruitNoBuildBRSolo.uasset");
+zen.Game = EGame.GAME_UE5_LATEST;
+zen.GlobalData = latestGlobalToc;
+zen.Mappings = latestMappings;
+zen.ReadAll();
+
+// Set 14.40 values
+var oldGlobalData = IoGlobalReader.InitializeGlobalData(@"B:\FN Versions\14.40\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE4_26);
+var oldMappings = Usmap.Parse(@"C:\Users\Owens\Documents\FModel\Output\.data\++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+zen.Game = EGame.GAME_UE4_26;
+zen.GlobalData = oldGlobalData;
+zen.Mappings = oldMappings;
+
+// Fix enum
+zen["Playlist_ForbiddenFruitNoBuildBRSolo"]["GameType"].Value = new EnumProperty("BR");
+
+var writer = new Writer("Playlist_ForbiddenFruitNoBuildBRSolo 14.40.uasset");
+
+// Serialize the asset and dispose the writer
+zen.WriteAll(writer);
+writer.Close();
+
+// Create a new ZenAsset with the asset with just serialized
+var testAsset = new ZenAsset("Playlist_ForbiddenFruitNoBuildBRSolo 14.40.uasset");
+
+// Set the GlobalReader instance
+testAsset.Initialize(oldGlobalData);
+
+// Set mappings
+testAsset.Game = EGame.GAME_UE4_26;
+testAsset.Mappings = oldMappings;
+
+// Test if it reads our asset properly
+testAsset.ReadAll();
+return;
+
+// 14.40 to 39.51
+/*var globalData =
+    IoGlobalReader.InitializeGlobalData(@"B:\FN Versions\14.40\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE4_26);
+
+var zen = new ZenAsset(
+    @"C:\Users\Owens\Documents\FModel\Output\Exports\WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03_14.40.uasset");
+zen.Game = EGame.GAME_UE4_26;
+zen.GlobalData = globalData;
+zen.Mappings = Usmap.Parse(@"C:\Users\Owens\Documents\FModel\Output\.data\++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+zen.ReadAll();
+
+var latestGlobalToc = IoGlobalReader.InitializeGlobalData(@"S:\Fortnite\FortniteGame\Content\Paks\global.utoc", EGame.GAME_UE5_LATEST);
+var latestMappings = Usmap.Parse("++Fortnite+Release-39.51-CL-51287198_zs.usmap", new UsmapOptions
+{
+    Oodle = new OodleDotNet.Oodle("oo2core_9_win64.dll"),
+    SaveNames = false
+});
+
+zen.GlobalData = latestGlobalToc;
+zen.Mappings = latestMappings;
+zen.Game = EGame.GAME_UE5_LATEST;
+
+// Create a writer with the file "CID_028_Athena_Commando_F.uasset"
+var writer = new Writer("WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03.uasset");
+
+// Serialize the asset and dispose the writer
+zen.WriteAll(writer);
+writer.Close();
+
+// Create a new ZenAsset with the asset with just serialized
+var testAsset = new ZenAsset("WID_Sniper_BoltAction_Scope_Athena_VR_Ore_T03.uasset");
+
+// Set the GlobalReader instance
+testAsset.Initialize(latestGlobalToc);
+
+// Set mappings
+testAsset.Game = EGame.GAME_UE5_LATEST;
+testAsset.Mappings = latestMappings;
+
+// Test if it reads our asset properly
+testAsset.ReadAll();*/
+return;
+/*
 // Initialize Oodle (FIRST)
 Oodle.Initialize("oo2core_9_win64.dll");
 
 // Create system
-var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks");
+var system = new UnrealFileSystem(@"S:\Fortnite\FortniteGame\Content\Paks");
 
 // Add aes keys
 system.AesKeys.Add(new FGuid(), new FAesKey("0x69385B0781311449AC9FD56B70C8EE9FD0EF062FD55FF8E28E0AE45C22AE2A1A"));
@@ -33,11 +131,11 @@ sw1.Stop();
 Console.WriteLine($"\nMounted {system.Containers.Count} containers(s) in {sw1.ElapsedMilliseconds}ms.\n");
 
 // Load mappings
-system.LoadMappings("++Fortnite+Release-36.00-CL-43214806-Windows_oo.usmap", "oo2core_9_win64.dll");
+system.LoadMappings("++Fortnite+Release-39.51-CL-51287198_zs.usmap", "oo2core_9_win64.dll");
 
 // Extract the asset
 if (!system.TryExtractAsset(
-        "FortniteGame/Plugins/GameFeatures/BRCosmetics/Content/Characters/Player/Male/Medium/Bodies/M_MED_WeaveHarbor/Textures/T_WeaveHarbor_Body_D.uasset",
+        "FortniteGame/Content/Balance/DefaultGameDataCosmetics.uasset",
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
@@ -83,5 +181,6 @@ testAsset.Mappings = system.Mappings;
 
 // Test if it reads our asset properly
 testAsset.ReadAll();
+*/
 
 Console.ReadKey();

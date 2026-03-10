@@ -5,9 +5,12 @@ namespace UAssetEditor.Unreal.Names;
 // https://github.com/EpicGames/UnrealEngine/blob/585df42eb3a391efd295abd231333df20cddbcf3/Engine/Source/Runtime/CoreUObject/Private/Serialization/AsyncLoading2.cpp#L107
 public class FZenPackageImportedPackageNamesContainer
 {
-    public NameMapContainer NameMap;
-    public int[] Numbers;
+    public NameMapContainer NameMap = new();
+    public int[] Numbers = [];
 
+    public FZenPackageImportedPackageNamesContainer() 
+    { }
+    
     public FZenPackageImportedPackageNamesContainer(Reader reader)
     {
         NameMap = NameMapContainer.ReadNameMap(reader);

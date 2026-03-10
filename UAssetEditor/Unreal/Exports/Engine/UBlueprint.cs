@@ -1,6 +1,7 @@
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Objects;
+using UAssetEditor.Unreal.Versioning;
 
 namespace UAssetEditor.Unreal.Exports.Engine;
 

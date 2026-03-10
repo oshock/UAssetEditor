@@ -29,6 +29,8 @@ public class Reader : BinaryReader
         set => BaseStream.Position = value;
     }
 
+    public long Length => BaseStream.Length;
+
     public T Read<T>()
     {
         var buffer = ReadBytes(Unsafe.SizeOf<T>());
@@ -85,6 +87,17 @@ public class Reader : BinaryReader
     public bool ReadBool()
     {
         var i = Read<int>();
+        return i switch
+        {
+            0 => false,
+            1 => true,
+            _ => throw new DataException("Invalid boolean value.")
+        };
+    }
+    
+    public bool ReadFlag()
+    {
+        var i = Read<byte>();
         return i switch
         {
             0 => false,

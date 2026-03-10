@@ -12,6 +12,7 @@ using UAssetEditor.Unreal.Properties.Structs.GameplayTags;
 using System.Drawing;
 using UAssetEditor.Unreal.Properties.Structs.Misc;
 using UAssetEditor.Unreal.Properties.Structs.AI;
+using UAssetEditor.Unreal.Versioning;
 
 namespace UAssetEditor.Unreal.Properties.Reflection;
 
@@ -20,15 +21,15 @@ public class VersionedType
     private FPackageFileVersion _version;
     public Type Type;
 
-    public VersionedType(EUnrealEngineObjectUE4Version version, Type type)
+    public VersionedType(EGame game, EUnrealEngineObjectUE4Version version, Type type)
     {
-        _version = FPackageFileVersion.CreateUE4Version(version);
+        _version = FPackageFileVersion.CreateUE4Version(game, version);
         Type = type;
     }
     
-    public VersionedType(EUnrealEngineObjectUE5Version version, Type type)
+    public VersionedType(EGame game,EUnrealEngineObjectUE5Version version, Type type)
     {
-        _version = FPackageFileVersion.CreateUE5Version(version);
+        _version = FPackageFileVersion.CreateUE5Version(game, version);
         Type = type;
     }
 
@@ -135,6 +136,7 @@ public static class PropertyReflector
         { "MulticastDelegateProperty", typeof(MulticastDelegateProperty) }
     };
     
+    // TODO engine version
     public static List<UStructVer> DefinedStructsByName = new()
     {
         new UStructVer("Box2f", typeof(TBox2<float>)),
@@ -147,14 +149,14 @@ public static class PropertyReflector
         new UStructVer("GameplayTagContainer", typeof(FGameplayTagContainer)),
         new UStructVer("InstancedStruct", typeof(FInstancedStruct)),
         new UStructVer("Vector", typeof(FVector3), 
-            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector3_LARGE_WORLD_COORDINATES))),
+            new VersionedType(EGame.GAME_UE5_LATEST, EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector3_LARGE_WORLD_COORDINATES))),
         new UStructVer("Vector4", typeof(FVector4),
-            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector4_LARGE_WORLD_COORDINATES))),
+            new VersionedType(EGame.GAME_UE5_LATEST, EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FVector4_LARGE_WORLD_COORDINATES))),
         new UStructVer("DeprecateSlateVector2D", typeof(FVector2D)),
         new UStructVer("Rotator", typeof(FRotator),
-            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FRotator_LARGE_WORLD_COORDINATES))),
+            new VersionedType(EGame.GAME_UE5_LATEST, EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FRotator_LARGE_WORLD_COORDINATES))),
         new UStructVer("Quat", typeof(FQuat),
-            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FQuat_LARGE_WORLD_COORDINATES))),
+            new VersionedType(EGame.GAME_UE5_LATEST, EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FQuat_LARGE_WORLD_COORDINATES))),
         new UStructVer("LinearColor", typeof(FLinearColor)),
         new UStructVer("Guid", typeof(FGuid)),
         new UStructVer("RichCurveKey", typeof(RichCurve.FRichCurveKey)),
@@ -165,7 +167,7 @@ public static class PropertyReflector
         new UStructVer("IntVector", typeof(FIntVector)),
         new UStructVer("Transform3f", typeof(FTransform)),
         new UStructVer("Plane", typeof(FPlane),
-            new VersionedType(EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FPlane_LARGE_WORLD_COORDINATES))),
+            new VersionedType(EGame.GAME_UE5_LATEST, EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES, typeof(FPlane_LARGE_WORLD_COORDINATES))),
         new UStructVer("Int32Point", typeof(FIntPoint))
     };
 

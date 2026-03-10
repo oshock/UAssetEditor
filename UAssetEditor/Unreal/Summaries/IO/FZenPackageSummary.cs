@@ -4,7 +4,7 @@ using UAssetEditor.Binary;
 using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Assets;
 
-namespace UAssetEditor.Unreal.Summaries;
+namespace UAssetEditor.Unreal.Summaries.IO;
 
 public struct FZenPackageSummary
 {

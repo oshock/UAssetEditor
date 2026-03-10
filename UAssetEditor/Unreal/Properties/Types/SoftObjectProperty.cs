@@ -1,5 +1,6 @@
 using UAssetEditor.Unreal.Names;
 using UAssetEditor.Binary;
+using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Assets;
 
 
@@ -50,29 +51,44 @@ public class SoftObjectProperty : AbstractProperty<string>
             SubPathName = "";
             return;
         }
-        
-        AssetPathName = new FName(reader, asset.NameMap);
-        PackageName = new FName(reader, asset.NameMap);
-        SubPathName = FString.Read(reader);
-        
+
+        if (asset.FileVersion >= EUnrealEngineObjectUE5Version.FSOFTOBJECTPATH_REMOVE_ASSET_PATH_FNAMES)
+        {
+            AssetPathName = new FName(reader, asset.NameMap);
+            PackageName = new FName(reader, asset.NameMap);
+        }
+        else
+        {
+            var path = new FName(reader, asset.NameMap).Name.Split(".");
+            AssetPathName = new FName(path[0]);
+            PackageName = new FName(path[1]);
+        }
+
         Value = $"{AssetPathName}.{PackageName}";
+        SubPathName = FString.Read(reader); // TODO fortnite version branch object
     }
 
-    public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
+    public override void Write(Writer writer, UProperty property, Asset? asset = null,
+        ESerializationMode mode = ESerializationMode.Normal)
     {
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(Value);
-        
-        // If value was changed
-        if (Value != AssetPathName.Name + PackageName.Name)
+
+        var split = Value.Split('.');
+        AssetPathName = new FName(split[0]);
+        PackageName = new FName(split[1]);
+
+        if (asset.FileVersion >= EUnrealEngineObjectUE5Version.FSOFTOBJECTPATH_REMOVE_ASSET_PATH_FNAMES)
         {
-            var split = Value.Split('.');
-            AssetPathName = new FName(split[0]);
-            PackageName = new FName(split[1]);
+            AssetPathName.Serialize(writer, asset.NameMap);
+            PackageName.Serialize(writer, asset.NameMap);
+        }
+        else
+        {
+            var path = new FName(Value);
+            path.Serialize(writer, asset.NameMap);
         }
         
-        AssetPathName.Serialize(writer, asset.NameMap);
-        PackageName.Serialize(writer, asset.NameMap);
         FString.Write(writer, SubPathName);
     }
 }

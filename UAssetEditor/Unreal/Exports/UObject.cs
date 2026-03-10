@@ -5,8 +5,10 @@ using UAssetEditor.Summaries;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Exports.Engine;
 using UAssetEditor.Unreal.Misc;
+using UAssetEditor.Unreal.Names;
 using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Unversioned;
+using UAssetEditor.Unreal.Versioning;
 
 namespace UAssetEditor.Unreal.Exports;
 
@@ -23,6 +25,12 @@ public class UObject
     public List<UProperty> Properties;
 
     public Asset? Owner;
+    
+    // Tagged
+    public bool HasPropertyGuid;
+    public FGuid PropertyGuid;
+    public byte OverrideOperation;
+    public bool bExperimentalOverridableLogic;
 
     public UObject()
     {
@@ -80,7 +88,7 @@ public class UObject
         }
     }
 
-    public virtual void Deserialize(long position)
+    public virtual void Deserialize(long position) 
     {
         if (Owner is null)
             throw new NoNullAllowedException("Cannot deserialize UObject without a valid asset to work with.");
@@ -89,20 +97,67 @@ public class UObject
             throw new NoNullAllowedException($"Class cannot be null.");
 
         Owner.Position = position;
+
+        Properties = Owner.HasUnversionedProperties
+            ? UnversionedPropertyHandler.DeserializeProperties(Owner, Class)
+            : DeserializePropertiesTagged();
         
-        if (Owner.HasUnversionedProperties)
-        {
-            Properties = UnversionedPropertyHandler.DeserializeProperties(Owner, Class);
-        }
-        else
-        {
-            // TODO tagged properties
-        }
-        
-        if (!Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject) && Owner.Read<int>() == 1)
+        if (Owner!.Game >= EGame.GAME_UE4_0 && !Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject) && Owner.Read<int>() == 1)
         {
             ObjectGuid = Owner.Read<FGuid>();
         }
+    }
+
+    // https://github.com/FabianFG/CUE4Parse/blob/ae9c85c8b6bae523b3194be29c72ea889f801a50/CUE4Parse/UE4/Assets/Objects/FPropertyTag.cs#L136
+    public List<UProperty> DeserializePropertiesTagged()
+    {
+        var properties = new List<UProperty>();
+        while (true)
+        {
+            var property = new UProperty { Name = new FName(Owner!, Owner!.NameMap).Name };
+            if (property.Name == "None")
+                break;
+
+            if (Owner.FileVersion >= EUnrealEngineObjectUE5Version.PROPERTY_TAG_COMPLETE_TYPE_NAME)
+            {
+                throw new NotImplementedException("UE5 tagged properties are not implemented yet!");
+            }
+            else
+            {
+                var type = new FName(Owner!, Owner!.NameMap).Name;
+                var size = Owner.Read<int>();
+                var arrayIndex = Owner.Read<int>();
+                var data = new PropertyData(Owner, type);
+                
+                if (Owner.FileVersion >= EUnrealEngineObjectUE4Version.PROPERTY_GUID_IN_PROPERTY_TAG)
+                {
+                    HasPropertyGuid = Owner.ReadFlag();
+                    if (HasPropertyGuid)
+                    {
+                        PropertyGuid = Owner.Read<FGuid>();
+                    }
+                }
+                
+                if (Owner.FileVersion >= EUnrealEngineObjectUE5Version.PROPERTY_TAG_EXTENSION_AND_OVERRIDABLE_SERIALIZATION)
+                {
+                    var tagExtensions = Owner.Read<EPropertyTagExtension>();
+                    if (tagExtensions.HasFlag(EPropertyTagExtension.OverridableInformation))
+                    {
+                        // TODO fix to be an inside UProperty
+                        OverrideOperation = Owner.ReadByte(); // EOverriddenPropertyOperation
+                        bExperimentalOverridableLogic = Owner.ReadBool();
+                    }
+                }
+                
+                var propertyValue = PropertyUtils.ReadProperty(type, Owner, data);
+                var uProperty = new UProperty(data, property.Name, propertyValue, (byte)arrayIndex /*TODO*/, 0);
+                properties.Add(uProperty);
+                
+                // TODO handle size checks
+            }
+        }
+
+        return properties;
     }
     
     public virtual void Serialize(Writer writer)
