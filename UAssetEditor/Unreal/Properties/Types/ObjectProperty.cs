@@ -15,7 +15,12 @@ public class ObjectProperty : AbstractProperty<FPackageIndex>
     {
         Value = value;
     }
-    
+
+    public override string ToString()
+    {
+        return Value?.ResolvedObject?.Name.ToString() ?? "None";
+    }
+
     public override void Read(Reader reader, PropertyData? data, Asset? asset = null,
         ESerializationMode mode = ESerializationMode.Normal)
     {

@@ -494,6 +494,7 @@ public class ZenAsset : Asset
 	    return null;
     }
 
+    // Loosely based from:
     // https://github.com/FabianFG/CUE4Parse/blob/11a92870024a088888aae79c74d8ae0c6c8af3e5/CUE4Parse/UE4/Assets/IoPackage.cs#L347
     public ResolvedObject? ResolveObjectIndex(FPackageObjectIndex index)
     {
@@ -519,23 +520,21 @@ public class ZenAsset : Asset
 		    {
 			    var packageId = ImportedPackageIds[(int)packageImportRef.ImportedPackageIndex];
 			    
-			    if (Reader is { Owner: not null })
+			    if (System != null)
 			    {
-				    if (!Reader.Owner.As<IoFile>().FilesById!.TryGetValue(packageId, out var entry))
+				    if (!System.TryGetPackage(packageId, out var entry, out var ctn))
 				    {
 					    Log.Error("Could not find package!");
 					    return null;
 				    }
 					    
-				    if (!System.TryExtractAsset(entry.Path, out var asset))
+				    if (!System.TryExtractAsset(entry, ctn, out var asset))
 				    {
 						Log.Error($"Found file via id. But system was unable to extract using path: '{entry.Path}'");
 						return null;
 				    }
-				    
-				    var pkg = asset as ZenAsset;
-				    
-				    if (pkg != null)
+
+				    if (asset is ZenAsset pkg)
 				    {
 					    Information($"Reading package: '{entry.Path}'");
 					    pkg.ReadAll();
@@ -551,7 +550,7 @@ public class ZenAsset : Asset
 				    }
 				    else
 				    {
-					    Log.Warning("Reading Pak assets are not implemented yet!");
+					    Log.Error("Reading Pak assets are not implemented yet!");
 					    return null;
 				    }
 			    }

@@ -1,10 +1,12 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.InteropServices.Marshalling;
 using OodleDotNet;
 using Serilog;
 using UAssetEditor.Encryption.Aes;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Misc;
+using UAssetEditor.Unreal.Objects.IO;
 using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Readers;
 using UAssetEditor.Unreal.Readers.IoStore;
@@ -143,6 +145,33 @@ public class UnrealFileSystem
         return false;
     }
     
+    /// <summary>
+    /// I/O Store only.
+    /// </summary>
+    /// <param name="packageId"></param>
+    /// <param name="pkg"></param>
+    /// <param name="file"></param>
+    /// <returns></returns>
+    public bool TryGetPackage(FPackageId packageId, out UnrealFileEntry? pkg, out ContainerFile? file)
+    {
+        foreach (var ctn in Containers)
+        {
+            if (ctn is not IoFile ioFile)
+                continue;
+
+            if (ioFile.FilesById == null || !ioFile.FilesById.TryGetValue(packageId, out var _pkg)) 
+                continue;
+            
+            pkg = _pkg;
+            file = ioFile;
+            return true;
+        }
+
+        pkg = null;
+        file = null;
+        return false;
+    }
+    
     public bool TryRead(string packagePath, out byte[] data)
     {
         if (!TryGetPackage(packagePath, out var pkg, out _))
@@ -155,20 +184,14 @@ public class UnrealFileSystem
         return true;
     }
 
-    public bool TryExtractAsset(string packagePath, out Asset? asset)
+    public bool TryExtractAsset(UnrealFileEntry pkg, ContainerFile ctn, out Asset? asset)
     {
-        if (!TryGetPackage(packagePath, out var pkg, out var ctn))
-        {
-            asset = null;
-            return false;
-        }
-
         switch (pkg)
         {
             case FIoStoreEntry ioEntry:
             {
                 var data = ioEntry.Read();
-                asset = new ZenAsset(data, this, ctn?.Reader as UnrealFileReader);
+                asset = new ZenAsset(data, this, ctn.Reader as UnrealFileReader);
 
                 var globalToc = GetGlobalReader();
                 asset.As<ZenAsset>().Initialize(globalToc!);
@@ -184,5 +207,16 @@ public class UnrealFileSystem
 
         asset = null;
         return false;
+    }
+    
+    public bool TryExtractAsset(string packagePath, out Asset? asset)
+    {
+        if (!TryGetPackage(packagePath, out var pkg, out var ctn))
+        {
+            asset = null;
+            return false;
+        }
+
+        return TryExtractAsset(pkg, ctn, out asset);
     }
 }
