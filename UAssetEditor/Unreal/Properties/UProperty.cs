@@ -1,8 +1,10 @@
-﻿using UAssetEditor.Binary;
+﻿using System.Data;
+using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Properties.Types;
 using UsmapDotNet;
 
 
@@ -187,6 +189,23 @@ public class UProperty
     public T? GetValue<T>() where T : class
     {
         return Value as T;
+    }
+
+    public UProperty? this[string name]
+    {
+        get
+        {
+            if (Value is not StructProperty struc)
+                throw new DataException("Cannot select a sub-property because value is not a StructProperty");
+
+            var holder = struc.Holder;
+            if (struc.Holder != null)
+                return holder![name];
+            
+            // else
+            throw new NotImplementedException(
+                "Selecting properties reflectively from engine types is not implemented.");
+        }
     }
 
     public override string ToString() => $"{Name}: {Value} ({Data.Type})";

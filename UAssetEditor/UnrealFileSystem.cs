@@ -97,7 +97,7 @@ public class UnrealFileSystem
 
             if (file.EndsWith("global.utoc"))
             {
-                container = new IoFile(IoGlobalReader.InitializeGlobalData(file), this);
+                container = new IoFile(IoGlobalReader.InitializeGlobalData(file, Game), this);
             }
             else
             {
@@ -218,5 +218,38 @@ public class UnrealFileSystem
         }
 
         return TryExtractAsset(pkg, ctn, out asset);
+    }
+
+    public bool TryExtractAndRead(FPackageId packageId, out ZenAsset? asset, bool onlyReadHeader = false)
+    {
+        if (!TryGetPackage(packageId, out var entry, out var ctn))
+        {
+            Log.Error("Could not find package!");
+            asset = null;
+            return false;
+        }
+
+        if (!TryExtractAsset(entry, ctn, out var _asset))
+        {
+            Log.Error("Found file via id, but system was unable to extract.");
+            asset = null;
+            return false;
+        }
+
+        if (_asset is ZenAsset pkg)
+        {
+            Information($"Reading package: '{entry.Path}'");
+            
+            if (onlyReadHeader)
+                pkg.ReadHeader();
+            else 
+                pkg.ReadAll();
+            
+            asset = pkg;
+            return true;
+        }
+
+        asset = null;
+        return false;
     }
 }

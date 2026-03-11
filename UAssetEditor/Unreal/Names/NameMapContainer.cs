@@ -146,12 +146,12 @@ public class NameMapContainer : Container<string>
 
                 var utf16Length = length * 2;
                 var buffer = reader.ReadBytes(utf16Length);
-                strings.Add(Encoding.Unicode.GetString(buffer));
+                strings.Add(Encoding.Unicode.GetString(buffer).TrimEnd('\0'));
             }
             else
             {
                 var buffer = reader.ReadBytes(length);
-                strings.Add(Encoding.ASCII.GetString(buffer));
+                strings.Add(Encoding.ASCII.GetString(buffer).TrimEnd('\0'));
             }
         }
 

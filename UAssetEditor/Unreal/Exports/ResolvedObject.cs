@@ -36,12 +36,13 @@ public sealed class ResolvedExportObject : ResolvedObject
 
     public void Load()
     {
-        var map = Package.As<ZenAsset>().ExportMap;
+        var zen = (ZenAsset)Package;
+        var map = zen.ExportMap;
         if (ExportIndex >= map.Length)
             return;
         
         ExportMapEntry = map[ExportIndex];
-        Package.ExportObjectsToLoad.Add(this);
+        Object = zen.Exports[ExportIndex];
     }
 
     public UObject? GetObject()

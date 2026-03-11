@@ -27,7 +27,7 @@ public class ZenAsset : Asset
     public IoStoreReader? IoReader => Reader as IoStoreReader;
 
     public FBulkDataMapEntry[] BulkDataMap = [];
-    public ulong[] ImportedPublicExportHashes = [];
+    public ulong[]? ImportedPublicExportHashes;
     public FPackageObjectIndex[] ImportMap;
     public ExportContainer ExportMap;
     public FPackageObjectIndex[] CellImportMap = [];
@@ -53,7 +53,7 @@ public class ZenAsset : Asset
     /// <param name="globalContainerPath"></param>
     public void Initialize(string globalContainerPath)
     {
-	    GlobalData = IoGlobalReader.InitializeGlobalData(globalContainerPath);
+	    GlobalData = IoGlobalReader.InitializeGlobalData(globalContainerPath, Game);
     }
     
     /// <summary>
@@ -71,9 +71,9 @@ public class ZenAsset : Asset
     public override void ReadAll()
     {
 	    var headerSize = Position = ReadHeader();
-	    
-	    // Moved here cause package imports need to be loaded before reading them
-	    PopulateImportIds();
+
+        if (Game >= EGame.GAME_UE5_0)
+            PopulateImportIds();
 
         if (ExportBundleHeaders != null)
         {
@@ -223,7 +223,8 @@ public class ZenAsset : Asset
             Position = summary.GraphDataOffset;
             var referencedPackagesCount = Read<int>();
             SortedExternalArcs = new Tuple<FPackageId, FArc[]>[referencedPackagesCount];
-
+            ImportedPackageIds = new();
+            
             for (int i = 0; i < SortedExternalArcs.Length; i++)
             {
                 var importedPackageId = Read<FPackageId>();
@@ -231,6 +232,7 @@ public class ZenAsset : Asset
                 var arcs = ReadArray<FArc>(externalArcCount);
 
                 SortedExternalArcs[i] = new(importedPackageId, arcs);
+                ImportedPackageIds.Add(importedPackageId);
             }
 
             return (uint)(summary.GraphDataOffset + summary.GraphDataSize);
@@ -359,7 +361,7 @@ public class ZenAsset : Asset
                 entry.Serialize(writer);
 
             summary.ImportedPublicExportHashesOffset = (int)writer.Position;
-            writer.WriteArray(ImportedPublicExportHashes);
+            writer.WriteArray(ImportedPublicExportHashes ?? []);
 
             summary.ImportMapOffset = (int)writer.Position;
             writer.WriteArray(ImportMap);
@@ -426,6 +428,20 @@ public class ZenAsset : Asset
             SaveExportBundles(writer);
 
             summary.GraphDataOffset = (int)writer.Position;
+
+            if (ImportedPackageIds != null)
+            {
+                SortedExternalArcs = new Tuple<FPackageId, FArc[]>[ImportedPackageIds.Count];
+                for (var i = 0; i < SortedExternalArcs.Length; i++)
+                {
+                    // TODO figure out how to properly recreate arcs
+                    var id = ImportedPackageIds[i];
+                    SortedExternalArcs[i] = new Tuple<FPackageId, FArc[]>(id, [
+                        new FArc { FromNodeIndex = 0, ToNodeIndex = 0 }
+                    ]);
+                }
+            }
+
             writer.Write(SortedExternalArcs.Length);
             foreach (var arc in SortedExternalArcs)
             {
@@ -513,51 +529,60 @@ public class ZenAsset : Asset
 			    return new ResolvedScriptObject(entry, this);
 	    }
 
-	    if (index.IsPackageImport && System != null && ImportedPackageIds != null)
-	    {
-		    var packageImportRef = index.AsPackageImportRef;
-		    if (packageImportRef.ImportedPackageIndex < ImportedPackageIds.Count)
-		    {
-			    var packageId = ImportedPackageIds[(int)packageImportRef.ImportedPackageIndex];
-			    
-			    if (System != null)
-			    {
-				    if (!System.TryGetPackage(packageId, out var entry, out var ctn))
-				    {
-					    Log.Error("Could not find package!");
-					    return null;
-				    }
-					    
-				    if (!System.TryExtractAsset(entry, ctn, out var asset))
-				    {
-						Log.Error($"Found file via id. But system was unable to extract using path: '{entry.Path}'");
-						return null;
-				    }
+        if (index.IsPackageImport && System != null && ImportedPackageIds != null)
+        {
+            if (ImportedPublicExportHashes != null)
+            {
+                var packageImportRef = index.AsPackageImportRef;
+                if (packageImportRef.ImportedPackageIndex < ImportedPackageIds.Count)
+                {
+                    var packageId = ImportedPackageIds[(int)packageImportRef.ImportedPackageIndex];
 
-				    if (asset is ZenAsset pkg)
-				    {
-					    Information($"Reading package: '{entry.Path}'");
-					    pkg.ReadAll();
-				    
-					    for (int exportIndex = 0; exportIndex < pkg.ExportMap.Length; ++exportIndex)
-					    {
-						    if (pkg.ExportMap[exportIndex].PublicExportHash ==
-						        ImportedPublicExportHashes[packageImportRef.ImportedPublicExportHashIndex])
-						    {
-							    return new ResolvedExportObject(pkg, exportIndex);
-						    }
-					    }
-				    }
-				    else
-				    {
-					    Log.Error("Reading Pak assets are not implemented yet!");
-					    return null;
-				    }
-			    }
-		    }
-	    }
+                    if (!System.TryExtractAndRead(packageId, out var pkg, onlyReadHeader: true))
+                    {
+                        Error($"Unable to extract and/or read asset with package id: {packageId.Id}");
+                        return null;
+                    }
 
-	    return null;
+                    for (var exportIndex = 0; exportIndex < pkg.ExportMap.Length; exportIndex++)
+                    {
+                        if (pkg.ExportMap[exportIndex].PublicExportHash ==
+                            ImportedPublicExportHashes![packageImportRef.ImportedPublicExportHashIndex])
+                        {
+                            return new ResolvedExportObject(pkg, exportIndex);
+                        }
+                    }
+                }
+                else
+                {
+                    Log.Error("Reading Pak assets are not implemented yet!");
+                    return null;
+                }
+            }
+            else
+            {
+                foreach (var packageId in ImportedPackageIds)
+                {
+                    if (!System.TryExtractAndRead(packageId, out var pkg, onlyReadHeader: true))
+                    {
+                        Error($"Unable to extract and/or read asset with package id: {packageId.Id}");
+                        return null;
+                    }
+
+                    for (var exportIndex = 0; exportIndex < pkg.ExportMap.Length; exportIndex++)
+                    {
+                        if (pkg.ExportMap[exportIndex].GlobalImportIndex != index) 
+                            continue;
+                        
+                        pkg.Position = 0;
+                        pkg.ReadAll();
+                        return new ResolvedExportObject(pkg, exportIndex);
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     public override void WriteProperties(Writer writer, string type, List<UProperty> properties)

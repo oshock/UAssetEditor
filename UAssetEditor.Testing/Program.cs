@@ -10,6 +10,7 @@ using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Containers;
 using UAssetEditor.Unreal.Misc;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Objects;
 using UAssetEditor.Unreal.Objects.IO;
 using UAssetEditor.Unreal.Readers.IoStore;
 using UAssetEditor.Unreal.Versioning;
@@ -18,69 +19,57 @@ using UsmapDotNet;
 
 Logger.StartLogger();
 
-// Initialize Oodle (FIRST)
 Oodle.Initialize("oo2core_9_win64.dll");
 
-// Create system
-var system = new UnrealFileSystem(@"C:\Program Files\Epic Games\Fortnite\FortniteGame\Content\Paks", EGame.GAME_UE5_LATEST);
-
-// Add aes keys
+var system = new UnrealFileSystem(@"S:\Fortnite\FortniteGame\Content\Paks", EGame.GAME_UE5_LATEST);
 system.AesKeys.Add(new FGuid(), new FAesKey("0x98F7261584C345F9B19402F20110A7A68A48C798FFCE86982F2E8C86F0725CDA"));
-
-// Start a stopwatch
-var sw1 = Stopwatch.StartNew();
-
-// Mount containers
 system.Initialize();
-
-// Print stats
-sw1.Stop();
-Console.WriteLine($"\nMounted {system.Containers.Count} containers(s) in {sw1.ElapsedMilliseconds}ms.\n");
-
-// Load mappings
 system.LoadMappings("++Fortnite+Release-39.51-CL-51287198_zs.usmap", "oo2core_9_win64.dll");
 
-// Extract the asset
 if (!system.TryExtractAsset(
         "FortniteGame/Content/Athena/Items/Weapons/WID_Sniper_Cowboy_Athena_SR.uasset",
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
-// Start a stopwatch
-var sw = Stopwatch.StartNew();
-
-// Read everything
 asset!.ReadAll();
 
-// Write stats
-sw.Stop();
-Console.WriteLine($"\nRead all in {sw.ElapsedMilliseconds}ms.\n");
+var system2 = new UnrealFileSystem(@"B:\FN Versions\14.40\FortniteGame\Content\Paks", EGame.GAME_UE4_26);
+system2.AesKeys.Add(new FGuid(), new FAesKey("0xAB32BAB083F7D923A33AA768BC64B64BF62488948BD49FE61D95343492252558"));
+system2.Initialize();
+system2.LoadMappings("++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", "oo2core_9_win64.dll");
 
-var json = asset.ToString(); // Convert to Json String
-File.WriteAllText("WID_Sniper_Cowboy_Athena_SR.json", json);
+if (!system2.TryExtractAsset(
+        "FortniteGame/Content/Athena/Items/Weapons/AthenaRangedWeapons.uasset",
+        out var asset2))
+    throw new KeyNotFoundException("Unable to find asset.");
 
+asset2.ReadAll();
+
+// Remap object property
+var dataTable = asset["WID_Sniper_Cowboy_Athena_SR"]["WeaponStatHandle"]["DataTable"];
+var export = asset2.As<ZenAsset>().ExportMap[0].GlobalImportIndex;
+var index = dataTable.GetValue<ObjectProperty>().Value;
+asset.As<ZenAsset>().ImportMap[-index.Index - 1] = export;
+
+// Change version
 asset.Game = EGame.GAME_UE4_26;
-asset.Mappings =
-    UnrealFileSystem.LoadMappingsStatic("++Fortnite+Release-14.60-CL-14786821-Windows_oo.usmap", "oo2core_9_win64.dll");
+asset.Mappings = asset2.Mappings;
 
-// Create a writer with the file "CID_028_Athena_Commando_F.uasset"
 var writer = new Writer("WID_Sniper_Cowboy_Athena_SR.uasset");
-
-// Serialize the asset and dispose the writer
 asset.WriteAll(writer);
 writer.Close();
 
-// Create a new ZenAsset with the asset with just serialized
 var testAsset = new ZenAsset("WID_Sniper_Cowboy_Athena_SR.uasset");
-
-// Set the GlobalReader instance
-var globalToc = system.GetGlobalReader();
+var globalToc = system2.GetGlobalReader();
 testAsset.Initialize(globalToc!);
-
-// Set mappings
-testAsset.Mappings = asset.Mappings;
-
-// Test if it reads our asset properly
+testAsset.System = system2;
+testAsset.Mappings = asset2.Mappings;
 testAsset.ReadAll();
+
+var a = testAsset["WID_Sniper_Cowboy_Athena_SR"];
+var b = a["WeaponStatHandle"];
+var c = b["DataTable"];
+var d = c.GetValue<ObjectProperty>().Value;
+var e = d.ResolvedObject;
 
 Console.ReadKey();

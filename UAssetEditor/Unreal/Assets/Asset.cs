@@ -94,9 +94,6 @@ public abstract class Asset : Reader
     public StructureContainer DefinedStructures = new();
 
     public ObjectContainer Exports = new();
-    
-    // Export objects to load after everything has been read
-    public List<ResolvedExportObject> ExportObjectsToLoad = new();
 
     public Asset(byte[] data, UnrealFileSystem? system = null, UnrealFileReader? reader = null) : base(data)
     {
@@ -159,12 +156,6 @@ public abstract class Asset : Reader
             NameMap.Add(str);
 
         return NameMap.GetIndex(str);
-    }
-
-    public void PostLoad()
-    {
-        foreach (var obj in ExportObjectsToLoad)
-            obj.Load();
     }
 
     public abstract ResolvedObject? ResolvePackageIndex(FPackageIndex? index);

@@ -30,6 +30,11 @@ public struct FPackageObjectIndex : IEquatable<FPackageObjectIndex>
         ImportedPublicExportHashIndex = (uint)TypeAndId
     };
 
+    /*public static FPackageObjectIndex FromReference(FPackageImportReference importRef)
+    {
+        return new FPackageObjectIndex((ulong)importRef.ImportedPackageIndex << 32);
+    }*/
+
     public static FPackageObjectIndex GetInvalid() => new(Invalid);
 
     public FPackageObjectIndex(ulong typeAndId)
