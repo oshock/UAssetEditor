@@ -44,21 +44,22 @@ public abstract class ContainerFile : IDisposable
         if (reader is null)
         {
             if (Reader is not IoGlobalReader)
-                Log.Logger.Warning($"'{path}' was unable to be found in '{Reader?.Name}' because the reader is not an unreal file reader.");
-            
+                Log.Logger.Warning(
+                    $"'{path}' was unable to be found in '{Reader?.Name}' because the reader is not an unreal file reader.");
+
             pkg = null;
             return false;
         }
-        
+
         var root = reader.MountPoint?.Split("../../../").LastOrDefault();
-                if (root != null)
-                {
-                    var part = path.Split().LastOrDefault();
-                    if (part != null)
-                        path = "../../../" + part;
-                }
-        
-                return PackagesByPath.TryGetValue(path, out pkg);
+        if (root != null)
+        {
+            var part = path.Split("../../../").Last().Split(root).LastOrDefault();
+            if (part != null)
+                path = "../../../" + root + part;
+        }
+
+        return PackagesByPath.TryGetValue(path, out pkg);
     }
 
     public void Dispose()

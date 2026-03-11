@@ -31,29 +31,18 @@ if (!system.TryExtractAsset(
         out var asset))
     throw new KeyNotFoundException("Unable to find asset.");
 
-asset!.ReadAll();
+asset!.ForceLoadImportedObjects = true;
+asset.ReadAll();
 
 var system2 = new UnrealFileSystem(@"B:\FN Versions\14.40\FortniteGame\Content\Paks", EGame.GAME_UE4_26);
 system2.AesKeys.Add(new FGuid(), new FAesKey("0xAB32BAB083F7D923A33AA768BC64B64BF62488948BD49FE61D95343492252558"));
 system2.Initialize();
 system2.LoadMappings("++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", "oo2core_9_win64.dll");
 
-if (!system2.TryExtractAsset(
-        "FortniteGame/Content/Athena/Items/Weapons/AthenaRangedWeapons.uasset",
-        out var asset2))
-    throw new KeyNotFoundException("Unable to find asset.");
-
-asset2.ReadAll();
-
-// Remap object property
-var dataTable = asset["WID_Sniper_Cowboy_Athena_SR"]["WeaponStatHandle"]["DataTable"];
-var export = asset2.As<ZenAsset>().ExportMap[0].GlobalImportIndex;
-var index = dataTable.GetValue<ObjectProperty>().Value;
-asset.As<ZenAsset>().ImportMap[-index.Index - 1] = export;
-
 // Change version
 asset.Game = EGame.GAME_UE4_26;
-asset.Mappings = asset2.Mappings;
+asset.Mappings = system2.Mappings;
+asset.System = system2;
 
 var writer = new Writer("WID_Sniper_Cowboy_Athena_SR.uasset");
 asset.WriteAll(writer);
@@ -62,14 +51,10 @@ writer.Close();
 var testAsset = new ZenAsset("WID_Sniper_Cowboy_Athena_SR.uasset");
 var globalToc = system2.GetGlobalReader();
 testAsset.Initialize(globalToc!);
+testAsset.ForceLoadImportedObjects = true;
 testAsset.System = system2;
-testAsset.Mappings = asset2.Mappings;
+testAsset.Mappings = system2.Mappings;
+testAsset.Game = system2.Game;
 testAsset.ReadAll();
-
-var a = testAsset["WID_Sniper_Cowboy_Athena_SR"];
-var b = a["WeaponStatHandle"];
-var c = b["DataTable"];
-var d = c.GetValue<ObjectProperty>().Value;
-var e = d.ResolvedObject;
 
 Console.ReadKey();

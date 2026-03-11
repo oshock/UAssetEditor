@@ -11,9 +11,24 @@ public class FPackageIndex : IUnrealType
 
     public Asset? Owner;
 
-    public ResolvedObject? ResolvedObject => Owner?.ResolvePackageIndex(this);
-    
-    // TODO find asset reference (import)
+    private ResolvedObject? _resolvedObject;
+
+    public ResolvedObject? ResolvedObject
+    {
+        get
+        {
+            if (_resolvedObject == null)
+                Resolve();
+            
+            return _resolvedObject;
+        }
+    }
+
+    public void Resolve()
+    {
+        _resolvedObject = Owner?.ResolvePackageIndex(this);
+    }
+
     public string Text = "None";
 
     public bool IsExport => Index > 0;

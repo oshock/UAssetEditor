@@ -930,7 +930,7 @@ public class FPackageFileVersion
 
 	public override string ToString()
 	{
-		return $"FileVersionUE4: {FileVersionUE4} | FileVersionUE5: {FileVersionUE5}";
+		return $"Game: {Game} | FileVersionUE4: {FileVersionUE4} | FileVersionUE5: {FileVersionUE5}";
 	}
 
 	public static FPackageFileVersion AUTO_UE4 = new(EGame.GAME_UE4_LATEST,

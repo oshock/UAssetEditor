@@ -12,6 +12,19 @@ public class ResolvedObject
     public Asset Package;
     public int ExportIndex;
 
+    // Reload
+    public void ReloadPackage(UnrealFileSystem? system)
+    {
+        if (system == null)
+            throw new NoNullAllowedException("Cannot reload package because unreal file system is null.");
+
+        if (!system.TryExtractAsset(Package.Entry.Path, out var pkg))
+            throw new KeyNotFoundException($"Could not extract asset '{Package.Entry.Path}'");
+        
+        Package = pkg!;
+        Package.ReadHeader();
+    }
+
     public virtual FName Name => new();
     public virtual ResolvedObject? Outer => null;
     public virtual ResolvedObject? Class => null;

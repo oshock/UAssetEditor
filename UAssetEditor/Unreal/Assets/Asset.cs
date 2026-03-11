@@ -11,6 +11,7 @@ using UAssetEditor.Binary;
 using UAssetEditor.Classes;
 using UAssetEditor.Classes.Containers;
 using UAssetEditor.Unreal.Names;
+using UAssetEditor.Unreal.Packages;
 using UAssetEditor.Unreal.Properties;
 using UAssetEditor.Unreal.Properties.Types;
 using UAssetEditor.Unreal.Readers;
@@ -70,6 +71,7 @@ public abstract class Asset : Reader
 {
     public UnrealFileSystem? System;
     public UnrealFileReader? Reader;
+    public UnrealFileEntry Entry;
     
     public string Name { get; set; }
     public Usmap? Mappings;
@@ -87,13 +89,23 @@ public abstract class Asset : Reader
             FileVersion.Game = value;
         }
     }
-    public FPackageFileVersion FileVersion = FPackageFileVersion.AUTO_UE5;
+    
+    public FPackageFileVersion FileVersion = FPackageFileVersion.AUTO_UE4;
     
     public bool HasUnversionedProperties => Flags.HasFlag(EPackageFlags.PKG_UnversionedProperties);
 
     public StructureContainer DefinedStructures = new();
 
     public ObjectContainer Exports = new();
+
+    public List<UProperty> AllProperties = new();
+    
+    /// <summary>
+    /// Should the asset save every property in AllProperties.
+    /// </summary>
+    public bool SaveFlatProperties = false;
+
+    public bool ForceLoadImportedObjects = false;
 
     public Asset(byte[] data, UnrealFileSystem? system = null, UnrealFileReader? reader = null) : base(data)
     {

@@ -74,13 +74,14 @@ public class SoftObjectProperty : AbstractProperty<string>
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(Value);
 
-        var split = Value.Split('.');
-        AssetPathName = new FName(split[0]);
-        PackageName = new FName(split[1]);
-
         if (asset.FileVersion >= EUnrealEngineObjectUE5Version.FSOFTOBJECTPATH_REMOVE_ASSET_PATH_FNAMES)
         {
+            var split = Value.Split('.');
+            
+            AssetPathName = new FName(split[0]);
             AssetPathName.Serialize(writer, asset.NameMap);
+            
+            PackageName = new FName(split[1]);
             PackageName.Serialize(writer, asset.NameMap);
         }
         else

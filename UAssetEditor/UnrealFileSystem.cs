@@ -198,6 +198,7 @@ public class UnrealFileSystem
 
                 asset.Game = Game;
                 asset.Mappings = Mappings;
+                asset.Entry = ioEntry;
 
                 return true;
             }

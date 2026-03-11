@@ -65,6 +65,9 @@ public static class UnversionedPropertyHandler
 			    var uProperty = new UProperty(property.Data, property.Name, propertyValue, property.ArraySize,
 				    property.SchemaIdx, mode == ESerializationMode.Zero);
 			    
+                if (asset.SaveFlatProperties)
+                    asset.AllProperties.Add(uProperty);
+                
 			    properties.Add(uProperty);
 			    remainingValues--;
 			    schemaIndex++;

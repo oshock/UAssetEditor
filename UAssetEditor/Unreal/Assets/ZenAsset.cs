@@ -538,7 +538,7 @@ public class ZenAsset : Asset
                 {
                     var packageId = ImportedPackageIds[(int)packageImportRef.ImportedPackageIndex];
 
-                    if (!System.TryExtractAndRead(packageId, out var pkg, onlyReadHeader: true))
+                    if (!System.TryExtractAndRead(packageId, out var pkg))
                     {
                         Error($"Unable to extract and/or read asset with package id: {packageId.Id}");
                         return null;
@@ -563,7 +563,7 @@ public class ZenAsset : Asset
             {
                 foreach (var packageId in ImportedPackageIds)
                 {
-                    if (!System.TryExtractAndRead(packageId, out var pkg, onlyReadHeader: true))
+                    if (!System.TryExtractAndRead(packageId, out var pkg))
                     {
                         Error($"Unable to extract and/or read asset with package id: {packageId.Id}");
                         return null;
