@@ -53,7 +53,7 @@ public class ObjectProperty : AbstractProperty<FPackageIndex>
                     var obj = Value.ResolvedObject;
                     if (obj == null)
                         throw new NoNullAllowedException(
-                            "Cannot remap object property becasue resolved object was never found.");
+                            "Cannot remap object property because object was never resolved.");
 
                     var exportName = obj.Package.Exports[obj.ExportIndex].Name;
                     obj.ReloadPackage(asset.System);
