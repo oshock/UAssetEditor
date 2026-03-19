@@ -32,6 +32,12 @@ public class FScriptDelegate
         Object = obj;
         FunctionName = functionName;
     }
+    
+    public void Serialize(Writer writer)
+    {
+        writer.Write(Object.Index);
+        FunctionName.Serialize(writer);
+    }
 }
 
 /// <summary>
@@ -53,5 +59,13 @@ public class FMulticastScriptDelegate
     public FMulticastScriptDelegate(FScriptDelegate[] invocationList)
     {
         InvocationList = invocationList;
+    }
+    
+    public void Serialize(Writer writer)
+    {
+        InvocationList ??= [];
+        writer.Write(InvocationList.Length);
+        foreach (var item in InvocationList)
+            item.Serialize(writer);
     }
 }

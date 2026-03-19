@@ -1,3 +1,4 @@
+using System.Data;
 using UAssetEditor.Binary;
 using UAssetEditor.Unreal.Assets;
 using UAssetEditor.Unreal.Objects.UObject;
@@ -27,6 +28,7 @@ public class MulticastDelegateProperty : AbstractProperty<FMulticastScriptDelega
 
     public override void Write(Writer writer, UProperty property, Asset? asset = null, ESerializationMode mode = ESerializationMode.Normal)
     {
-        writer.Write(Value);
+        Value ??= new FMulticastScriptDelegate([]);
+        Value.Serialize(writer);
     }
 }
