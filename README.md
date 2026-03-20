@@ -7,6 +7,7 @@ An Unreal Engine UAsset API for Fortnite
 - Modify uasset data/ properties
 - Serialize the modified asset back into a uasset file
 - Switching engine version and mappings to allow porting assets to different Fortnite versions (WIP documentation)
+- Automatic object property remapping (when switching Fortnite versions)
 
 ## How to use
 ```csharp
