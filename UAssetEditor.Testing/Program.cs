@@ -19,12 +19,12 @@ using UsmapDotNet;
 
 Logger.StartLogger();
 
-Oodle.Initialize("oo2core_9_win64.dll");
+UnrealFileSystem.InitializeOodle("oo2core_9_win64.dll");
 
 var system = new UnrealFileSystem(@"S:\Fortnite\FortniteGame\Content\Paks", EGame.GAME_UE5_LATEST);
 system.AesKeys.Add(new FGuid(), new FAesKey("0x98F7261584C345F9B19402F20110A7A68A48C798FFCE86982F2E8C86F0725CDA"));
 system.Initialize();
-system.LoadMappings("++Fortnite+Release-39.51-CL-51287198_zs.usmap", "oo2core_9_win64.dll");
+system.LoadMappings("++Fortnite+Release-40.00-CL-51746096_zs.usmap");
 
 if (!system.TryExtractAsset(
         "FortniteGame/Content/Athena/Items/Weapons/WID_Sniper_Cowboy_Athena_SR.uasset",
@@ -37,7 +37,7 @@ asset.ReadAll();
 var system2 = new UnrealFileSystem(@"B:\FN Versions\14.40\FortniteGame\Content\Paks", EGame.GAME_UE4_26);
 system2.AesKeys.Add(new FGuid(), new FAesKey("0xAB32BAB083F7D923A33AA768BC64B64BF62488948BD49FE61D95343492252558"));
 system2.Initialize();
-system2.LoadMappings("++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap", "oo2core_9_win64.dll");
+system2.LoadMappings("++Fortnite+Release-14.40-CL-14550713-Windows_oo.usmap");
 
 // Change version
 asset.Game = EGame.GAME_UE4_26;

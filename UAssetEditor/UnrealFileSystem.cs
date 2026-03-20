@@ -31,6 +31,8 @@ public class UnrealFileSystem
     public EGame Game;
     public Usmap? Mappings { get; private set; }
 
+    private static string? OodleDll;
+
     public IoGlobalReader? GetGlobalReader() => Containers.FirstOrDefault(x => x.Reader is IoGlobalReader)?.Reader as IoGlobalReader;
     
     public UnrealFileSystem(string directory, EGame gameVersion)
@@ -41,18 +43,24 @@ public class UnrealFileSystem
         _containers = new List<ContainerFile>();
     }
 
-    public static Usmap LoadMappingsStatic(string path, string? oodleDll = null)
+    public static void InitializeOodle(string path)
+    {
+        OodleDll = path;
+        Compression.Oodle.Initialize(path);
+    }
+
+    public static Usmap LoadMappingsStatic(string path)
     {
         return Usmap.Parse(path, new UsmapOptions
         {
-            Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
+            Oodle = string.IsNullOrEmpty(OodleDll) ? null : new Oodle(OodleDll),
             SaveNames = false
         });
     }
     
-    public void LoadMappings(string path, string? oodleDll = null)
+    public void LoadMappings(string path)
     {
-        Mappings = LoadMappingsStatic(path, oodleDll);
+        Mappings = LoadMappingsStatic(path);
     }
 
     
