@@ -40,6 +40,7 @@ public abstract class ContainerFile : IDisposable
     /// <returns></returns>
     public bool TryFindPackage(string path, out UnrealFileEntry? pkg)
     {
+        path = path.ToLower();
         var reader = Reader?.AsOrDefault<UnrealFileReader>();
         if (reader is null)
         {
