@@ -62,16 +62,6 @@ public class UnrealFileSystem
     {
         Mappings = LoadMappingsStatic(path);
     }
-
-    
-    public void LoadMappings(byte[] data, string? oodleDll = null)
-    {
-        Mappings = Usmap.Parse(data, new UsmapOptions
-        {
-            Oodle = string.IsNullOrEmpty(oodleDll) ? null : new Oodle(oodleDll),
-            SaveNames = false
-        });
-    }
     
     public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6, bool unloadContainersWithNoFiles = true)
     {
