@@ -28,10 +28,16 @@ public class FIoStoreEntry : UnrealFileEntry
         }
     }
 
-    public FIoChunkId GetChunkId() => GetIoFile().Resource.ChunkIds[TocEntryIndex];
-
-    private FIoOffsetAndLength GetOffsetAndLength() => GetIoFile().Resource.OffsetAndLengths[TocEntryIndex];
+    public FIoChunkId GetChunkId()
+    {
+        return GetIoFile().Resource.GetChunkId(TocEntryIndex);
+    }
     
+    public FIoOffsetAndLength GetOffsetAndLength()
+    {
+        return GetIoFile().Resource.GetOffsetAndLength(TocEntryIndex);
+    }
+
     public static FIoStoreTocCompressedBlockEntry[] GetCompressionBlocks(IoStoreReader reader, FIoOffsetAndLength offsetAndLength)
     {
         var compressionBlockSize = reader.Resource.Header.CompressionBlockSize;
@@ -39,7 +45,16 @@ public class FIoStoreEntry : UnrealFileEntry
         var blockCount = (offsetAndLength.Length - 1) / compressionBlockSize + 1;
 
         var blocks = new FIoStoreTocCompressedBlockEntry[blockCount];
-        Array.ConstrainedCopy(reader.Resource.CompressionBlocks, blockIndex, blocks, 0, blocks.Length);
+
+        if (Globals.OptimizeMemory)
+        {
+            for (int i = 0; i < blocks.Length; i++)
+                blocks[i] = reader.Resource.GetBlock(blockIndex + i);
+        }
+        else
+        {
+            Array.ConstrainedCopy(reader.Resource.CompressionBlocks, blockIndex, blocks, 0, blocks.Length);
+        }
         
         return blocks;
     }

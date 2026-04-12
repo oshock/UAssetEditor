@@ -41,8 +41,13 @@ public class IoStoreReader : UnrealFileReader
             {
                 foreach (var chunkIndexWithoutPerfectHash in Resource.ChunkIndicesWithoutPerfectHash)
                 {
-                    TocImperfectHashMapFallback[Resource.ChunkIds[chunkIndexWithoutPerfectHash]] =
-                        Resource.OffsetAndLengths[chunkIndexWithoutPerfectHash];
+                    if (Globals.OptimizeMemory)
+                    {
+                        TocImperfectHashMapFallback[Resource.GetChunkId(chunkIndexWithoutPerfectHash)] =
+                            Resource.GetOffsetAndLength(chunkIndexWithoutPerfectHash);
+                    }
+                    TocImperfectHashMapFallback[Resource.GetChunkId(chunkIndexWithoutPerfectHash)] =
+                        Resource.GetOffsetAndLength(chunkIndexWithoutPerfectHash);
                 }
             }
         }
@@ -54,16 +59,17 @@ public class IoStoreReader : UnrealFileReader
         {
             return TocImperfectHashMapFallback.GetValueOrDefault(chunkId);
         }
-
+        
+        Resource.LoadChunkIds();
         var chunkIndex = Array.IndexOf(Resource.ChunkIds, chunkId);
-        return chunkIndex == -1 ? null : Resource.OffsetAndLengths[chunkIndex];
+        return chunkIndex == -1 ? null : Resource.GetOffsetAndLength(chunkIndex);
     }
 
     public FIoOffsetAndLength? FindChunkInternal(FIoChunkId chunkId)
     {
         if (Resource.ChunkPerfectHashSeeds != null)
         {
-            var chunkCount = (uint)Resource.ChunkIds.Length;
+            var chunkCount = Resource.Header.TocEntryCount;
             if (chunkCount == 0)
                 return null;
 
@@ -91,7 +97,7 @@ public class IoStoreReader : UnrealFileReader
                 slot = (uint)(Resource.HashChunkIdWithSeed(seed, chunkId) % chunkCount);
             }
 
-            return Resource.ChunkIds[slot].GetHashCode() == chunkId.GetHashCode() ? Resource.OffsetAndLengths[slot] : null;
+            return Resource.GetChunkId(slot).GetHashCode() == chunkId.GetHashCode() ? Resource.GetOffsetAndLength(slot) : null;
         }
 
         return FindChunkImperfect(chunkId);

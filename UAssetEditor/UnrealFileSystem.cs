@@ -63,8 +63,10 @@ public class UnrealFileSystem
         Mappings = LoadMappingsStatic(path);
     }
     
-    public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6, bool unloadContainersWithNoFiles = true)
+    public void Initialize(bool loadInParallel = true, int maxDegreeOfParallelism = 6, bool unloadContainersWithNoFiles = true, bool optimizeMemory = false)
     {
+        Globals.OptimizeMemory = optimizeMemory;
+        
         var files = Directory.EnumerateFiles(_directory);
 
         if (loadInParallel)

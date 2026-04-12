@@ -12,9 +12,9 @@ public class FIoStoreTocResource
     
     public readonly FIoStoreTocHeader Header;
 
-    public readonly FIoChunkId[] ChunkIds;
-    public readonly FIoOffsetAndLength[] OffsetAndLengths;
-    public readonly FIoStoreTocCompressedBlockEntry[] CompressionBlocks;
+    public FIoChunkId[]? ChunkIds;
+    public readonly FIoOffsetAndLength[]? OffsetAndLengths;
+    public readonly FIoStoreTocCompressedBlockEntry[]? CompressionBlocks;
     public readonly int[]? ChunkPerfectHashSeeds;
     public readonly int[]? ChunkIndicesWithoutPerfectHash;
     public readonly string[] CompressionMethods;
@@ -29,7 +29,6 @@ public class FIoStoreTocResource
         AesKey = key;
     }
     
-    
     public FIoStoreTocResource(Reader reader)
     {
         Reader = reader;
@@ -40,12 +39,22 @@ public class FIoStoreTocResource
             Header.PartitionCount = 1;
             Header.PartitionSize = ulong.MaxValue;
         }
-        
-        ChunkIds = reader.ReadArray<FIoChunkId>((int)Header.TocEntryCount);
 
-        OffsetAndLengths = new FIoOffsetAndLength[Header.TocEntryCount];
-        for (int i = 0; i < OffsetAndLengths.Length; i++)
-            OffsetAndLengths[i] = new FIoOffsetAndLength(reader);
+        ChunkIdPosition = Reader.Position;
+        if (Globals.OptimizeMemory)
+            Reader.Position += Header.TocEntryCount * 12;
+        else
+            ChunkIds = reader.ReadArray<FIoChunkId>((int)Header.TocEntryCount);
+
+        OffsetAndLengthPosition = Reader.Position;
+        if (Globals.OptimizeMemory)
+            Reader.Position += Header.TocEntryCount * 10;
+        else
+        {
+            OffsetAndLengths = new FIoOffsetAndLength[Header.TocEntryCount];
+            for (int i = 0; i < OffsetAndLengths.Length; i++)
+                OffsetAndLengths[i] = new FIoOffsetAndLength(reader);
+        }
 
         uint perfectHashSeedsCount = 0;
         uint chunksWithoutPerfectHashCount = 0;
@@ -67,9 +76,15 @@ public class FIoStoreTocResource
             ChunkIndicesWithoutPerfectHash = reader.ReadArray<int>((int)chunksWithoutPerfectHashCount);
         }
 
-        CompressionBlocks = new FIoStoreTocCompressedBlockEntry[Header.TocCompressedBlockEntryCount];
-        for (int i = 0; i < CompressionBlocks.Length; i++)
-            CompressionBlocks[i] = new FIoStoreTocCompressedBlockEntry(reader);
+        CompressionBlockPosition = Reader.Position;
+        if (Globals.OptimizeMemory)
+            Reader.Position += Header.TocCompressedBlockEntryCount * 12;
+        else
+        {
+            CompressionBlocks = new FIoStoreTocCompressedBlockEntry[Header.TocCompressedBlockEntryCount];
+            for (int i = 0; i < CompressionBlocks.Length; i++)
+                CompressionBlocks[i] = new FIoStoreTocCompressedBlockEntry(reader);
+        }
 
         var length = (int)Header.CompressionMethodNameLength;
         
@@ -97,7 +112,7 @@ public class FIoStoreTocResource
             DirectoryIndexPosition = reader.Position;
         }
     }
-
+    
     public unsafe ulong HashChunkIdWithSeed(int seed, FIoChunkId chunk)
     {
         var ptr = (byte*)&chunk;
@@ -111,4 +126,52 @@ public class FIoStoreTocResource
 
         return hash;
     }
+    
+    #region Memory Optimizations
+
+    private readonly long ChunkIdPosition;
+    private readonly long OffsetAndLengthPosition;
+    private readonly long CompressionBlockPosition;
+    
+    public FIoChunkId GetChunkId(uint index)
+    {
+        if (!Globals.OptimizeMemory) 
+            return ChunkIds[index];
+        
+        Reader.Position = ChunkIdPosition + 12 * index;
+        return Reader.Read<FIoChunkId>();
+    }
+
+    public FIoChunkId GetChunkId(int index) => GetChunkId((uint)index);
+
+    public void LoadChunkIds()
+    {
+        if (ChunkIds == null)
+            return;
+
+        Reader.Position = ChunkIdPosition;
+        ChunkIds = Reader.ReadArray<FIoChunkId>((int)Header.TocEntryCount);
+    }
+    
+    public FIoOffsetAndLength GetOffsetAndLength(uint index)
+    {
+        if (!Globals.OptimizeMemory) 
+            return OffsetAndLengths[index];
+        
+        Reader.Position = OffsetAndLengthPosition + 10 * index;
+        return new FIoOffsetAndLength(Reader);
+    }
+    
+    public FIoOffsetAndLength GetOffsetAndLength(int index) => GetOffsetAndLength((uint)index);
+    
+    public FIoStoreTocCompressedBlockEntry GetBlock(int blockIndex)
+    {
+        /*if (!Globals.OptimizeMemory) 
+            return CompressionBlocks[blockIndex];*/
+        
+        Reader.Position = CompressionBlockPosition + 12 * blockIndex;
+        return new FIoStoreTocCompressedBlockEntry(Reader);
+    }
+    
+    #endregion
 }
