@@ -117,7 +117,7 @@ public class UStructVer
                 return ver.Type;
         }
 
-        Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
+        //Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
         return Default;
     }
     
@@ -129,7 +129,7 @@ public class UStructVer
                 return ver.Type;
         }
 
-        Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
+        //Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
         return Default;
     }
     
@@ -140,7 +140,7 @@ public class UStructVer
         if (version.IsUE5())
             return Get(version.FileVersionUE5);
 
-        Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
+        //Warning($"Could not find struct '{Name}' with the version: {version}. Returning default type.");
         return Default;
     }
 }

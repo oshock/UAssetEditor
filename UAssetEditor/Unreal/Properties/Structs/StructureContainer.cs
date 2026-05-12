@@ -40,7 +40,6 @@ public class StructureContainer() : Container<LoadedStructure>(new List<LoadedSt
         }
     }
 
-
     public bool Contains(string name)
     {
         return Items.Any(structure => structure.Name == name);
@@ -51,7 +50,7 @@ public class StructureContainer() : Container<LoadedStructure>(new List<LoadedSt
         if (!Contains(struc.Name))
         {
             Items.Add(new LoadedStructure(this, struc));
-            Log.Information($"Saved {struc.Name} for later use");
+            Information($"Saved {struc.Name} for later use");
         }
     }
 }
